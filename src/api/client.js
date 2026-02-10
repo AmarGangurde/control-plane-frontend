@@ -9,8 +9,8 @@ export const apiFetch = async (path, options = {}) => {
       ? `Bearer ${adminKey}`
       : null
     : apiKey
-    ? `Bearer ${apiKey}`
-    : null;
+      ? `Bearer ${apiKey}`
+      : null;
 
   const headers = {
     'Content-Type': 'application/json',
@@ -34,4 +34,30 @@ export const apiFetch = async (path, options = {}) => {
   }
 
   return res.json();
+};
+
+export const api = {
+  auth: {
+    google: (id_token) => apiFetch('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ id_token })
+    })
+  },
+  apps: {
+    list: () => apiFetch('/apps'),
+    get: (id) => apiFetch(`/apps/${id}`),
+    create: (data) => apiFetch('/apps', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+    delete: (id) => apiFetch(`/apps/${id}`, { method: 'DELETE' })
+  },
+  billing: {
+    plans: () => apiFetch('/billing/plans'),
+    balance: () => apiFetch('/billing/balance'),
+    topUp: (amount) => apiFetch('/billing/topup', {
+      method: 'POST',
+      body: JSON.stringify({ amount })
+    })
+  }
 };

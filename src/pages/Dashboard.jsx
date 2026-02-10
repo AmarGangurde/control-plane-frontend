@@ -3,27 +3,14 @@ import AppList from '../components/AppList';
 import CreateApp from '../components/CreateApp';
 
 export default function Dashboard() {
-  const { apiKey, saveKey, logout } = useAuth();
+  const { apiKey } = useAuth();
 
-  if (!apiKey) {
-    return (
-      <div style={{ padding: 20 }}>
-        <h2>Enter API Key</h2>
-        <input
-          type="password"
-          placeholder="sk_live_..."
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') saveKey(e.target.value);
-          }}
-        />
-      </div>
-    );
-  }
+  // Redundant check (handled in App.jsx) but good for safety
+  if (!apiKey) return null;
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Your Apps</h2>
-      <button onClick={logout}>Logout</button>
+    <div>
+      <h2 className="text-2xl font-bold mb-6">Wrexer Mini-Kube</h2>
       <CreateApp />
       <AppList />
     </div>
