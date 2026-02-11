@@ -18,7 +18,7 @@ export const apiFetch = async (path, options = {}) => {
     ...(options.headers || {})
   };
 
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(`${API_BASE}/api${path}`, {
     ...options,
     headers
   });

@@ -35,7 +35,7 @@ export default function Landing() {
         setAuthLoading(true);
         setAuthError('');
         try {
-            const res = await fetch(`${API_BASE}/auth/google`, {
+            const res = await fetch(`${API_BASE}/api/auth/google`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id_token })
