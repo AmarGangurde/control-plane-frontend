@@ -4,7 +4,6 @@ import { api } from '../api/client';
 export default function CreateApp() {
   const [name, setName] = useState('');
   const [image, setImage] = useState('');
-  const [port, setPort] = useState(80);
   const [plans, setPlans] = useState([]);
   const [selectedPlan, setSelectedPlan] = useState('p-tiny');
   const [loading, setLoading] = useState(false);
@@ -19,12 +18,11 @@ export default function CreateApp() {
     setLoading(true);
     setCreateMsg(null);
     try {
-      const res = await api.apps.create({ name, image, port, planId: selectedPlan });
+      const res = await api.apps.create({ name, image, port: 80, planId: selectedPlan });
       setCreateMsg({ type: 'success', text: `Deployed: ${res.url}` });
       window.dispatchEvent(new Event('apps:reload'));
       setName('');
       setImage('');
-      setPort(80);
     } catch (e) {
       setCreateMsg({ type: 'error', text: e.message });
     } finally {
@@ -33,11 +31,13 @@ export default function CreateApp() {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border mb-8">
-      <h3 className="text-lg font-semibold mb-4">Deploy New App</h3>
+    <div className="bg-white/5 p-8 rounded-3xl border border-white/5 mb-10">
+      <h3 className="text-xl font-black mb-6 tracking-tight">Deploy New App</h3>
 
       {createMsg && (
-        <div className={`p-3 rounded mb-4 ${createMsg.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+        <div className={`p-4 rounded-xl mb-6 font-medium ${createMsg.type === 'success'
+          ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+          : 'bg-red-500/10 text-red-400 border border-red-500/20'
           }`}>
           {createMsg.text}
         </div>
@@ -54,7 +54,7 @@ export default function CreateApp() {
           />
         </div>
 
-        <div>
+        <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Docker Image</label>
           <input
             className="w-full border rounded p-2"
@@ -64,31 +64,21 @@ export default function CreateApp() {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Container Port</label>
-          <input
-            type="number"
-            className="w-full border rounded p-2"
-            value={port}
-            onChange={e => setPort(+e.target.value)}
-          />
-        </div>
-
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Select Plan</label>
+          <label className="block text-sm font-bold text-slate-400 mb-2 uppercase tracking-widest">Select Plan</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {plans.map(p => (
               <div
                 key={p.id}
                 onClick={() => setSelectedPlan(p.id)}
-                className={`border rounded p-4 cursor-pointer transition-colors ${selectedPlan === p.id
-                  ? 'border-blue-500 ring-2 ring-blue-200 bg-blue-50'
-                  : 'hover:border-blue-300 hover:bg-gray-50'
+                className={`border rounded-2xl p-4 cursor-pointer transition-all ${selectedPlan === p.id
+                  ? 'border-blue-500 bg-blue-500/10'
+                  : 'border-white/5 hover:border-white/20 hover:bg-white/5'
                   }`}
               >
-                <div className="font-semibold">{p.name}</div>
-                <div className="text-sm text-gray-600 mt-1">{p.cpu} CPU / {p.memory} RAM</div>
-                <div className="text-xs text-gray-500 mt-2">₹{p.price_per_hour}/hr</div>
+                <div className="font-bold text-white">{p.name}</div>
+                <div className="text-xs text-slate-400 mt-1 font-medium">{p.cpu} CPU / {p.memory} RAM</div>
+                <div className="text-[10px] text-blue-400 mt-2 font-black uppercase tracking-wider">₹{p.price_per_hour}/hr</div>
               </div>
             ))}
           </div>
@@ -99,7 +89,7 @@ export default function CreateApp() {
         <button
           onClick={submit}
           disabled={loading || !image || !name}
-          className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50 font-medium"
+          className="bg-blue-600 text-white px-8 py-3 rounded-2xl hover:bg-blue-500 disabled:opacity-50 font-bold transition-all shadow-lg shadow-blue-600/20"
         >
           {loading ? 'Deploying...' : 'Deploy App'}
         </button>

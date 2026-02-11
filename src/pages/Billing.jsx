@@ -91,14 +91,14 @@ export default function Billing() {
 
     return (
         <div className="max-w-6xl mx-auto py-10 px-6">
-            <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 mb-2">Billing Dashboard</h1>
-                    <p className="text-slate-500">Real-time resource usage and credit management.</p>
+                    <h1 className="text-4xl font-black text-white mb-3 tracking-tight">Billing Dashboard</h1>
+                    <p className="text-slate-400 text-lg font-medium">Real-time resource usage and credit management.</p>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-100 rounded-xl text-amber-700 text-sm font-medium">
-                    <AlertCircle size={16} />
-                    Auto-deletion active: Pods stop when balance hit ₹0
+                <div className="flex items-center gap-3 px-5 py-2.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-amber-400 text-sm font-bold uppercase tracking-wide">
+                    <AlertCircle size={18} />
+                    Auto-deletion active
                 </div>
             </header>
 
@@ -107,23 +107,23 @@ export default function Billing() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm relative overflow-hidden"
+                    className="bg-white/5 rounded-[2rem] p-8 border border-white/5 shadow-2xl relative overflow-hidden group"
                 >
-                    <div className="absolute top-0 right-0 p-6 opacity-10">
-                        <Zap size={80} className="text-slate-300" />
+                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <Zap size={100} className="text-blue-500" />
                     </div>
                     <div className="relative z-10">
-                        <h2 className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Available balance</h2>
-                        <div className="flex items-baseline gap-2 mb-4">
-                            <span className="text-4xl font-extrabold text-slate-900">₹{balance}</span>
-                            <span className="text-slate-400 text-sm font-medium">INR</span>
+                        <h2 className="text-blue-400 text-xs font-black uppercase tracking-[0.2em] mb-3">Available balance</h2>
+                        <div className="flex items-baseline gap-3 mb-6">
+                            <span className="text-5xl font-black text-white">₹{balance.toLocaleString()}</span>
+                            <span className="text-slate-500 text-sm font-bold tracking-widest uppercase">INR</span>
                         </div>
 
-                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                            <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">Status Report</div>
-                            <div className="text-xs font-bold text-slate-900 flex items-center gap-2">
-                                <div className={`w-2 h-2 rounded-full ${balance > 0 ? 'bg-green-500 animate-pulse' : 'bg-red-400'}`} />
-                                Account {balance > 0 ? 'Active & Healthy' : 'Action Required'}
+                        <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                            <div className="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-2">System Status</div>
+                            <div className="text-sm font-bold text-white flex items-center gap-2">
+                                <div className={`w-2.5 h-2.5 rounded-full ${balance > 0 ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                                Account {balance > 0 ? 'Verified & Active' : 'Credit Required'}
                             </div>
                         </div>
                     </div>
@@ -134,36 +134,36 @@ export default function Billing() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between"
+                    className="bg-white/5 rounded-[2rem] p-8 border border-white/5 shadow-2xl flex flex-col justify-between"
                 >
                     <div>
-                        <h2 className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-4 flex items-center gap-2">
-                            <Box size={14} className="text-indigo-500" />
+                        <h2 className="text-indigo-400 text-xs font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                            <Box size={16} />
                             Live Consumption
                         </h2>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-8">
                             <div>
-                                <div className="text-2xl font-bold text-slate-900">{appsCount}</div>
-                                <div className="text-[10px] text-slate-400 font-medium">Active Pods</div>
+                                <div className="text-3xl font-black text-white mb-1">{appsCount}</div>
+                                <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Active Pods</div>
                             </div>
                             <div>
-                                <div className="text-2xl font-bold text-slate-900">₹{hourlyCost}</div>
-                                <div className="text-[10px] text-slate-400 font-medium">Cost / Hour</div>
+                                <div className="text-3xl font-black text-white mb-1">₹{hourlyCost}</div>
+                                <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Cost / Hour</div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div className="mt-8 pt-8 border-t border-white/5 flex items-center justify-between">
                         <div>
-                            <div className="text-[10px] text-slate-400 font-bold mb-0.5 tracking-wider">ONGOING CREDIT</div>
-                            <div className="text-sm font-black text-indigo-600 font-mono">
+                            <div className="text-[10px] text-slate-500 font-black mb-1 tracking-widest uppercase">Project Burn</div>
+                            <div className="text-sm font-black text-indigo-400 font-mono">
                                 CREDIT = ₹{balance}
                             </div>
                         </div>
-                        <div className="flex -space-x-1 opacity-50">
-                            {[...Array(Math.min(appsCount, 3))].map((_, i) => (
-                                <div key={i} className="w-5 h-5 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center">
-                                    <Box size={8} className="text-slate-400" />
+                        <div className="flex -space-x-2">
+                            {[...Array(Math.min(appsCount, 4))].map((_, i) => (
+                                <div key={i} className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-sm">
+                                    <Box size={10} className="text-slate-400" />
                                 </div>
                             ))}
                         </div>
@@ -175,21 +175,22 @@ export default function Billing() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="bg-slate-50 rounded-3xl p-6 border border-slate-200 shadow-inner"
+                    className="bg-white/5 rounded-[2rem] p-8 border border-white/5 shadow-2xl overflow-hidden relative"
                 >
-                    <h2 className="text-slate-900 text-xs font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
-                        <CreditCard size={14} className="text-blue-600" />
+                    <div className="absolute inset-0 bg-blue-600/5 -z-10" />
+                    <h2 className="text-blue-400 text-xs font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                        <CreditCard size={16} />
                         Quick Recharge
                     </h2>
 
-                    <div className="grid grid-cols-2 gap-2 mb-4">
+                    <div className="grid grid-cols-2 gap-3 mb-6">
                         {AMOUNTS.map(amt => (
                             <button
                                 key={amt}
                                 onClick={() => setSelectedAmount(amt)}
-                                className={`py-2 px-3 rounded-xl text-sm font-bold transition-all border-2 ${selectedAmount === amt
-                                    ? 'bg-white border-blue-600 text-blue-600 shadow-sm'
-                                    : 'bg-white/50 border-transparent text-slate-500 hover:border-slate-200'
+                                className={`py-3 px-4 rounded-2xl text-sm font-black transition-all border-2 ${selectedAmount === amt
+                                    ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/20'
+                                    : 'bg-white/5 border-white/5 text-slate-400 hover:border-white/20'
                                     }`}
                             >
                                 ₹{amt}
@@ -200,10 +201,10 @@ export default function Billing() {
                     <button
                         onClick={handleTopUp}
                         disabled={loading}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-100 flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                        className="w-full bg-white text-slate-950 hover:bg-slate-200 font-black py-4 rounded-2xl transition-all shadow-2xl shadow-white/5 flex items-center justify-center gap-3 text-sm disabled:opacity-50"
                     >
-                        {loading ? 'Processing...' : 'Recharge Now'}
-                        <ArrowRight size={16} />
+                        {loading ? 'Processing...' : 'Complete Top-up'}
+                        <ArrowRight size={18} />
                     </button>
                 </motion.div>
             </div>
@@ -213,60 +214,60 @@ export default function Billing() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="mt-12 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden"
+                className="mt-16 bg-white/5 rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden"
             >
-                <div className="p-8 border-b border-slate-100 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-slate-800 font-bold text-lg">
-                        <History className="text-slate-400" size={24} />
-                        Billing History
+                <div className="p-10 border-b border-white/5 flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-white font-black text-xl tracking-tight">
+                        <History className="text-slate-500" size={24} />
+                        Transaction History
                     </div>
                 </div>
 
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50 text-slate-500 text-xs font-semibold uppercase tracking-wider">
-                                <th className="px-8 py-4">Transaction</th>
-                                <th className="px-8 py-4">Status</th>
-                                <th className="px-8 py-4">Amount</th>
-                                <th className="px-8 py-4">Date</th>
+                            <tr className="bg-white/5 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">
+                                <th className="px-10 py-5">Transaction Details</th>
+                                <th className="px-10 py-5">Status</th>
+                                <th className="px-10 py-5 text-right">Amount</th>
+                                <th className="px-10 py-5">Execution Date</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-white/5">
                             {historyLoading ? (
                                 <tr>
-                                    <td colSpan="4" className="px-8 py-12 text-center text-slate-400 italic">
-                                        Loading history...
+                                    <td colSpan="4" className="px-10 py-20 text-center text-slate-500 italic font-medium">
+                                        Synchronizing history...
                                     </td>
                                 </tr>
                             ) : transactions.length === 0 ? (
                                 <tr>
-                                    <td colSpan="4" className="px-8 py-12 text-center text-slate-400 italic">
-                                        No recent transactions.
+                                    <td colSpan="4" className="px-10 py-20 text-center text-slate-500 italic font-medium">
+                                        No recent activity detected.
                                     </td>
                                 </tr>
                             ) : (
                                 transactions.map((tx) => (
-                                    <tr key={tx.id} className="hover:bg-slate-50/50 transition-colors">
-                                        <td className="px-8 py-4">
-                                            <div className="font-medium text-slate-900">
-                                                {tx.type === 'topup' ? 'Credit Top Up' : (tx.type === '5min_cycle_charge' ? `Resource Usage (${tx.external_id || 'Pod'})` : tx.type)}
+                                    <tr key={tx.id} className="hover:bg-white/[0.02] transition-colors group">
+                                        <td className="px-10 py-6">
+                                            <div className="font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">
+                                                {tx.type === 'topup' ? 'Credit Injection' : (tx.type === '5min_cycle_charge' ? `Resource Consumption (${tx.external_id || 'Pod'})` : tx.type)}
                                             </div>
-                                            <div className="text-xs text-slate-400 font-mono">{tx.id}</div>
+                                            <div className="text-[10px] text-slate-500 font-mono tracking-tighter uppercase">{tx.id}</div>
                                         </td>
-                                        <td className="px-8 py-4">
-                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${tx.status === 'success'
-                                                ? 'bg-green-50 text-green-600'
-                                                : (tx.status === 'pending' ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600')
+                                        <td className="px-10 py-6">
+                                            <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-widest ${tx.status === 'success'
+                                                ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                                                : (tx.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20')
                                                 }`}>
                                                 {tx.status === 'success' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
                                                 {tx.status}
                                             </span>
                                         </td>
-                                        <td className={`px-8 py-4 font-bold ${tx.amount > 0 ? 'text-green-600' : 'text-slate-900'}`}>
+                                        <td className={`px-10 py-6 text-right font-black text-lg ${tx.amount > 0 ? 'text-green-400' : 'text-white'}`}>
                                             {tx.amount > 0 ? `+₹${tx.amount}` : `-₹${Math.abs(tx.amount)}`}
                                         </td>
-                                        <td className="px-8 py-4 text-slate-500 text-sm">
+                                        <td className="px-10 py-6 text-slate-400 text-xs font-medium">
                                             {new Date(tx.created_at + 'Z').toLocaleString()}
                                         </td>
                                     </tr>

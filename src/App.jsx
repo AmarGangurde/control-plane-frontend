@@ -1,79 +1,105 @@
+import { BrowserRouter as Router, Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Dashboard from './pages/Dashboard';
 import Billing from './pages/Billing';
 import Landing from './pages/Landing';
-import { useState } from 'react';
+import TInfo from './pages/TInfo';
+import PInfo from './pages/PInfo';
+import RInfo from './pages/RInfo';
 
-const Layout = ({ children, onNavigate, currentPage }) => {
-  const { logout } = useAuth();
+const Layout = ({ children }) => {
+  const { logout, user } = useAuth();
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-      <nav className="bg-white border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center gap-8">
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                KubeHost
-              </span>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => onNavigate('dashboard')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${currentPage === 'dashboard'
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                    }`}
-                >
-                  Dashboard
-                </button>
-                <button
-                  onClick={() => onNavigate('billing')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${currentPage === 'billing'
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                    }`}
-                >
-                  Billing
-                </button>
+    <div className="min-h-screen bg-[#020617] text-slate-50 font-sans selection:bg-blue-500 selection:text-white">
+      <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-[#020617]/80 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-8">
+            <div className="flex items-center gap-2">
+              <div className="bg-white p-1 rounded-lg shadow-lg shadow-white/10">
+                <img src="/W.png" alt="Wrexer Logo" className="w-5 h-5 object-contain" />
               </div>
+              <span className="text-xl font-bold tracking-tight">
+                wrexer.com
+              </span>
             </div>
-            <div className="flex items-center">
-              <button
-                onClick={logout}
-                className="text-gray-500 hover:text-red-600 text-sm font-medium px-3 py-2"
+            <div className="flex gap-1">
+              <NavLink
+                to="/dashboard"
+                className={({ isActive }) => `px-4 py-2 rounded-xl text-sm font-semibold transition-all ${isActive ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
               >
-                Sign Out
-              </button>
+                Dashboard
+              </NavLink>
+              <NavLink
+                to="/billing"
+                className={({ isActive }) => `px-4 py-2 rounded-xl text-sm font-semibold transition-all ${isActive ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+              >
+                Billing
+              </NavLink>
             </div>
+          </div>
+          <div className="flex items-center gap-4">
+            {user?.name && (
+              <span className="text-sm text-slate-400 font-medium hidden sm:inline">
+                {user.name}
+              </span>
+            )}
+            <button
+              onClick={logout}
+              className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-400 hover:text-red-400 transition-all"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </nav>
-      <main className="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto pt-24 pb-12 px-6">
         {children}
       </main>
     </div>
   );
 };
 
-const AuthenticatedApp = () => {
-  const { apiKey } = useAuth();
-  const [page, setPage] = useState('dashboard');
-
-  if (!apiKey) {
-    return <Landing />;
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
   }
+  return <Layout>{children}</Layout>;
+};
 
-  return (
-    <Layout onNavigate={setPage} currentPage={page}>
-      {page === 'dashboard' && <Dashboard />}
-      {page === 'billing' && <Billing />}
-    </Layout>
-  );
+const HomeRoute = () => {
+  const { isAuthenticated } = useAuth();
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <Landing />;
 };
 
 export default function App() {
   return (
     <AuthProvider>
-      <AuthenticatedApp />
+      <Router>
+        <Routes>
+          <Route path="/" element={<HomeRoute />} />
+          <Route path="/terms" element={<TInfo />} />
+          <Route path="/p-info" element={<PInfo />} />
+          <Route path="/r-info" element={<RInfo />} />
+
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/billing" element={
+            <ProtectedRoute>
+              <Billing />
+            </ProtectedRoute>
+          } />
+
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
     </AuthProvider>
   );
 }

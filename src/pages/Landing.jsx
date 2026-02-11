@@ -1,208 +1,60 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
-import { Terminal, Box, Cloud, Shield, Zap, ArrowRight, Code } from 'lucide-react';
+import {
+    Terminal,
+    Box,
+    Cloud,
+    Shield,
+    Zap,
+    ArrowRight,
+    Layers,
+    Globe,
+    Cpu,
+    CheckCircle2,
+    Github,
+    Twitter,
+    Linkedin,
+    ExternalLink,
+    LogIn
+} from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Landing() {
-    const { apiKey, saveKey } = useAuth();
-    const [showLogin, setShowLogin] = useState(false);
+    const { isAuthenticated, login } = useAuth();
+    const navigate = useNavigate();
+    const [authLoading, setAuthLoading] = useState(false);
+    const [authError, setAuthError] = useState('');
 
-    // Navigation to dashboard handled by parent layout or conditional rendering in App.jsx
-    // But if we are here, we likely don't have an auth key yet, or we want to show landing info.
-    // The user requirement says: "if they are already register we will asked for api-key... if first timer we will create and show".
-    // This logic matches SignInSection below.
+    const heroBtnRef = useRef(null);
 
-    return (
-        <div className="min-h-screen bg-slate-900 text-slate-50 font-sans selection:bg-blue-500 selection:text-white">
-            {/* Header */}
-            <header className="absolute top-0 w-full z-50 border-b border-white/10 backdrop-blur-md">
-                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <Zap className="text-blue-500 fill-blue-500/20" size={24} />
-                        <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
-                            wrexer.com
-                        </span>
-                    </div>
-                    <nav className="hidden md:flex gap-8 text-sm font-medium text-slate-400">
-                        <a href="#features" className="hover:text-white transition-colors">Features</a>
-                        <a href="#deployment" className="hover:text-white transition-colors">Deployment</a>
-                        <a href="#about" className="hover:text-white transition-colors">Who We Are</a>
-                    </nav>
-                    <button
-                        onClick={() => setShowLogin(true)}
-                        className="bg-white/10 hover:bg-white/20 text-white px-5 py-2 rounded-full text-sm font-medium transition-all backdrop-blur-sm border border-white/10"
-                    >
-                        Start Deploying
-                    </button>
-                </div>
-            </header>
-
-            {/* Hero */}
-            <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-                {/* Abstract Background */}
-                <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
-                    <div className="absolute -top-[20%] -right-[10%] w-[600px] h-[600px] rounded-full bg-blue-600/20 blur-[120px]" />
-                    <div className="absolute top-[40%] -left-[10%] w-[400px] h-[400px] rounded-full bg-purple-600/20 blur-[120px]" />
-                </div>
-
-                <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
-                    >
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold uppercase tracking-wider mb-6">
-                            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                            Production Ready
-                        </div>
-                        <h1 className="text-5xl lg:text-7xl font-bold leading-tight mb-8">
-                            Simple App <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
-                                Deployments.
-                            </span>
-                        </h1>
-                        <p className="text-lg text-slate-400 mb-10 max-w-lg leading-relaxed">
-                            Deploy containers in seconds. Instant HTTPS, global scaling, and simple metered billing. No Kubernetes knowledge required.
-                        </p>
-                        <div className="flex flex-wrap gap-4">
-                            <button
-                                onClick={() => setShowLogin(true)}
-                                className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all shadow-lg shadow-blue-900/40 flex items-center gap-2 group"
-                            >
-                                Get Started
-                                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                            </button>
-                            <a href="#about" className="px-8 py-4 rounded-lg font-semibold text-slate-300 hover:bg-white/5 transition-all text-lg border border-white/10">
-                                Learn more
-                            </a>
-                        </div>
-                    </motion.div>
-
-                    {/* Terminal / Visual */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                        className="relative"
-                    >
-                        <div className="bg-slate-950 rounded-xl border border-white/10 shadow-2xl overflow-hidden aspect-video">
-                            <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-slate-900/50">
-                                <div className="w-3 h-3 rounded-full bg-red-500/50" />
-                                <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
-                                <div className="w-3 h-3 rounded-full bg-green-500/50" />
-                                <div className="ml-4 text-xs text-slate-500 font-mono">bash</div>
-                            </div>
-                            <div className="p-6 font-mono text-sm">
-                                <div className="flex gap-2 text-slate-300">
-                                    <span className="text-blue-400">$</span> wrexer deploy nginx:latest
-                                </div>
-                                <div className="text-slate-500 mt-2">
-                                    → Building container...<br />
-                                    → allocating resources (Plan: Medium)...<br />
-                                    → Assigning IP: 10.36.250.141...<br />
-                                    <span className="text-green-400">✓ Deployed: https://app-xyz.wrexer.com</span>
-                                </div>
-                            </div>
-                        </div>
-                        {/* Floaters */}
-                        <div className="absolute -top-6 -right-6 bg-slate-800 p-4 rounded-lg border border-white/10 shadow-xl">
-                            <Cloud className="text-blue-400 mb-2" />
-                            <div className="text-xs text-slate-400 font-mono">Status: Healthy</div>
-                        </div>
-                        <div className="absolute -bottom-6 -left-6 bg-slate-800 p-4 rounded-lg border border-white/10 shadow-xl">
-                            <Shield className="text-green-400 mb-2" />
-                            <div className="text-xs text-slate-400 font-mono">DDoS Protected</div>
-                        </div>
-                    </motion.div>
-                </div>
-            </section>
-
-            {/* Login Popover (Centered for simplicity but styled as requested "popup") */}
-            {showLogin && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                    <motion.div
-                        initial={{ opacity: 0, y: -20, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="bg-slate-900 border border-white/10 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative"
-                    >
-                        <button
-                            onClick={() => setShowLogin(false)}
-                            className="absolute top-4 right-4 text-slate-500 hover:text-white"
-                        >
-                            ✕
-                        </button>
-                        <div className="text-center mb-6">
-                            <h2 className="text-xl font-bold mb-1">Get Started</h2>
-                            <p className="text-slate-400 text-sm">Sign in to deploy your first app.</p>
-                        </div>
-
-                        <SignInSection saveKey={saveKey} />
-                    </motion.div>
-                </div>
-            )}
-
-            {/* Features / Who We Are */}
-            <section id="about" className="py-24 bg-slate-950 relative border-t border-white/5">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl md:text-5xl font-bold mb-6">Who We Are</h2>
-                        <p className="text-slate-400 max-w-2xl mx-auto text-lg">
-                            Wrexer.com is a next-generation cloud platform built for developers who want simplicity without sacrificing power.
-                            We handle the infrastructure so you can focus on shipping code.
-                        </p>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-8">
-                        <FeatureCard
-                            icon={<Zap size={32} className="text-yellow-400" />}
-                            title="Instant Deploy"
-                            desc="From Docker image to live URL in less than 5 seconds. No YAML required."
-                        />
-                        <FeatureCard
-                            icon={<Box size={32} className="text-blue-400" />}
-                            title="Isolated Pods"
-                            desc="Every app runs in its own secure K3s pod with guaranteed resources."
-                        />
-                        <FeatureCard
-                            icon={<Code size={32} className="text-purple-400" />}
-                            title="Control Plane API"
-                            desc="Full programmatic access via our REST API. Automate everything."
-                        />
-                    </div>
-                </div>
-            </section>
-
-            <footer className="py-8 border-t border-white/5 text-center text-slate-600 text-sm">
-                © 2026 wrexer.com. All rights reserved.
-            </footer>
-        </div>
-    );
-}
-
-function FeatureCard({ icon, title, desc }) {
-    return (
-        <div className="p-8 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
-            <div className="mb-6 bg-white/5 w-16 h-16 rounded-xl flex items-center justify-center">
-                {icon}
-            </div>
-            <h3 className="text-xl font-bold mb-3 text-white">{title}</h3>
-            <p className="text-slate-400 leading-relaxed">{desc}</p>
-        </div>
-    );
-}
-
-function SignInSection({ saveKey }) {
-    // Reusing logic from old Dashboard but styled better
-    const [result, setResult] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [manualKey, setManualKey] = useState('');
-    const btnRef = useRef(null);
     const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
+    const handleCredential = async (id_token) => {
+        setAuthLoading(true);
+        setAuthError('');
+        try {
+            const res = await fetch(`${API_BASE}/auth/google`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_token })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Authentication failed');
+
+            login(data.key, data.user || null);
+            navigate('/dashboard');
+        } catch (e) {
+            setAuthError(e.message);
+        } finally {
+            setAuthLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (!CLIENT_ID) return;
+
         const id = 'gsi-script';
         if (!document.getElementById(id)) {
             const s = document.createElement('script');
@@ -217,89 +69,404 @@ function SignInSection({ saveKey }) {
         }
 
         function initGSI() {
-            if (!window.google || !btnRef.current) return;
+            if (!window.google) return;
             window.google.accounts.id.initialize({
                 client_id: CLIENT_ID,
                 callback: async (resp) => {
                     await handleCredential(resp.credential);
                 }
             });
-            window.google.accounts.id.renderButton(btnRef.current, {
-                theme: 'filled_black',
-                size: 'large',
-                width: '100%'
-            });
+
+            // Render Google button into hero slot
+            if (heroBtnRef.current) {
+                window.google.accounts.id.renderButton(heroBtnRef.current, {
+                    theme: 'outline',
+                    size: 'large',
+                    shape: 'pill',
+                    text: 'signin_with',
+                    width: 260
+                });
+            }
         }
     }, [CLIENT_ID]);
 
-    const handleCredential = async (id_token) => {
-        setLoading(true);
-        setResult(null);
-        try {
-            const res = await fetch(`${API_BASE}/auth/google`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id_token })
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'API error');
-
-            // If key exists (existing user), data.key is returned.
-            // If new, data.key is returned.
-            // The requirement: "if they are already register we will asked for api-key" -> 
-            // Actually backend now returns the KEY for both new and existing users if authenticated via Google.
-            // This simplifies flow: Google Login -> Get Key -> Save Key -> Done.
-            // But for "security theater" or if backend didn't return key for existing users, we'd have to ask.
-            // The current backend implementation RETURNS the key always. 
-            // So we can just auto-login.
-
-            // AUTO LOGIN (Better UX)
-            saveKey(data.key);
-
-            // No need to show success/copy screen as per user request
-            // setResult({ success: true, key: data.key, email: data.user.email });
-
-        } catch (e) {
-            setResult({ success: false, error: e.message });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // removed success UI block since we auto-redirect
-
     return (
-        <div className="space-y-6">
-            {/* Google Sign In */}
-            <div className="h-12" ref={btnRef}></div>
-            {loading && <div className="text-center text-slate-500 text-sm animate-pulse">Authenticating...</div>}
-            {result?.error && <div className="text-red-400 text-sm bg-red-400/10 p-3 rounded">{result.error}</div>}
-
-            <div className="relative py-2">
-                <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-slate-800"></div>
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-slate-900 px-2 text-slate-500">Or use key</span>
-                </div>
+        <div className="min-h-screen bg-[#020617] text-slate-50 font-sans selection:bg-blue-500 selection:text-white overflow-x-hidden">
+            {/* Background Gradients */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 blur-[120px] rounded-full" />
+                <div className="absolute bottom-[10%] right-[-10%] w-[40%] h-[40%] bg-indigo-600/10 blur-[120px] rounded-full" />
+                <div className="absolute top-[30%] right-[10%] w-[30%] h-[30%] bg-purple-600/10 blur-[120px] rounded-full" />
             </div>
 
-            {/* Existing User Manual Key Input (Collapsed/Secondary) */}
-            <div className="flex gap-2">
-                <input
-                    type="password"
-                    placeholder="sk_live_..."
-                    value={manualKey}
-                    onChange={e => setManualKey(e.target.value)}
-                    className="flex-1 bg-slate-800 border-slate-700 text-white rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-                <button
-                    onClick={() => manualKey && saveKey(manualKey)}
-                    className="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                    Go
-                </button>
-            </div>
+            {/* Header */}
+            <header className="fixed top-0 w-full z-[80] border-b border-white/5 bg-[#020617]/80 backdrop-blur-xl">
+                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-white p-1.5 rounded-xl shadow-lg shadow-white/10">
+                            <img src="/W.png" alt="Wrexer Logo" className="w-6 h-6 object-contain" />
+                        </div>
+                        <span className="text-xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent tracking-tight">
+                            wrexer.com
+                        </span>
+                    </div>
+
+                    <nav className="hidden md:flex gap-10 text-sm font-medium text-slate-400">
+                        <a href="#features" className="hover:text-white transition-all hover:scale-105">Features</a>
+                        <a href="#plans" className="hover:text-white transition-all hover:scale-105">Pricing</a>
+                        <a href="#about" className="hover:text-white transition-all hover:scale-105">Infrastructure</a>
+                    </nav>
+
+                    <div className="flex items-center gap-4">
+                        {isAuthenticated && (
+                            <Link
+                                to="/dashboard"
+                                className="bg-white/5 hover:bg-white/10 text-white px-5 py-2.5 rounded-xl text-sm font-semibold border border-white/10 transition-all flex items-center gap-2 group"
+                            >
+                                Dashboard
+                                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                        )}
+                    </div>
+                </div>
+            </header>
+
+            {/* Hero Section */}
+            <section className="relative pt-44 pb-24 lg:pt-56 lg:pb-32">
+                <div className="max-w-7xl mx-auto px-6 text-center">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6 }}
+                    >
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-[0.2em] mb-8">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                            Cloud Native Orchestration
+                        </div>
+                        <h1 className="text-6xl md:text-[84px] font-black leading-[1.05] mb-8 tracking-tight">
+                            Deploy your apps <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
+                                without the noise.
+                            </span>
+                        </h1>
+                        <p className="text-xl text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed font-medium">
+                            The PAAS for builders. One command deployment, instant global reach,
+                            and Kubernetes scale without the YAML headache.
+                        </p>
+
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
+                            {isAuthenticated ? (
+                                <button
+                                    onClick={() => navigate('/dashboard')}
+                                    className="w-full sm:w-auto bg-white text-slate-950 px-10 py-4 rounded-2xl font-bold text-lg hover:bg-slate-200 transition-all flex items-center justify-center gap-2 group shadow-2xl shadow-white/5"
+                                >
+                                    Go to Dashboard
+                                    <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            ) : (
+                                <div className="google-btn-hero flex flex-col items-center gap-4">
+                                    <div ref={heroBtnRef} className="h-[50px] min-w-[260px] flex items-center justify-center">
+                                        {/* Google Sign-In button renders here */}
+                                        <div className="flex items-center gap-2 text-slate-500 text-sm font-medium animate-pulse">
+                                            <LogIn size={18} />
+                                            Initializing sign-in...
+                                        </div>
+                                    </div>
+                                    {authLoading && (
+                                        <div className="flex items-center gap-2 text-blue-400 text-sm font-medium">
+                                            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                            Authenticating...
+                                        </div>
+                                    )}
+                                    {authError && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -5 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="text-red-400 text-sm bg-red-400/10 px-4 py-2 rounded-xl border border-red-400/10 flex items-center gap-2"
+                                        >
+                                            <Shield size={14} />
+                                            {authError}
+                                        </motion.div>
+                                    )}
+                                </div>
+                            )}
+                            <a
+                                href="#infrastructure"
+                                className="w-full sm:w-auto px-10 py-4 rounded-2xl font-bold text-slate-400 hover:text-white border border-white/10 hover:bg-white/5 transition-all text-lg"
+                            >
+                                Documentation
+                            </a>
+                        </div>
+                    </motion.div>
+
+                    {/* Dashboard Preview / Terminal Mockup */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.8, delay: 0.3 }}
+                        className="mt-24 relative p-2 rounded-[2rem] bg-gradient-to-b from-white/10 to-transparent border border-white/10 max-w-5xl mx-auto"
+                    >
+                        <div className="bg-[#0b1121] rounded-[1.8rem] border border-white/5 shadow-[0_0_100px_-20px_rgba(59,130,246,0.3)] overflow-hidden">
+                            <div className="flex items-center gap-2 px-6 py-4 border-b border-white/5 bg-[#0b1121]/50">
+                                <div className="flex gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-red-500/40" />
+                                    <div className="w-3 h-3 rounded-full bg-yellow-500/40" />
+                                    <div className="w-3 h-3 rounded-full bg-green-500/40" />
+                                </div>
+                                <div className="mx-auto text-xs text-slate-500 font-mono flex items-center gap-2">
+                                    <Terminal size={12} />
+                                    deploy-service --cluster=rox-main --image=nginx:latest
+                                </div>
+                            </div>
+                            <div className="p-10 font-mono text-base md:text-lg">
+                                <div className="flex gap-3 text-slate-100 whitespace-pre text-left">
+                                    <span className="text-blue-500">$</span> wrexer deploy my-api --small
+                                </div>
+                                <div className="text-slate-400 mt-6 space-y-2 text-left">
+                                    <p className="flex items-center gap-3">
+                                        <Layers size={16} className="text-blue-500" />
+                                        Fetching image: <span className="text-blue-400">nginx:latest</span>
+                                    </p>
+                                    <p className="flex items-center gap-3">
+                                        <Cpu size={16} className="text-indigo-400" />
+                                        Provisioning: <span className="text-indigo-400">100m CPU / 128Mi RAM</span>
+                                    </p>
+                                    <p className="flex items-center gap-3">
+                                        <Globe size={16} className="text-purple-400" />
+                                        Routing: <span className="text-purple-400">app-6277.10.58.89.249.nip.io</span>
+                                    </p>
+                                    <p className="flex items-center gap-3 pt-4 text-green-400 font-bold">
+                                        <CheckCircle2 size={18} />
+                                        ✓ Application Live: https://my-api.wrexer.com
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            </section>
+
+            {/* Trusted By / Stats */}
+            <section className="py-20 border-y border-white/5 bg-white/[0.01]">
+                <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12 text-center">
+                    <StatItem label="Average Deployment" value="< 5s" />
+                    <StatItem label="Uptime Guarantee" value="99.9%" />
+                    <StatItem label="Active Containers" value="1.2k+" />
+                    <StatItem label="Server Overhead" value="0.1%" />
+                </div>
+            </section>
+
+            {/* Features Section */}
+            <section id="features" className="py-32 relative">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="text-center mb-24">
+                        <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tight">The Modern Stack.</h2>
+                        <p className="text-slate-400 max-w-2xl mx-auto text-xl font-medium">
+                            Everything you need to scale from MVP to global production without touching a single kubeconfig file.
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-8">
+                        <FeatureCard
+                            icon={<Zap className="text-yellow-400" />}
+                            title="Instant Cold Start"
+                            desc="Optimized container orchestration ensures your apps are live and serving traffic in milliseconds."
+                        />
+                        <FeatureCard
+                            icon={<Shield className="text-blue-400" />}
+                            title="Hardened Security"
+                            desc="Isolated namespaces, automated SSL, and DDoS protection baked into every deployment."
+                        />
+                        <FeatureCard
+                            icon={<Box className="text-purple-400" />}
+                            title="Auto-Healing K3s"
+                            desc="Powered by k3s, we automatically restart or migrate your apps if any underlying hardware fails."
+                        />
+                        <FeatureCard
+                            icon={<Globe className="text-emerald-400" />}
+                            title="Smart Routing"
+                            desc="Global edge routing through Traefik ensures low-latency access from anywhere in the world."
+                        />
+                        <FeatureCard
+                            icon={<Layers className="text-rose-400" />}
+                            title="Resource Control"
+                            desc="Granular cgroup limits (CPU/RAM) ensure your apps never fight for resources."
+                        />
+                        <FeatureCard
+                            icon={<Terminal className="text-indigo-400" />}
+                            title="API First"
+                            desc="Full programmatic control. Integrate wrexer into your existing CI/CD or internal tools."
+                        />
+                    </div>
+                </div>
+            </section>
+
+            {/* Plans Section */}
+            <section id="plans" className="py-32 bg-white/[0.01] border-t border-white/5">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="text-center mb-24">
+                        <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tight">Simple Pricing.</h2>
+                        <p className="text-slate-400 max-w-2xl mx-auto text-xl font-medium">
+                            Pay for what you use. No hidden fees, no complexity.
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <PlanCard
+                            name="Tiny"
+                            price="Free"
+                            cpu="50m"
+                            ram="64Mi"
+                            bestFor="Hobbies & Testing"
+                            isMain={false}
+                        />
+                        <PlanCard
+                            name="Small"
+                            price="₹0.25/hr"
+                            cpu="100m"
+                            ram="128Mi"
+                            bestFor="Production APIs"
+                            isMain={true}
+                        />
+                        <PlanCard
+                            name="Medium"
+                            price="₹0.50/hr"
+                            cpu="500m"
+                            ram="512Mi"
+                            bestFor="Web Apps"
+                            isMain={false}
+                        />
+                        <PlanCard
+                            name="Large"
+                            price="₹1.00/hr"
+                            cpu="1.0 Core"
+                            ram="1024Mi"
+                            bestFor="Heavy Compute"
+                            isMain={false}
+                        />
+                    </div>
+                </div>
+            </section>
+
+            {/* Footer */}
+            <footer className="py-24 border-t border-white/5 bg-[#020617] relative overflow-hidden">
+                <div className="max-w-7xl mx-auto px-6 relative z-10">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
+                        <div className="col-span-2">
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="bg-white/5 p-2 rounded-xl">
+                                    <Zap className="text-blue-500" size={24} />
+                                </div>
+                                <span className="text-2xl font-black tracking-tight">wrexer.com</span>
+                            </div>
+                            <p className="text-slate-500 text-lg max-w-sm font-medium leading-relaxed">
+                                High-performance application hosting on bare metal Kubernetes.
+                                Built for developers who value speed and reliability.
+                            </p>
+                            <div className="flex gap-6 mt-8">
+                                <SocialLink icon={<Github size={20} />} href="#" />
+                                <SocialLink icon={<Twitter size={20} />} href="#" />
+                                <SocialLink icon={<Linkedin size={20} />} href="#" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 className="text-white font-bold mb-8 uppercase text-xs tracking-[0.2em]">Product</h4>
+                            <ul className="space-y-4 text-slate-500 font-medium pt-1">
+                                <li><a href="#features" className="hover:text-blue-400 transition-colors">Features</a></li>
+                                <li><a href="#plans" className="hover:text-blue-400 transition-colors">Pricing</a></li>
+                                <li><a href="#" className="hover:text-blue-400 transition-colors flex items-center gap-2">API <ExternalLink size={14} /></a></li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 className="text-white font-bold mb-8 uppercase text-xs tracking-[0.2em]">Legal</h4>
+                            <ul className="space-y-4 text-slate-500 font-medium pt-1">
+                                <li><Link to="/terms" className="hover:text-blue-400 transition-colors">Terms of Use</Link></li>
+                                <li><Link to="/p-info" className="hover:text-blue-400 transition-colors">Privacy Policy</Link></li>
+                                <li><Link to="/r-info" className="hover:text-blue-400 transition-colors">Refund Policy</Link></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
+                        <div className="text-slate-600 font-medium text-sm">
+                            © 2026 wrexer.com. All rights reserved.
+                        </div>
+                        <div className="text-slate-600 text-xs text-center md:text-right font-medium max-w-xs leading-relaxed">
+                            Ho no 895, Suchakar nagar, satara parisar, Chh Sambhaji Nagar, India.
+                        </div>
+                    </div>
+                </div>
+            </footer>
         </div>
+    );
+}
+
+function StatItem({ label, value }) {
+    return (
+        <div className="bg-white/[0.01] border border-white/5 p-8 rounded-3xl hover:bg-white/[0.03] transition-colors">
+            <div className="text-4xl font-black text-white mb-2">{value}</div>
+            <div className="text-slate-500 text-sm font-bold uppercase tracking-widest">{label}</div>
+        </div>
+    );
+}
+
+function FeatureCard({ icon, title, desc }) {
+    return (
+        <motion.div
+            whileHover={{ y: -8 }}
+            className="p-10 rounded-[2.5rem] bg-white/[0.02] border border-white/5 hover:border-white/20 transition-all hover:bg-white/[0.04] group"
+        >
+            <div className="mb-8 w-14 h-14 rounded-[1.25rem] bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors shadow-inner">
+                {React.cloneElement(icon, { size: 28 })}
+            </div>
+            <h3 className="text-2xl font-black mb-4 text-white tracking-tight">{title}</h3>
+            <p className="text-slate-400 leading-relaxed font-medium">{desc}</p>
+        </motion.div>
+    );
+}
+
+function PlanCard({ name, price, cpu, ram, bestFor, isMain }) {
+    return (
+        <div className={`p-10 rounded-[2.5rem] border ${isMain ? 'bg-blue-600 border-blue-400 shadow-[0_20px_50px_rgba(37,99,235,0.3)] scale-105 relative z-10' : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.04] transition-all'} flex flex-col`}>
+            {isMain && (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white text-blue-600 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest shadow-xl">
+                    Popular
+                </div>
+            )}
+            <h3 className={`text-xl font-bold mb-2 ${isMain ? 'text-white' : 'text-slate-400'}`}>{name}</h3>
+            <div className="flex items-baseline gap-1 mb-6">
+                <span className="text-4xl font-black">{price}</span>
+            </div>
+            <p className={`text-sm mb-8 font-medium ${isMain ? 'text-blue-100' : 'text-slate-500'}`}>{bestFor}</p>
+
+            <ul className="space-y-4 mb-10 flex-1">
+                <li className="flex items-center gap-3 text-sm font-semibold">
+                    <Cpu size={18} className={isMain ? 'text-white' : 'text-blue-500'} />
+                    {cpu} Cluster Slice
+                </li>
+                <li className="flex items-center gap-3 text-sm font-semibold">
+                    <Layers size={18} className={isMain ? 'text-white' : 'text-indigo-500'} />
+                    {ram} Memory Guard
+                </li>
+                <li className="flex items-center gap-3 text-sm font-semibold">
+                    <CheckCircle2 size={18} className={isMain ? 'text-white' : 'text-green-500'} />
+                    Instant Scalability
+                </li>
+            </ul>
+
+            <button className={`w-full py-4 rounded-2xl font-bold transition-all ${isMain ? 'bg-white text-blue-600 hover:bg-blue-50' : 'bg-white/10 text-white hover:bg-white/20'}`}>
+                Choose {name}
+            </button>
+        </div>
+    );
+}
+
+function SocialLink({ icon, href }) {
+    return (
+        <a href={href} className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all border border-white/5">
+            {icon}
+        </a>
     );
 }

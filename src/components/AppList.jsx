@@ -47,18 +47,18 @@ export default function AppList() {
   return (
     <div>
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      {loading && <p>Loading apps…</p>}
+      {loading && <div className="text-center py-12 text-slate-500 animate-pulse font-medium">Synchronizing with cluster...</div>}
       {!loading && (
         <ul className="app-list">
           {apps.map(app => (
             <li className="app-item" key={app.id}>
               <div>
-                <div className="font-bold text-slate-800 flex items-center gap-2">
+                <div className="font-bold text-white flex items-center gap-2">
                   {app.name || 'Unnamed App'}
-                  <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded uppercase">{app.plan_id.replace('p-', '')}</span>
+                  <span className="text-[10px] bg-white/10 text-slate-400 px-1.5 py-0.5 rounded-md uppercase tracking-wider font-black">{app.plan_id.replace('p-', '')}</span>
                 </div>
                 <div className="text-sm">
-                  <a href={app.url} target="_blank" className="text-blue-600 hover:underline">{app.url}</a>
+                  <a href={app.url} target="_blank" className="text-blue-400 hover:text-blue-300 transition-colors">{app.url}</a>
                 </div>
                 <div className="text-[11px] text-slate-400 font-mono mt-0.5">{app.image}</div>
               </div>
