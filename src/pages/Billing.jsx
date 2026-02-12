@@ -19,6 +19,8 @@ const AMOUNTS = [50, 100, 200, 500];
 
 export default function Billing() {
     const [balance, setBalance] = useState(0);
+    const [reservedBalance, setReservedBalance] = useState(0);
+    const [liveReserved, setLiveReserved] = useState(0);
     const [selectedAmount, setSelectedAmount] = useState(100);
     const [transactions, setTransactions] = useState([]);
     const [appsCount, setAppsCount] = useState(0);
@@ -26,6 +28,8 @@ export default function Billing() {
     const [loading, setLoading] = useState(false);
     const [historyLoading, setHistoryLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [statusMessage, setStatusMessage] = useState(null);
 
     const fetchData = async () => {
         try {
@@ -35,19 +39,15 @@ export default function Billing() {
                 apiFetch('/apps')
             ]);
             setBalance(balRes.balance);
+            setReservedBalance(balRes.reserved_balance);
+            setLiveReserved(balRes.reserved_balance);
             setTransactions(transRes);
-            setAppsCount(appsRes.length);
 
-            // Calculate hourly cost (mock logic or based on plan if available in appsRes)
-            // For now, we know Small=10, Medium=50, Large=100.
-            // Assuming apps have planId.
-            const cost = appsRes.reduce((acc, app) => {
-                if (app.plan_id === 'p-tiny') return acc + 0;
-                if (app.plan_id === 'p-small') return acc + 0.25;
-                if (app.plan_id === 'p-medium') return acc + 0.5;
-                if (app.plan_id === 'p-large') return acc + 1.0;
-                return acc + 0.25;
-            }, 0);
+            const activeApps = appsRes.filter(a => a.status === 'running');
+            setAppsCount(activeApps.length);
+
+            // Calculate hourly cost based on active apps' hourly_rate
+            const cost = activeApps.reduce((acc, app) => acc + (app.hourly_rate || 0), 0);
             setHourlyCost(cost);
         } catch (err) {
             console.error(err);
@@ -60,18 +60,35 @@ export default function Billing() {
     useEffect(() => {
         fetchData();
 
-        // Live polling every 30s to show deductions/topups live
+        // Sync with server every 30s
         const interval = setInterval(fetchData, 30000);
 
         // Check for success status from URL
         const params = new URLSearchParams(window.location.search);
         if (params.get('topup') === 'success') {
-            alert('Payment Successful! Credits added.');
+            setShowSuccess(true);
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        if (params.get('status') === 'processing') {
+            setStatusMessage('Verifying payment with PhonePe...');
+            setTimeout(() => setStatusMessage(null), 5000);
             window.history.replaceState({}, document.title, window.location.pathname);
         }
 
         return () => clearInterval(interval);
     }, []);
+
+    // Per-second "Live Drain" Effect
+    useEffect(() => {
+        if (hourlyCost <= 0) return;
+
+        const tick = setInterval(() => {
+            const drainPerSecond = hourlyCost / 3600;
+            setLiveReserved(prev => Math.max(0, prev - drainPerSecond));
+        }, 1000);
+
+        return () => clearInterval(tick);
+    }, [hourlyCost]);
 
     const handleTopUp = async () => {
         setLoading(true);
@@ -81,7 +98,7 @@ export default function Billing() {
                 method: 'POST',
                 body: JSON.stringify({ amount: selectedAmount })
             });
-            // Redirect to PhonePe (Mocked)
+            // Redirect to PhonePe Standard Checkout
             window.location.href = res.url;
         } catch (err) {
             setError(err.message || 'Failed to initiate payment');
@@ -144,11 +161,17 @@ export default function Billing() {
                         <div className="grid grid-cols-2 gap-8">
                             <div>
                                 <div className="text-3xl font-black text-white mb-1">{appsCount}</div>
-                                <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Active Pods</div>
+                                <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-4">Active Pods</div>
+
+                                <div className="text-xl font-black text-indigo-400 mb-0.5">₹{liveReserved.toFixed(4)}</div>
+                                <div className="text-[10px] text-indigo-400/50 font-black uppercase tracking-widest">Reserve Money</div>
                             </div>
                             <div>
                                 <div className="text-3xl font-black text-white mb-1">₹{hourlyCost}</div>
-                                <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Cost / Hour</div>
+                                <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-4">Cost / Hour</div>
+
+                                <div className="text-xl font-black text-indigo-400 mb-0.5">₹{(hourlyCost / 60).toFixed(4)}</div>
+                                <div className="text-[10px] text-indigo-400/50 font-black uppercase tracking-widest">Cost / Minute</div>
                             </div>
                         </div>
                     </div>
@@ -157,13 +180,13 @@ export default function Billing() {
                         <div>
                             <div className="text-[10px] text-slate-500 font-black mb-1 tracking-widest uppercase">Project Burn</div>
                             <div className="text-sm font-black text-indigo-400 font-mono">
-                                CREDIT = ₹{balance}
+                                RE-WALLET = ₹{reservedBalance.toFixed(2)}
                             </div>
                         </div>
                         <div className="flex -space-x-2">
                             {[...Array(Math.min(appsCount, 4))].map((_, i) => (
-                                <div key={i} className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-sm">
-                                    <Box size={10} className="text-slate-400" />
+                                <div key={i} className="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center backdrop-blur-sm">
+                                    <Box size={10} className="text-indigo-400" />
                                 </div>
                             ))}
                         </div>
@@ -277,7 +300,56 @@ export default function Billing() {
                     </table>
                 </div>
             </motion.div>
+
+            {/* Status Toast */}
+            <AnimatePresence>
+                {statusMessage && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-8 py-4 rounded-2xl shadow-2xl font-black text-sm flex items-center gap-4 z-50 border border-white/20"
+                    >
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        {statusMessage}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Success Modal */}
+            <AnimatePresence>
+                {showSuccess && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl z-[100] flex items-center justify-center p-6"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.8, y: 50, opacity: 0 }}
+                            animate={{ scale: 1, y: 0, opacity: 1 }}
+                            transition={{ type: "spring", damping: 15 }}
+                            className="bg-white rounded-[3rem] p-12 max-w-sm w-full text-center relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-2 bg-green-500" />
+                            <div className="bg-green-100 text-green-600 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8">
+                                <CheckCircle2 size={48} />
+                            </div>
+                            <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">Top-up Successful!</h2>
+                            <p className="text-slate-500 font-medium mb-10 leading-relaxed">
+                                Your credits have been synchronized. You can now continue deploying high-performance pods.
+                            </p>
+                            <button
+                                onClick={() => setShowSuccess(false)}
+                                className="w-full bg-slate-900 text-white font-black py-5 rounded-3xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200"
+                            >
+                                Back to Dashboard
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
-}
+};
 

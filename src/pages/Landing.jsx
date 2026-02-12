@@ -315,14 +315,14 @@ export default function Landing() {
                         <PlanCard
                             name="Tiny"
                             price="Free"
-                            cpu="50m"
-                            ram="64Mi"
+                            cpu="25m"
+                            ram="32Mi"
                             bestFor="Hobbies & Testing"
                             isMain={false}
                         />
                         <PlanCard
                             name="Small"
-                            price="₹0.25/hr"
+                            price="0.5/hr"
                             cpu="100m"
                             ram="128Mi"
                             bestFor="Production APIs"
@@ -330,7 +330,7 @@ export default function Landing() {
                         />
                         <PlanCard
                             name="Medium"
-                            price="₹0.50/hr"
+                            price="₹2/hr"
                             cpu="500m"
                             ram="512Mi"
                             bestFor="Web Apps"
@@ -338,7 +338,7 @@ export default function Landing() {
                         />
                         <PlanCard
                             name="Large"
-                            price="₹1.00/hr"
+                            price="₹4/hr"
                             cpu="1.0 Core"
                             ram="1024Mi"
                             bestFor="Heavy Compute"
