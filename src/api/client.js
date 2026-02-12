@@ -50,7 +50,8 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data)
     }),
-    delete: (id) => apiFetch(`/apps/${id}`, { method: 'DELETE' })
+    delete: (id) => apiFetch(`/apps/${id}`, { method: 'DELETE' }),
+    logs: (id) => apiFetch(`/apps/${id}/logs`)
   },
   billing: {
     plans: () => apiFetch('/billing/plans'),
