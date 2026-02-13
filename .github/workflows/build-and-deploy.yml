@@ -60,7 +60,8 @@ jobs:
             
             # Deploy using Docker Compose
             cd ~/control-plane-frontend
-            git pull origin main || true
+            git fetch origin main
+            git reset --hard origin/main
             
             echo "🐳 Pulling latest images from GHCR..."
             docker compose pull
