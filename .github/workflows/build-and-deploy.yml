@@ -54,44 +54,19 @@ jobs:
             VERSION=latest
             
             echo "Logging into GHCR and pulling $IMAGE_ID:$VERSION"
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            docker pull $IMAGE_ID:$VERSION
-
-            # Blue-Green Deploy Logic
-            APP_NAME="frontend-app"
-            NEW_PORT=8081
-            OLD_PORT=8080
+            # Ensure actor is lowercased for login (sometimes helps with 403)
+            ACTOR=$(echo "${{ github.actor }}" | tr '[A-Z]' '[a-z]')
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ACTOR --password-stdin
             
-            echo "🚀 Starting Blue-Green Swap..."
+            # Deploy using Docker Compose
+            cd ~/control-plane-frontend
+            git pull origin main || true
             
-            # Start "Green" version
-            docker run -d \
-              --name "${APP_NAME}-green" \
-              -p $NEW_PORT:80 \
-              $IMAGE_ID:$VERSION
-
-            echo "⏳ Verifying new container..."
-            sleep 5
+            echo "🐳 Pulling latest images from GHCR..."
+            docker compose pull
             
-            # Simple check if container is running
-            if [ "$(docker inspect -f '{{.State.Running}}' ${APP_NAME}-green)" = "true" ]; then
-                echo "✅ New container is healthy. Flipping traffic..."
-                
-                # For this demo, we swap containers
-                docker stop $APP_NAME || true
-                docker rm $APP_NAME || true
-                docker rename "${APP_NAME}-green" $APP_NAME
-                
-                # Re-run on primary port for long-term consistency
-                docker stop $APP_NAME || true
-                docker rm $APP_NAME || true
-                docker run -d --restart unless-stopped --name $APP_NAME -p $OLD_PORT:80 $IMAGE_ID:$VERSION
-                
-                echo "🏁 Deployment successful!"
-            else
-                echo "❌ New container failed to start. Rolling back..."
-                docker stop "${APP_NAME}-green" || true
-                docker rm "${APP_NAME}-green" || true
-                exit 1
-            fi
+            echo "🚀 Starting updated containers..."
+            docker compose up -d
+            
+            echo "🏁 Deployment successful!"
 

@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: ghcr.io/amargangurde/control-plane-frontend:latest
+    container_name: frontend-app
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
