@@ -250,7 +250,7 @@ export default function CreateApp() {
               >
                 <div className="font-bold text-white text-sm">{p.name}</div>
                 <div className="text-[10px] text-slate-400 mt-1 font-medium">{p.cpu} CPU / {p.memory} RAM</div>
-                <div className="text-[10px] text-blue-400 mt-2 font-black uppercase tracking-wider">₹{p.price_per_hour}/hr</div>
+                <div className="text-[10px] text-blue-400 mt-2 font-black uppercase tracking-wider">₹{p.price_per_hour / 100}/hr</div>
               </div>
             ))}
           </div>

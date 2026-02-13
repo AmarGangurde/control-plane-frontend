@@ -18,7 +18,8 @@ export const apiFetch = async (path, options = {}) => {
     ...(options.headers || {})
   };
 
-  const res = await fetch(`${API_BASE}/api${path}`, {
+  const baseUrl = API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`;
+  const res = await fetch(`${baseUrl}${path}`, {
     ...options,
     headers
   });

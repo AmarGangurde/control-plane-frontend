@@ -38,17 +38,17 @@ export default function Billing() {
                 apiFetch('/billing/transactions'),
                 apiFetch('/apps')
             ]);
-            setBalance(balRes.balance);
-            setReservedBalance(balRes.reserved_balance);
-            setLiveReserved(balRes.reserved_balance);
-            setTransactions(transRes);
+            setBalance(balRes.balance / 100);
+            setReservedBalance(balRes.reserved_balance / 100);
+            setLiveReserved(balRes.reserved_balance / 100);
+            setTransactions(transRes.map(tx => ({ ...tx, amount: tx.amount / 100 })));
 
             const activeApps = appsRes.filter(a => a.status === 'running');
             setAppsCount(activeApps.length);
 
-            // Calculate hourly cost based on active apps' hourly_rate
+            // Calculate hourly cost based on active apps' hourly_rate (converted to INR)
             const cost = activeApps.reduce((acc, app) => acc + (app.hourly_rate || 0), 0);
-            setHourlyCost(cost);
+            setHourlyCost(cost / 100);
         } catch (err) {
             console.error(err);
             setError('Failed to load billing data');
@@ -167,7 +167,7 @@ export default function Billing() {
                                 <div className="text-[10px] text-indigo-400/50 font-black uppercase tracking-widest">Reserve Money</div>
                             </div>
                             <div>
-                                <div className="text-3xl font-black text-white mb-1">₹{hourlyCost}</div>
+                                <div className="text-3xl font-black text-white mb-1">₹{hourlyCost.toFixed(2)}</div>
                                 <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-4">Cost / Hour</div>
 
                                 <div className="text-xl font-black text-indigo-400 mb-0.5">₹{(hourlyCost / 60).toFixed(4)}</div>
