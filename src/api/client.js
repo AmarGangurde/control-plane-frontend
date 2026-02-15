@@ -51,6 +51,10 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data)
     }),
+    update: (id, data) => apiFetch(`/apps/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }),
     delete: (id) => apiFetch(`/apps/${id}`, { method: 'DELETE' }),
     logs: (id) => apiFetch(`/apps/${id}/logs`)
   },

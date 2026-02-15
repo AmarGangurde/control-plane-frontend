@@ -75,6 +75,18 @@ body {
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
+.badge.updating {
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
 button.danger {
   background: rgba(239, 68, 68, 0.1);
   color: #f87171;
