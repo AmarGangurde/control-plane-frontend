@@ -79,6 +79,11 @@ export default function Billing() {
             setShowSuccess(true);
             window.history.replaceState({}, document.title, window.location.pathname);
         }
+        if (params.get('topup') === 'cancelled') {
+            setStatusMessage('Payment was cancelled.');
+            setTimeout(() => setStatusMessage(null), 5000);
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
         if (params.get('status') === 'processing') {
             setStatusMessage('Verifying payment with PhonePe...');
             setTimeout(() => setStatusMessage(null), 5000);
@@ -317,9 +322,18 @@ export default function Billing() {
                                         <td className="px-10 py-6">
                                             <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-widest ${tx.status === 'success'
                                                 ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                                                : (tx.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20')
+                                                : tx.status === 'pending'
+                                                    ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                                                    : tx.status === 'cancelled'
+                                                        ? 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+                                                        : tx.status === 'expired'
+                                                            ? 'bg-slate-500/10 text-slate-500 border border-slate-500/10'
+                                                            : 'bg-red-500/10 text-red-500 border border-red-500/20'
                                                 }`}>
-                                                {tx.status === 'success' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
+                                                {tx.status === 'success' ? <CheckCircle2 size={12} /> :
+                                                    tx.status === 'cancelled' ? <AlertCircle size={12} /> :
+                                                        tx.status === 'expired' ? <Clock size={12} /> :
+                                                            <Clock size={12} />}
                                                 {tx.status}
                                             </span>
                                         </td>
