@@ -292,7 +292,7 @@ export default function Billing() {
                                             </div>
                                             {tx.type === 'pod_burn_receipt' ? (
                                                 <div className="text-[10px] text-slate-500 font-mono tracking-tighter uppercase flex items-center gap-2">
-                                                    <span>Non-deductible Summary</span>
+                                                    <span>Already Deducted</span>
                                                     {tx.metadata && (() => {
                                                         try {
                                                             const meta = typeof tx.metadata === 'string' ? JSON.parse(tx.metadata) : tx.metadata;
