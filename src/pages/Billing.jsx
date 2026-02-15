@@ -17,6 +17,16 @@ import {
 
 const AMOUNTS = [50, 100, 200, 500];
 
+const formatDuration = (seconds) => {
+    if (!seconds) return '';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    if (h > 0) return `${h}h ${m}m ${s}s`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
+};
+
 export default function Billing() {
     const [balance, setBalance] = useState(0);
     const [reservedBalance, setReservedBalance] = useState(0);
@@ -280,9 +290,29 @@ export default function Billing() {
                                                             tx.type === 'pod_burn_receipt' ? `Usage Receipt: ${tx.external_id || 'Pod'}` :
                                                                 tx.type}
                                             </div>
-                                            <div className="text-[10px] text-slate-500 font-mono tracking-tighter uppercase">
-                                                {tx.type === 'pod_burn_receipt' ? 'Non-deductible Summary' : tx.id}
-                                            </div>
+                                            {tx.type === 'pod_burn_receipt' ? (
+                                                <div className="text-[10px] text-slate-500 font-mono tracking-tighter uppercase flex items-center gap-2">
+                                                    <span>Non-deductible Summary</span>
+                                                    {tx.metadata && (() => {
+                                                        try {
+                                                            const meta = typeof tx.metadata === 'string' ? JSON.parse(tx.metadata) : tx.metadata;
+                                                            if (meta.duration) {
+                                                                return (
+                                                                    <>
+                                                                        <span className="w-1 h-1 rounded-full bg-slate-500/50" />
+                                                                        <span>{formatDuration(meta.duration)}</span>
+                                                                    </>
+                                                                );
+                                                            }
+                                                        } catch (e) { }
+                                                        return null;
+                                                    })()}
+                                                </div>
+                                            ) : (
+                                                <div className="text-[10px] text-slate-500 font-mono tracking-tighter uppercase">
+                                                    {tx.id}
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="px-10 py-6">
                                             <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-widest ${tx.status === 'success'
@@ -294,7 +324,7 @@ export default function Billing() {
                                             </span>
                                         </td>
                                         <td className={`px-10 py-6 text-right font-black text-lg ${tx.type === 'pod_burn_receipt' ? 'text-slate-500' :
-                                                tx.amount > 0 ? 'text-green-400' : 'text-white'
+                                            tx.amount > 0 ? 'text-green-400' : 'text-white'
                                             }`}>
                                             {tx.type === 'pod_burn_receipt'
                                                 ? `₹${Math.abs(tx.amount).toFixed(2)}`
