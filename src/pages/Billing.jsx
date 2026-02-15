@@ -274,9 +274,15 @@ export default function Billing() {
                                     <tr key={tx.id} className="hover:bg-white/[0.02] transition-colors group">
                                         <td className="px-10 py-6">
                                             <div className="font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">
-                                                {tx.type === 'topup' ? 'Credit Injection' : (tx.type === '5min_cycle_charge' ? `Resource Consumption (${tx.external_id || 'Pod'})` : tx.type)}
+                                                {tx.type === 'topup' ? 'Credit Injection' :
+                                                    tx.type === 'reservation' ? 'Pod Start Reservation' :
+                                                        tx.type === 'refund' ? 'Reservation Refund' :
+                                                            tx.type === 'pod_burn_receipt' ? `Usage Receipt: ${tx.external_id || 'Pod'}` :
+                                                                tx.type}
                                             </div>
-                                            <div className="text-[10px] text-slate-500 font-mono tracking-tighter uppercase">{tx.id}</div>
+                                            <div className="text-[10px] text-slate-500 font-mono tracking-tighter uppercase">
+                                                {tx.type === 'pod_burn_receipt' ? 'Non-deductible Summary' : tx.id}
+                                            </div>
                                         </td>
                                         <td className="px-10 py-6">
                                             <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-widest ${tx.status === 'success'
@@ -287,8 +293,12 @@ export default function Billing() {
                                                 {tx.status}
                                             </span>
                                         </td>
-                                        <td className={`px-10 py-6 text-right font-black text-lg ${tx.amount > 0 ? 'text-green-400' : 'text-white'}`}>
-                                            {tx.amount > 0 ? `+₹${tx.amount}` : `-₹${Math.abs(tx.amount)}`}
+                                        <td className={`px-10 py-6 text-right font-black text-lg ${tx.type === 'pod_burn_receipt' ? 'text-slate-500' :
+                                                tx.amount > 0 ? 'text-green-400' : 'text-white'
+                                            }`}>
+                                            {tx.type === 'pod_burn_receipt'
+                                                ? `₹${Math.abs(tx.amount).toFixed(2)}`
+                                                : (tx.amount > 0 ? `+₹${tx.amount.toFixed(2)}` : `-₹${Math.abs(tx.amount).toFixed(2)}`)}
                                         </td>
                                         <td className="px-10 py-6 text-slate-400 text-xs font-medium">
                                             {new Date(tx.created_at + 'Z').toLocaleString()}
