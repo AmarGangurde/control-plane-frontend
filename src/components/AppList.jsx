@@ -3,7 +3,7 @@ import { api } from '../api/client';
 import {
   Terminal, X, RefreshCw, Cpu, Activity, Pencil,
   Trash2, RotateCw, ExternalLink, Globe, Layout,
-  Clock, Zap, Settings, BarChart3, AlertCircle
+  Clock, Zap, Settings, BarChart3, AlertCircle, Plus
 } from 'lucide-react';
 
 export default function AppList() {

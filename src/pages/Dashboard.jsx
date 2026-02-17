@@ -29,7 +29,7 @@ export default function Dashboard() {
 
         <div className="flex items-center gap-6">
           <div className="hidden lg:flex items-center gap-8 px-8 py-4 bg-white/[0.02] border border-white/5 rounded-3xl backdrop-blur-sm shadow-xl">
-            <Stat icon={Activity} label="Active Revs" value="04" color="text-green-500" />
+            <Stat icon={Activity} label="Active Pods" value="04" color="text-green-500" />
             <div className="w-[1px] h-8 bg-white/5" />
             <Stat icon={Zap} label="Response" value="24ms" color="text-blue-500" />
             <div className="w-[1px] h-8 bg-white/5" />
