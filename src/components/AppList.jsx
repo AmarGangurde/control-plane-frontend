@@ -480,7 +480,8 @@ export default function AppList() {
 
 function getUptime(dateString) {
   if (!dateString) return '';
-  const start = new Date(dateString + 'Z');
+  const start = new Date(dateString);
+  if (isNaN(start.getTime())) return '';
   const now = new Date();
   const diff = now - start;
 

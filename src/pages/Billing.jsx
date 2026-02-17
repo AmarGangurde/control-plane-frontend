@@ -345,7 +345,7 @@ export default function Billing() {
                                                 : (tx.amount > 0 ? `+₹${tx.amount.toFixed(2)}` : `-₹${Math.abs(tx.amount).toFixed(2)}`)}
                                         </td>
                                         <td className="px-10 py-6 text-slate-400 text-xs font-medium">
-                                            {new Date(tx.created_at + 'Z').toLocaleString()}
+                                            {new Date(tx.created_at).toLocaleString()}
                                         </td>
                                     </tr>
                                 ))
