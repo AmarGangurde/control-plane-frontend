@@ -1,43 +1,49 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { api } from '../api/client';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(
-    localStorage.getItem('authToken') || ''
-  );
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('authUser');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true); // true until we check session
 
-  const login = (key, userData = null) => {
-    localStorage.setItem('authToken', key);
-    setToken(key);
-    if (userData) {
-      localStorage.setItem('authUser', JSON.stringify(userData));
-      setUser(userData);
+  // Check for existing session on mount
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const data = await api.auth.me();
+        setUser(data.user);
+      } catch {
+        // No valid session — that's fine
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkSession();
+  }, []);
+
+  const login = useCallback((userData) => {
+    setUser(userData);
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await api.auth.logout();
+    } catch {
+      // If logout API fails, still clear local state
     }
-  };
-
-  const logout = () => {
+    setUser(null);
+    // Clean up any legacy localStorage entries
     localStorage.removeItem('authToken');
     localStorage.removeItem('authUser');
-    setToken('');
-    setUser(null);
-  };
+    localStorage.removeItem('apiKey');
+  }, []);
 
-  // Keep backward compat — also store as apiKey for api/client.js
-  useEffect(() => {
-    if (token) {
-      localStorage.setItem('apiKey', token);
-    } else {
-      localStorage.removeItem('apiKey');
-    }
-  }, [token]);
+  const isAuthenticated = !!user;
 
   return (
-    <AuthContext.Provider value={{ token, user, login, logout, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated, loading }}>
       {children}
     </AuthContext.Provider>
   );

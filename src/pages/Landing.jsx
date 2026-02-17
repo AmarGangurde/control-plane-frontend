@@ -35,15 +35,17 @@ export default function Landing() {
         setAuthLoading(true);
         setAuthError('');
         try {
-            const res = await fetch(`${API_BASE}/api/auth/google`, {
+            const API_BASE_URL = API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`;
+            const res = await fetch(`${API_BASE_URL}/auth/google`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id_token })
+                body: JSON.stringify({ id_token }),
+                credentials: 'include', // Receive the HttpOnly cookie
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Authentication failed');
 
-            login(data.key, data.user || null);
+            login(data.user);
             navigate('/dashboard');
         } catch (e) {
             setAuthError(e.message);

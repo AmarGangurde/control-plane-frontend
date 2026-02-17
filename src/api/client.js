@@ -1,27 +1,24 @@
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
 export const apiFetch = async (path, options = {}) => {
-  const apiKey = localStorage.getItem('apiKey');
-  const adminKey = localStorage.getItem('adminKey');
-
-  const authHeader = options.admin
-    ? adminKey
-      ? `Bearer ${adminKey}`
-      : null
-    : apiKey
-      ? `Bearer ${apiKey}`
-      : null;
-
   const headers = {
     'Content-Type': 'application/json',
-    ...(authHeader ? { Authorization: authHeader } : {}),
     ...(options.headers || {})
   };
+
+  // Admin routes still use a Bearer token from localStorage
+  if (options.admin) {
+    const adminKey = localStorage.getItem('adminKey');
+    if (adminKey) {
+      headers.Authorization = `Bearer ${adminKey}`;
+    }
+  }
 
   const baseUrl = API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`;
   const res = await fetch(`${baseUrl}${path}`, {
     ...options,
-    headers
+    headers,
+    credentials: 'include', // Sends HttpOnly cookies automatically
   });
 
   if (!res.ok) {
@@ -42,7 +39,11 @@ export const api = {
     google: (id_token) => apiFetch('/auth/google', {
       method: 'POST',
       body: JSON.stringify({ id_token })
-    })
+    }),
+    logout: () => apiFetch('/auth/logout', { method: 'POST' }),
+    me: () => apiFetch('/auth/me'),
+    createApiKey: () => apiFetch('/auth/api-key', { method: 'POST' }),
+    getApiKeyStatus: () => apiFetch('/auth/api-key'),
   },
   apps: {
     list: () => apiFetch('/apps'),
