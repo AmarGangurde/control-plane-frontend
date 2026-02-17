@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api/client';
-import { Plus, Trash2, Settings2, ChevronDown, ChevronUp, Rocket, Cpu, Activity, Zap, Box, ShieldCheck, CreditCard } from 'lucide-react';
+import { Plus, Trash2, Settings2, ChevronDown, ChevronUp, Rocket, Cpu, Activity, Zap, Box, ShieldCheck, CreditCard, Globe } from 'lucide-react';
 
 export default function CreateApp() {
   const [name, setName] = useState('');
