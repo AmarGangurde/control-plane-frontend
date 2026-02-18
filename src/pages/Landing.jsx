@@ -324,7 +324,8 @@ export default function Landing() {
                         />
                         <PlanCard
                             name="Small"
-                            price="0.5/hr"
+                            price="₹0.11/hr"
+                            monthly="₹79/mo"
                             cpu="100m"
                             ram="128Mi"
                             bestFor="Production APIs"
@@ -332,7 +333,8 @@ export default function Landing() {
                         />
                         <PlanCard
                             name="Medium"
-                            price="₹2/hr"
+                            price="₹0.28/hr"
+                            monthly="₹199/mo"
                             cpu="500m"
                             ram="512Mi"
                             bestFor="Web Apps"
@@ -340,7 +342,8 @@ export default function Landing() {
                         />
                         <PlanCard
                             name="Large"
-                            price="₹4/hr"
+                            price="₹0.55/hr"
+                            monthly="₹399/mo"
                             cpu="1.0 Core"
                             ram="1024Mi"
                             bestFor="Heavy Compute"
@@ -429,7 +432,7 @@ function FeatureCard({ icon, title, desc }) {
     );
 }
 
-function PlanCard({ name, price, cpu, ram, bestFor, isMain }) {
+function PlanCard({ name, price, monthly, cpu, ram, bestFor, isMain }) {
     return (
         <div className={`p-10 rounded-[2.5rem] border ${isMain ? 'bg-blue-600 border-blue-400 shadow-[0_20px_50px_rgba(37,99,235,0.3)] scale-105 relative z-10' : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.04] transition-all'} flex flex-col`}>
             {isMain && (
@@ -438,8 +441,9 @@ function PlanCard({ name, price, cpu, ram, bestFor, isMain }) {
                 </div>
             )}
             <h3 className={`text-xl font-bold mb-2 ${isMain ? 'text-white' : 'text-slate-400'}`}>{name}</h3>
-            <div className="flex items-baseline gap-1 mb-6">
+            <div className="flex flex-col mb-6">
                 <span className="text-4xl font-black">{price}</span>
+                {monthly && <span className={`text-sm font-bold mt-1 ${isMain ? 'text-blue-200' : 'text-slate-500'}`}>or {monthly}</span>}
             </div>
             <p className={`text-sm mb-8 font-medium ${isMain ? 'text-blue-100' : 'text-slate-500'}`}>{bestFor}</p>
 
