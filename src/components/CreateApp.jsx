@@ -18,8 +18,12 @@ export default function CreateApp() {
   const [args, setArgs] = useState(['']);
 
   useEffect(() => {
-    // fetch plans
-    api.billing.plans().then(setPlans).catch(console.error);
+    // fetch plans — regular first, then coming_soon (Kata) at the end
+    api.billing.plans().then(data => {
+      const regular = data.filter(p => !p.coming_soon);
+      const comingSoon = data.filter(p => p.coming_soon);
+      setPlans([...regular, ...comingSoon]);
+    }).catch(console.error);
   }, []);
 
   const addEnvVar = () => setEnvVars([...envVars, { name: '', value: '' }]);
@@ -246,10 +250,10 @@ export default function CreateApp() {
                   key={p.id}
                   onClick={() => !isComingSoon && setSelectedPlan(p.id)}
                   className={`border rounded-2xl p-4 transition-all relative ${isComingSoon
-                      ? 'border-purple-500/20 bg-purple-500/5 opacity-60 cursor-not-allowed'
-                      : selectedPlan === p.id
-                        ? 'border-blue-500 bg-blue-500/10 cursor-pointer'
-                        : 'border-white/10 hover:border-white/30 hover:bg-white/5 shadow-xl cursor-pointer'
+                    ? 'border-purple-500/20 bg-purple-500/5 opacity-60 cursor-not-allowed'
+                    : selectedPlan === p.id
+                      ? 'border-blue-500 bg-blue-500/10 cursor-pointer'
+                      : 'border-white/10 hover:border-white/30 hover:bg-white/5 shadow-xl cursor-pointer'
                     }`}
                 >
                   {isComingSoon && (
