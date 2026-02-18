@@ -226,7 +226,7 @@ export default function AppList() {
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Application</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Status</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Real-time Usage</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Plan & Billing</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Spend</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Created</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Actions</th>
                 </tr>
@@ -304,18 +304,11 @@ export default function AppList() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-bold text-white flex items-center">
-                            {hourlyRate > 0 ? `₹${hourlyRate}` : 'Free'}
-                            {hourlyRate > 0 && <span className="text-[10px] text-slate-500 font-normal ml-1">/hr</span>}
+                        <div className="flex items-center bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20 w-fit">
+                          <RefreshCw size={12} className="text-amber-500 mr-2" />
+                          <span className="text-xs text-amber-500 font-bold uppercase tracking-wider">
+                            ₹{(totalCharged / 100).toFixed(2)}
                           </span>
-                          <span className="text-[10px] text-slate-500 font-mono mt-0.5">{plan?.name || app.plan_id}</span>
-                          <div className="flex items-center mt-1.5 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 w-fit">
-                            <RefreshCw size={10} className="text-amber-500 mr-1" />
-                            <span className="text-[9px] text-amber-500 font-bold uppercase tracking-tighter">
-                              Total: ₹{(totalCharged / 100).toFixed(2)}
-                            </span>
-                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
