@@ -238,36 +238,52 @@ export default function CreateApp() {
 
         <div className="md:col-span-2">
           <label className="block text-[11px] font-bold text-slate-500 mb-2 uppercase tracking-wider">Select Plan</label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            {plans.map(p => (
-              <div
-                key={p.id}
-                onClick={() => setSelectedPlan(p.id)}
-                className={`border rounded-2xl p-4 cursor-pointer transition-all ${selectedPlan === p.id
-                  ? 'border-blue-500 bg-blue-500/10'
-                  : 'border-white/10 hover:border-white/30 hover:bg-white/5 shadow-xl'
-                  }`}
-              >
-                <div className="font-bold text-white text-sm">{p.name}</div>
-                <div className="text-[10px] text-slate-400 mt-1 font-medium">{p.cpu} CPU / {p.memory} RAM</div>
-                <div className="flex flex-col mt-2">
-                  <span className="text-[10px] text-blue-400 font-black uppercase tracking-wider">
-                    {p.price_per_hour > 0 ? `₹${p.price_per_hour / 100}/hr` : 'Free'}
-                  </span>
-                  {p.price_per_hour > 0 && (
-                    <span className="text-[9px] text-slate-500 font-bold">
-                      approx. ₹{{
-                        'p-small': 99,
-                        'p-basic': 179,
-                        'p-medium': 249,
-                        'p-large': 499,
-                        'p-xlarge': 999
-                      }[p.id] || (p.price_per_hour / 100 * 24 * 30).toFixed(0)}/mo
-                    </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {plans.map(p => {
+              const isComingSoon = p.coming_soon || p.runtime === 'kata';
+              return (
+                <div
+                  key={p.id}
+                  onClick={() => !isComingSoon && setSelectedPlan(p.id)}
+                  className={`border rounded-2xl p-4 transition-all relative ${isComingSoon
+                      ? 'border-purple-500/20 bg-purple-500/5 opacity-60 cursor-not-allowed'
+                      : selectedPlan === p.id
+                        ? 'border-blue-500 bg-blue-500/10 cursor-pointer'
+                        : 'border-white/10 hover:border-white/30 hover:bg-white/5 shadow-xl cursor-pointer'
+                    }`}
+                >
+                  {isComingSoon && (
+                    <div className="absolute -top-2 right-3 bg-gradient-to-r from-purple-600 to-violet-600 text-white px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider shadow-lg">
+                      Coming Soon
+                    </div>
                   )}
+                  <div className={`font-bold text-sm ${isComingSoon ? 'text-purple-300/60' : 'text-white'}`}>{p.name}</div>
+                  <div className={`text-[10px] mt-1 font-medium ${isComingSoon ? 'text-purple-400/40' : 'text-slate-400'}`}>{p.cpu} CPU / {p.memory} RAM</div>
+                  {isComingSoon && (
+                    <div className="text-[10px] text-purple-400/40 mt-0.5 font-medium">VM-isolated runtime</div>
+                  )}
+                  <div className="flex flex-col mt-2">
+                    <span className={`text-[10px] font-black uppercase tracking-wider ${isComingSoon ? 'text-purple-400/40' : 'text-blue-400'}`}>
+                      {p.price_per_hour > 0 ? `₹${p.price_per_hour / 100}/hr` : 'Free'}
+                    </span>
+                    {p.price_per_hour > 0 && (
+                      <span className={`text-[9px] font-bold ${isComingSoon ? 'text-purple-400/30' : 'text-slate-500'}`}>
+                        approx. ₹{{
+                          'p-small': 99,
+                          'p-basic': 179,
+                          'p-medium': 249,
+                          'p-large': 499,
+                          'p-xlarge': 999,
+                          'p-kata-small': 199,
+                          'p-kata-medium': 499,
+                          'p-kata-large': 999
+                        }[p.id] || (p.price_per_hour / 100 * 24 * 30).toFixed(0)}/mo
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

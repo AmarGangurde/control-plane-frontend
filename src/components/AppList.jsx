@@ -315,7 +315,10 @@ export default function AppList() {
                                 'p-basic': 179,
                                 'p-medium': 249,
                                 'p-large': 499,
-                                'p-xlarge': 999
+                                'p-xlarge': 999,
+                                'p-kata-small': 199,
+                                'p-kata-medium': 499,
+                                'p-kata-large': 999
                               }[plan?.id] || ((hourlyRate / 100) * 720).toFixed(0)}/mo
                             </div>
                           )}

@@ -16,7 +16,8 @@ import {
     Twitter,
     Linkedin,
     ExternalLink,
-    LogIn
+    LogIn,
+    Lock
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -368,6 +369,54 @@ export default function Landing() {
                             isMain={false}
                         />
                     </div>
+
+                    {/* Kata Container Plans — Coming Soon */}
+                    <div className="mt-16 mb-4">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
+                            <div className="flex items-center gap-2 px-5 py-2 rounded-full bg-purple-500/10 border border-purple-500/20">
+                                <Shield size={14} className="text-purple-400" />
+                                <span className="text-purple-400 text-xs font-black uppercase tracking-[0.2em]">Kata Containers</span>
+                            </div>
+                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
+                        </div>
+                        <p className="text-center text-slate-500 text-sm font-medium max-w-xl mx-auto mb-10">
+                            Hardware-virtualized isolation for security-critical workloads. Each pod runs in its own lightweight VM.
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <PlanCard
+                            name="Kata Small"
+                            price="₹0.28/hr"
+                            monthly="₹199/mo"
+                            cpu="100m"
+                            ram="128Mi"
+                            bestFor="Secure Microservices"
+                            isMain={false}
+                            comingSoon={true}
+                        />
+                        <PlanCard
+                            name="Kata Medium"
+                            price="₹0.69/hr"
+                            monthly="₹499/mo"
+                            cpu="500m"
+                            ram="512Mi"
+                            bestFor="Isolated Workloads"
+                            isMain={false}
+                            comingSoon={true}
+                        />
+                        <PlanCard
+                            name="Kata Large"
+                            price="₹1.39/hr"
+                            monthly="₹999/mo"
+                            cpu="1.0 Core"
+                            ram="1024Mi"
+                            bestFor="VM-level Security"
+                            isMain={false}
+                            comingSoon={true}
+                        />
+                    </div>
                 </div>
             </section>
 
@@ -450,38 +499,60 @@ function FeatureCard({ icon, title, desc }) {
     );
 }
 
-function PlanCard({ name, price, monthly, cpu, ram, bestFor, isMain }) {
+function PlanCard({ name, price, monthly, cpu, ram, bestFor, isMain, comingSoon = false }) {
     return (
-        <div className={`p-10 rounded-[2.5rem] border ${isMain ? 'bg-blue-600 border-blue-400 shadow-[0_20px_50px_rgba(37,99,235,0.3)] scale-105 relative z-10' : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.04] transition-all'} flex flex-col`}>
-            {isMain && (
+        <div className={`p-10 rounded-[2.5rem] border relative flex flex-col ${comingSoon
+                ? 'bg-white/[0.01] border-purple-500/20 opacity-70'
+                : isMain
+                    ? 'bg-blue-600 border-blue-400 shadow-[0_20px_50px_rgba(37,99,235,0.3)] scale-105 relative z-10'
+                    : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.04] transition-all'
+            }`}>
+            {comingSoon && (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-purple-600 to-violet-600 text-white px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest shadow-xl flex items-center gap-1.5">
+                    <Lock size={10} />
+                    Coming Soon
+                </div>
+            )}
+            {isMain && !comingSoon && (
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white text-blue-600 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest shadow-xl">
                     Popular
                 </div>
             )}
-            <h3 className={`text-xl font-bold mb-2 ${isMain ? 'text-white' : 'text-slate-400'}`}>{name}</h3>
+            <h3 className={`text-xl font-bold mb-2 ${comingSoon ? 'text-purple-300/70' : isMain ? 'text-white' : 'text-slate-400'}`}>{name}</h3>
             <div className="flex flex-col mb-6">
-                <span className="text-4xl font-black">{price}</span>
-                {monthly && <span className={`text-sm font-bold mt-1 ${isMain ? 'text-blue-200' : 'text-slate-500'}`}>or {monthly}</span>}
+                <span className={`text-4xl font-black ${comingSoon ? 'text-slate-500' : ''}`}>{price}</span>
+                {monthly && <span className={`text-sm font-bold mt-1 ${comingSoon ? 'text-slate-600' : isMain ? 'text-blue-200' : 'text-slate-500'}`}>or {monthly}</span>}
             </div>
-            <p className={`text-sm mb-8 font-medium ${isMain ? 'text-blue-100' : 'text-slate-500'}`}>{bestFor}</p>
+            <p className={`text-sm mb-8 font-medium ${comingSoon ? 'text-purple-400/50' : isMain ? 'text-blue-100' : 'text-slate-500'}`}>{bestFor}</p>
 
             <ul className="space-y-4 mb-10 flex-1">
-                <li className="flex items-center gap-3 text-sm font-semibold">
-                    <Cpu size={18} className={isMain ? 'text-white' : 'text-blue-500'} />
+                <li className={`flex items-center gap-3 text-sm font-semibold ${comingSoon ? 'text-slate-600' : ''}`}>
+                    <Cpu size={18} className={comingSoon ? 'text-purple-500/40' : isMain ? 'text-white' : 'text-blue-500'} />
                     {cpu} Cluster Slice
                 </li>
-                <li className="flex items-center gap-3 text-sm font-semibold">
-                    <Layers size={18} className={isMain ? 'text-white' : 'text-indigo-500'} />
+                <li className={`flex items-center gap-3 text-sm font-semibold ${comingSoon ? 'text-slate-600' : ''}`}>
+                    <Layers size={18} className={comingSoon ? 'text-purple-500/40' : isMain ? 'text-white' : 'text-indigo-500'} />
                     {ram} Memory Guard
                 </li>
-                <li className="flex items-center gap-3 text-sm font-semibold">
-                    <CheckCircle2 size={18} className={isMain ? 'text-white' : 'text-green-500'} />
-                    Instant Scalability
+                <li className={`flex items-center gap-3 text-sm font-semibold ${comingSoon ? 'text-slate-600' : ''}`}>
+                    {comingSoon
+                        ? <Shield size={18} className="text-purple-500/40" />
+                        : <CheckCircle2 size={18} className={isMain ? 'text-white' : 'text-green-500'} />
+                    }
+                    {comingSoon ? 'VM-level Isolation' : 'Instant Scalability'}
                 </li>
             </ul>
 
-            <button className={`w-full py-4 rounded-2xl font-bold transition-all ${isMain ? 'bg-white text-blue-600 hover:bg-blue-50' : 'bg-white/10 text-white hover:bg-white/20'}`}>
-                Choose {name}
+            <button
+                disabled={comingSoon}
+                className={`w-full py-4 rounded-2xl font-bold transition-all ${comingSoon
+                        ? 'bg-purple-500/10 text-purple-400/50 border border-purple-500/20 cursor-not-allowed'
+                        : isMain
+                            ? 'bg-white text-blue-600 hover:bg-blue-50'
+                            : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+            >
+                {comingSoon ? 'Coming Soon' : `Choose ${name}`}
             </button>
         </div>
     );
