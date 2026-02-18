@@ -310,7 +310,13 @@ export default function AppList() {
                           </span>
                           {hourlyRate > 0 && (
                             <div className="text-[9px] text-blue-400/80 font-medium mb-1">
-                              ₹{(hourlyRate / 100).toFixed(2)}/hr · ~₹{((hourlyRate / 100) * 720).toFixed(0)}/mo
+                              ₹{(hourlyRate / 100).toFixed(2)}/hr · ~₹{{
+                                'p-small': 99,
+                                'p-basic': 179,
+                                'p-medium': 249,
+                                'p-large': 499,
+                                'p-xlarge': 999
+                              }[plan?.id] || ((hourlyRate / 100) * 720).toFixed(0)}/mo
                             </div>
                           )}
                           <span className="text-xs text-blue-500 font-bold uppercase tracking-wider">

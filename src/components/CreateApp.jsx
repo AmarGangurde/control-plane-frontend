@@ -256,7 +256,13 @@ export default function CreateApp() {
                   </span>
                   {p.price_per_hour > 0 && (
                     <span className="text-[9px] text-slate-500 font-bold">
-                      approx. ₹{(p.price_per_hour / 100 * 24 * 30).toFixed(0)}/mo
+                      approx. ₹{{
+                        'p-small': 99,
+                        'p-basic': 179,
+                        'p-medium': 249,
+                        'p-large': 499,
+                        'p-xlarge': 999
+                      }[p.id] || (p.price_per_hour / 100 * 24 * 30).toFixed(0)}/mo
                     </span>
                   )}
                 </div>
