@@ -313,40 +313,58 @@ export default function Landing() {
                         </p>
                     </div>
 
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                         <PlanCard
                             name="Tiny"
                             price="Free"
                             cpu="25m"
-                            ram="32Mi"
+                            ram="64Mi"
                             bestFor="Hobbies & Testing"
                             isMain={false}
                         />
                         <PlanCard
                             name="Small"
-                            price="₹0.11/hr"
-                            monthly="₹79/mo"
+                            price="₹0.14/hr"
+                            monthly="₹99/mo"
                             cpu="100m"
                             ram="128Mi"
                             bestFor="Production APIs"
-                            isMain={true}
-                        />
-                        <PlanCard
-                            name="Medium"
-                            price="₹0.28/hr"
-                            monthly="₹199/mo"
-                            cpu="500m"
-                            ram="512Mi"
-                            bestFor="Web Apps"
                             isMain={false}
                         />
                         <PlanCard
+                            name="Basic"
+                            price="₹0.25/hr"
+                            monthly="₹179/mo"
+                            cpu="250m"
+                            ram="256Mi"
+                            bestFor="Static & Blogs"
+                            isMain={false}
+                        />
+                        <PlanCard
+                            name="Medium"
+                            price="₹0.35/hr"
+                            monthly="₹249/mo"
+                            cpu="500m"
+                            ram="512Mi"
+                            bestFor="Dynamic Web Apps"
+                            isMain={true}
+                        />
+                        <PlanCard
                             name="Large"
-                            price="₹0.55/hr"
-                            monthly="₹399/mo"
+                            price="₹0.69/hr"
+                            monthly="₹499/mo"
                             cpu="1.0 Core"
                             ram="1024Mi"
                             bestFor="Heavy Compute"
+                            isMain={false}
+                        />
+                        <PlanCard
+                            name="XLarge"
+                            price="₹1.39/hr"
+                            monthly="₹999/mo"
+                            cpu="2.0 Core"
+                            ram="2048Mi"
+                            bestFor="Enterprise Loads"
                             isMain={false}
                         />
                     </div>
