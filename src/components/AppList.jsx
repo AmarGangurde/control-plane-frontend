@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
 import { api } from '../api/client';
-import { Terminal, X, RefreshCw, Cpu, Activity, Pencil, Plus, Trash2, RotateCw } from 'lucide-react';
+import { Terminal, X, RefreshCw, Cpu, Activity, Pencil, Plus, Trash2, RotateCw, ExternalLink, Box } from 'lucide-react';
 
 export default function AppList() {
   const [apps, setApps] = useState([]);
+  const [plans, setPlans] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState({});
@@ -11,16 +12,37 @@ export default function AppList() {
   const [editView, setEditView] = useState(null); // { app, image, port, env, command, args, loading, msg }
   const logEndRef = useRef(null);
 
-  const formatCpu = (cpu) => {
-    if (!cpu || cpu === '0') return '0m';
-    if (cpu.endsWith('n')) return `${Math.round(parseInt(cpu) / 1000000)}m`;
-    return cpu;
+  // --- Parsing Helpers ---
+
+  // Convert CPU string to numeric millicores (m)
+  const parseCpuToMillis = (cpu) => {
+    if (!cpu) return 0;
+    if (typeof cpu === 'number') return cpu;
+    if (cpu.endsWith('n')) return Math.round(parseInt(cpu) / 1000000); // nanocores to m
+    if (cpu.endsWith('m')) return parseInt(cpu); // millicores
+    // If just number, assume cores, so * 1000
+    if (!isNaN(cpu)) return parseFloat(cpu) * 1000;
+    return 0;
   };
 
-  const formatMem = (mem) => {
-    if (!mem || mem === '0') return '0Mi';
-    if (mem.endsWith('Ki')) return `${Math.round(parseInt(mem) / 1024)}Mi`;
-    return mem;
+  // Convert Memory string to numeric MiB
+  const parseMemToMiB = (mem) => {
+    if (!mem) return 0;
+    if (typeof mem === 'number') return mem;
+    if (mem.endsWith('Ki')) return Math.round(parseInt(mem) / 1024);
+    if (mem.endsWith('Mi')) return parseInt(mem);
+    if (mem.endsWith('Gi')) return parseInt(mem) * 1024;
+    if (!isNaN(mem)) return parseInt(mem) / (1024 * 1024); // Assume bytes if just number
+    return 0;
+  };
+
+  const loadPlans = async () => {
+    try {
+      const res = await api.billing.plans();
+      setPlans(res);
+    } catch (e) {
+      console.error("Failed to load plans", e);
+    }
   };
 
   const loadApps = async (opts = { background: false }) => {
@@ -32,8 +54,12 @@ export default function AppList() {
         data.map(async (a) => {
           try {
             const full = await api.apps.get(a.id);
-            return { ...a, status: full.status, metrics: full.metrics };
-          } catch (e) {
+            return {
+              ...a,
+              status: full.status,
+              metrics: full.metrics || { cpu: '0', memory: '0' }
+            };
+          } catch {
             return { ...a, status: 'unknown', metrics: { cpu: '0', memory: '0' } };
           }
         })
@@ -47,6 +73,20 @@ export default function AppList() {
     }
   };
 
+  useEffect(() => {
+    loadPlans();
+    loadApps();
+    const onReload = () => loadApps({ background: true });
+    window.addEventListener('apps:reload', onReload);
+    const iv = setInterval(() => loadApps({ background: true }), 5000);
+
+    return () => {
+      window.removeEventListener('apps:reload', onReload);
+      clearInterval(iv);
+    };
+  }, []);
+
+  // --- Logs & Edit Helpers (Keep existing logic) ---
   const fetchLogs = async (appId, appName) => {
     setLogView({ id: appId, name: appName, logs: '', loading: true });
     try {
@@ -57,7 +97,6 @@ export default function AppList() {
     }
   };
 
-  // --- Edit Modal Helpers ---
   const openEditModal = (app) => {
     const envArray = app.env && Array.isArray(app.env) && app.env.length > 0
       ? app.env.map(e => ({ name: e.name || '', value: e.value || '' }))
@@ -79,10 +118,10 @@ export default function AppList() {
     });
   };
 
+  // ... (Keep edit update helpers) ...
   const updateEditField = (field, value) => {
     setEditView(prev => ({ ...prev, [field]: value }));
   };
-
   const addEditEnvVar = () => {
     setEditView(prev => ({ ...prev, env: [...prev.env, { name: '', value: '' }] }));
   };
@@ -121,7 +160,6 @@ export default function AppList() {
       const parsedCommand = editView.command.trim() ? [editView.command.trim()] : undefined;
 
       const payload = {};
-
       // Only send changed fields
       if (editView.image !== editView.app.image) payload.image = editView.image.trim();
       const newPort = editView.port ? parseInt(editView.port, 10) : undefined;
@@ -139,7 +177,6 @@ export default function AppList() {
         msg: { type: 'success', text: res.message || 'Rolling update initiated!' }
       }));
 
-      // Reload apps after a short delay to show the new status
       setTimeout(() => {
         window.dispatchEvent(new Event('apps:reload'));
       }, 1500);
@@ -158,101 +195,176 @@ export default function AppList() {
     }
   }, [logView?.logs]);
 
-  useEffect(() => {
-    loadApps();
-    const onReload = () => loadApps({ background: true });
-    window.addEventListener('apps:reload', onReload);
-    const iv = setInterval(() => loadApps({ background: true }), 5000);
-
-    return () => {
-      window.removeEventListener('apps:reload', onReload);
-      clearInterval(iv);
-    };
-  }, []);
 
   return (
     <div className="relative">
-      {error && <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl mb-4 font-medium">{error}</div>}
-      {loading && <div className="text-center py-12 text-slate-500 animate-pulse font-medium italic tracking-wide">Synchronizing with cluster v2...</div>}
-      {!loading && (
-        <ul className="app-list">
-          {apps.map(app => (
-            <li className="app-item group" key={app.id}>
-              <div>
-                <div className="font-bold text-white flex items-center gap-2">
-                  {app.name || 'Unnamed App'}
-                  <span className="text-[10px] bg-white/5 border border-white/10 text-slate-400 px-1.5 py-0.5 rounded-md uppercase tracking-wider font-black group-hover:bg-blue-500/10 group-hover:text-blue-400 group-hover:border-blue-500/20 transition-all">{app.plan_id.replace('p-', '')}</span>
-                </div>
-                <div className="text-sm">
-                  <a href={app.url} target="_blank" className="text-blue-500/70 hover:text-blue-400 transition-all underline decoration-blue-500/20 hover:decoration-blue-400/50">{app.url}</a>
-                </div>
-                <div className="text-[11px] text-slate-500 font-mono mt-0.5">{app.image}</div>
-              </div>
-              <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-                <div className="flex items-center gap-3 text-[11px] font-mono">
-                  <div className="flex items-center gap-1 text-slate-400 bg-white/5 px-2 py-0.5 rounded-md border border-white/5" title="CPU Usage">
-                    <Cpu size={12} className="text-blue-500/50" />
-                    {formatCpu(app.metrics?.cpu)}
-                  </div>
-                  <div className="flex items-center gap-1 text-slate-400 bg-white/5 px-2 py-0.5 rounded-md border border-white/5" title="Memory Usage">
-                    <Activity size={12} className="text-purple-500/50" />
-                    {formatMem(app.metrics?.memory)}
-                  </div>
-                  <div className="text-slate-600 pl-2 border-l border-white/5">
-                    {getUptime(app.created_at)}
-                  </div>
-                </div>
-                <span className={`badge ${app.status === 'running' ? 'running' : app.status === 'failed' ? 'failed' : app.status === 'updating' ? 'updating' : 'pending'}`}>{app.status}</span>
+      {error && <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl mb-6 font-medium animate-in fade-in slide-in-from-top-2">{error}</div>}
 
-                {/* Edit Button — only for running apps */}
-                {app.status === 'running' && (
+      {loading && !apps.length && (
+        <div className="text-center py-20">
+          <div className="inline-block animate-spin text-amber-500 mb-4"><RefreshCw size={32} /></div>
+          <div className="text-slate-500 font-medium italic tracking-wide">Synchronizing with cluster v2...</div>
+        </div>
+      )}
+
+      {!loading && apps.length === 0 && (
+        <div className="text-center py-20 border border-dashed border-white/10 rounded-3xl bg-white/5">
+          <div className="inline-flex p-4 rounded-full bg-slate-800 text-slate-500 mb-4">
+            <Box size={32} />
+          </div>
+          <h3 className="text-xl font-bold text-white mb-2">No Apps Deployed</h3>
+          <p className="text-slate-400">Launch your first application to get started.</p>
+        </div>
+      )}
+
+      {apps.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {apps.map(app => {
+            const plan = plans.find(p => p.id === app.plan_id);
+            const cpuLimit = plan ? parseCpuToMillis(plan.cpu) : 1000;
+            const memLimit = plan ? parseMemToMiB(plan.memory) : 512;
+
+            const currentCpu = parseCpuToMillis(app.metrics?.cpu);
+            const currentMem = parseMemToMiB(app.metrics?.memory);
+
+            const cpuPercent = Math.min((currentCpu / cpuLimit) * 100, 100);
+            const memPercent = Math.min((currentMem / memLimit) * 100, 100);
+
+            return (
+              <div key={app.id} className="group relative bg-[#0f172a]/80 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden hover:border-amber-500/30 transition-all duration-300 hover:shadow-2xl hover:shadow-amber-500/5 flex flex-col">
+
+                {/* Header */}
+                <div className="p-5 border-b border-white/5 bg-gradient-to-r from-white/[0.02] to-transparent">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-blue-500/20 flex items-center justify-center text-blue-400 border border-white/5">
+                        <Box size={20} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-white text-lg leading-tight truncate max-w-[150px]" title={app.name}>{app.name || 'Unnamed'}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] uppercase font-black tracking-wider border ${app.status === 'running' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                            app.status === 'failed' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                              app.status === 'updating' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                                'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                            }`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${app.status === 'running' ? 'bg-emerald-400 animate-pulse' :
+                              app.status === 'failed' ? 'bg-red-400' :
+                                app.status === 'updating' ? 'bg-amber-400 animate-bounce' :
+                                  'bg-slate-400'
+                              }`} />
+                            {app.status}
+                          </span>
+                          <span className="text-[10px] text-slate-500 font-mono px-1.5 py-0.5 bg-white/5 rounded border border-white/5">{plan?.name || app.plan_id}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <a href={app.url} target="_blank" className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-blue-400 transition-colors group/link w-fit">
+                    <ExternalLink size={12} />
+                    <span className="truncate max-w-[250px] group-hover/link:underline decoration-blue-500/30">{app.url.replace('https://', '')}</span>
+                  </a>
+                </div>
+
+                {/* Metrics Visuals */}
+                <div className="p-5 flex-1 flex flex-col gap-4">
+                  {/* CPU Graph */}
+                  <div>
+                    <div className="flex items-center justify-between text-[11px] font-medium text-slate-400 mb-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <Cpu size={12} className="text-blue-400" />
+                        <span>CPU Usage</span>
+                      </div>
+                      <span className="font-mono text-white/70">{currentCpu}m / <span className="text-slate-600">{cpuLimit}m</span></span>
+                    </div>
+                    <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden border border-white/5">
+                      <div
+                        className="h-full bg-gradient-to-r from-blue-600 to-indigo-500 transition-all duration-1000 ease-out relative"
+                        style={{ width: `${cpuPercent}%` }}
+                      >
+                        <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mem Graph */}
+                  <div>
+                    <div className="flex items-center justify-between text-[11px] font-medium text-slate-400 mb-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <Activity size={12} className="text-purple-400" />
+                        <span>Memory</span>
+                      </div>
+                      <span className="font-mono text-white/70">{currentMem}Mi / <span className="text-slate-600">{memLimit}Mi</span></span>
+                    </div>
+                    <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden border border-white/5">
+                      <div
+                        className="h-full bg-gradient-to-r from-purple-600 to-pink-500 transition-all duration-1000 ease-out relative"
+                        style={{ width: `${memPercent}%` }}
+                      >
+                        <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-auto pt-4 flex items-center gap-2 text-[10px] text-slate-600 font-mono">
+                    <span className="bg-white/5 px-2 py-1 rounded border border-white/5 truncate max-w-full" title={app.image}>{app.image}</span>
+                    <span className="ml-auto">{getUptime(app.created_at)}</span>
+                  </div>
+                </div>
+
+                {/* Actions Toolbar */}
+                <div className="p-3 bg-black/20 border-t border-white/5 flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {app.status === 'running' && (
+                    <button
+                      onClick={() => openEditModal(app)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-xs font-bold transition-all border border-amber-500/10 hover:border-amber-500/30"
+                    >
+                      <Pencil size={14} />
+                      <span>Edit</span>
+                    </button>
+                  )}
                   <button
-                    onClick={() => openEditModal(app)}
-                    className="p-2 rounded-lg bg-white/5 border border-white/5 text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/20 transition-all"
-                    title="Edit & Update (Rolling)"
+                    onClick={() => fetchLogs(app.id, app.name)}
+                    className="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-colors border border-white/5"
+                    title="Logs"
                   >
-                    <Pencil size={16} />
+                    <Terminal size={14} />
                   </button>
-                )}
-
-                <button
-                  onClick={() => fetchLogs(app.id, app.name)}
-                  className="p-2 rounded-lg bg-white/5 border border-white/5 text-slate-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all"
-                  title="View Logs"
-                >
-                  <Terminal size={16} />
-                </button>
-
-                <button
-                  className="danger"
-                  disabled={!!deleting[app.id]}
-                  onClick={async () => {
-                    if (!confirm('Delete this app?')) return;
-                    setDeleting(d => ({ ...d, [app.id]: true }));
-                    try {
-                      await api.apps.delete(app.id);
-                      await loadApps();
-                    } catch (e) {
-                      setError(e.message);
-                    } finally {
-                      setDeleting(d => {
-                        const copy = { ...d };
-                        delete copy[app.id];
-                        return copy;
-                      });
-                    }
-                  }}
-                >{deleting[app.id] ? 'Deleting…' : 'Delete'}</button>
+                  <button
+                    onClick={async () => {
+                      if (!confirm('Delete this app?')) return;
+                      setDeleting(d => ({ ...d, [app.id]: true }));
+                      try {
+                        await api.apps.delete(app.id);
+                        await loadApps();
+                      } catch (e) {
+                        setError(e.message);
+                      } finally {
+                        setDeleting(d => {
+                          const copy = { ...d };
+                          delete copy[app.id];
+                          return copy;
+                        });
+                      }
+                    }}
+                    disabled={!!deleting[app.id]}
+                    className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors border border-red-500/10"
+                    title="Delete"
+                  >
+                    {deleting[app.id] ? <RefreshCw size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                  </button>
+                </div>
               </div>
-            </li>
-          ))}
-        </ul>
+            );
+          })}
+        </div>
       )}
 
       {/* Logs Modal */}
       {logView && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-[#020617]/80 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="w-full max-w-4xl bg-[#0f172a] border border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+          <div className="w-full max-w-4xl bg-[#0f172a] border border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="flex items-center justify-between p-4 border-b border-white/5 bg-white/5">
               <div className="flex items-center gap-3">
                 <div className="bg-blue-600/20 p-2 rounded-lg text-blue-400">
@@ -296,7 +408,7 @@ export default function AppList() {
       {/* Edit / Rolling Update Modal */}
       {editView && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-[#020617]/80 backdrop-blur-sm" onClick={() => !editView.loading && setEditView(null)}>
-          <div className="w-full max-w-2xl bg-[#0f172a] border border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-2xl bg-[#0f172a] border border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
             {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-white/5 bg-white/[0.03]">
               <div className="flex items-center gap-3">
@@ -484,13 +596,10 @@ function getUptime(dateString) {
   if (isNaN(start.getTime())) return '';
   const now = new Date();
   const diff = now - start;
-
   if (diff < 0) return 'Just started';
-
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
-
   if (days > 0) return `${days}d ${hours % 24}h`;
   if (hours > 0) return `${hours}h ${minutes % 60}m`;
   return `${minutes}m`;
