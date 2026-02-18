@@ -226,7 +226,7 @@ export default function AppList() {
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Application</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Status</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Real-time Usage</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Spend</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Billing</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Created</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Actions</th>
                 </tr>
@@ -304,8 +304,10 @@ export default function AppList() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20 w-fit">
-                          <RefreshCw size={12} className="text-amber-500 mr-2" />
+                        <div className="flex flex-col bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20 w-fit">
+                          <span className="text-[10px] text-amber-500/70 font-bold uppercase tracking-wider mb-0.5">
+                            {plan?.id?.replace('p-', '') || 'custom'}
+                          </span>
                           <span className="text-xs text-amber-500 font-bold uppercase tracking-wider">
                             ₹{(totalCharged / 100).toFixed(2)}
                           </span>
