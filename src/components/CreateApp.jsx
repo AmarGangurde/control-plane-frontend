@@ -238,7 +238,7 @@ export default function CreateApp() {
 
         <div className="md:col-span-2">
           <label className="block text-[11px] font-bold text-slate-500 mb-2 uppercase tracking-wider">Select Plan</label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {plans.map(p => (
               <div
                 key={p.id}
