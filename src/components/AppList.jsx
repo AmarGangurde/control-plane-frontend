@@ -202,7 +202,7 @@ export default function AppList() {
 
       {loading && !apps.length && (
         <div className="text-center py-20">
-          <div className="inline-block animate-spin text-amber-500 mb-4"><RefreshCw size={32} /></div>
+          <div className="inline-block animate-spin text-blue-500 mb-4"><RefreshCw size={32} /></div>
           <div className="text-slate-500 font-medium italic tracking-wide">Synchronizing with cluster v2...</div>
         </div>
       )}
@@ -304,11 +304,11 @@ export default function AppList() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20 w-fit">
-                          <span className="text-[10px] text-amber-500/70 font-bold uppercase tracking-wider mb-0.5">
+                        <div className="flex flex-col bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20 w-fit">
+                          <span className="text-[10px] text-blue-500/70 font-bold uppercase tracking-wider mb-0.5">
                             {plan?.id?.replace('p-', '') || 'custom'}
                           </span>
-                          <span className="text-xs text-amber-500 font-bold uppercase tracking-wider">
+                          <span className="text-xs text-blue-500 font-bold uppercase tracking-wider">
                             ₹{(totalCharged / 100).toFixed(2)}
                           </span>
                         </div>
