@@ -185,8 +185,8 @@ export default function Billing() {
                                 <div className="text-3xl font-black text-white mb-1">₹{hourlyCost.toFixed(2)}</div>
                                 <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-4">Cost / Hour</div>
 
-                                <div className="text-xl font-black text-indigo-400 mb-0.5">₹{(hourlyCost * 24 * 30).toFixed(0)}</div>
-                                <div className="text-[10px] text-indigo-400/50 font-black uppercase tracking-widest">Est. Monthly</div>
+                                <div className="text-xl font-black text-indigo-400 mb-0.5">₹{(hourlyCost / 60).toFixed(4)}</div>
+                                <div className="text-[10px] text-indigo-400/50 font-black uppercase tracking-widest">Cost / Minute</div>
                             </div>
                         </div>
                     </div>
