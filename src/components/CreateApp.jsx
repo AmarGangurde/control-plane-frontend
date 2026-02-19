@@ -20,8 +20,10 @@ export default function CreateApp() {
   useEffect(() => {
     // fetch plans — regular first, then coming_soon (Kata) at the end
     api.billing.plans().then(data => {
-      const regular = data.filter(p => !p.coming_soon);
-      const comingSoon = data.filter(p => p.coming_soon);
+      // Filter out database plans
+      const appPlans = data.filter(p => !p.id.startsWith('db-'));
+      const regular = appPlans.filter(p => !p.coming_soon);
+      const comingSoon = appPlans.filter(p => p.coming_soon);
       setPlans([...regular, ...comingSoon]);
     }).catch(console.error);
   }, []);

@@ -142,8 +142,8 @@ export default function Databases() {
                                             key={plan.id}
                                             onClick={() => setSelectedPlan(plan.id)}
                                             className={`p-4 rounded-2xl border transition-all text-left flex flex-col gap-1 group ${selectedPlan === plan.id
-                                                    ? 'bg-emerald-500/10 border-emerald-500 ring-4 ring-emerald-500/10'
-                                                    : 'bg-black/40 border-white/5 hover:border-white/20'
+                                                ? 'bg-emerald-500/10 border-emerald-500 ring-4 ring-emerald-500/10'
+                                                : 'bg-black/40 border-white/5 hover:border-white/20'
                                                 }`}
                                         >
                                             <span className={`text-[10px] font-black uppercase tracking-widest ${selectedPlan === plan.id ? 'text-emerald-400' : 'text-slate-500'}`}>
@@ -220,22 +220,22 @@ export default function Databases() {
             )}
 
             {/* Database Listing Table */}
-            <div className="bg-[#0b0f1a] border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl">
+            <div className="bg-[#0f172a] border border-white/5 rounded-2xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-white/5">
                         <thead>
                             <tr className="bg-white/[0.02]">
-                                <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Instance Details</th>
-                                <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
-                                <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Resources</th>
-                                <th className="px-8 py-6 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Storage & Billing</th>
-                                <th className="px-8 py-6 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Management</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Instance Details</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Status</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Resources</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Storage & Billing</th>
+                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-widest">Management</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
                             {databases.map(db => (
-                                <tr key={db.id} className="group hover:bg-white/[0.01] transition-all border-l-4 border-transparent hover:border-emerald-500/40">
-                                    <td className="px-8 py-6">
+                                <tr key={db.id} className="group hover:bg-white/[0.02] transition-colors border-l-4 border-transparent hover:border-emerald-500/40">
+                                    <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center gap-4">
                                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-all ${db.status === 'running' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-slate-800 border-white/5 text-slate-500'
                                                 }`}>
@@ -251,12 +251,12 @@ export default function Databases() {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-8 py-6">
+                                    <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusColor(db.status)}`}>
                                             {db.status}
                                         </span>
                                     </td>
-                                    <td className="px-8 py-6">
+                                    <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="w-[120px] space-y-2">
                                             <div className="flex flex-col gap-1">
                                                 <div className="flex justify-between text-[9px] font-black uppercase text-slate-500">
@@ -278,7 +278,7 @@ export default function Databases() {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-8 py-6">
+                                    <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex flex-col">
                                             <div className="flex items-baseline gap-1.5">
                                                 <span className="text-white font-bold text-sm">₹{(db.hourly_rate / 100).toFixed(2)}</span>
@@ -290,7 +290,7 @@ export default function Databases() {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-8 py-6 text-right">
+                                    <td className="px-6 py-4 whitespace-nowrap text-right">
                                         <div className="flex items-center justify-end gap-3 translate-x-2 opacity-100 group-hover:opacity-100 transition-all">
                                             <button
                                                 onClick={() => copyToClipboard(db.url, db.id)}
