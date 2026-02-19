@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Dashboard from './pages/Dashboard';
+import Databases from './pages/Databases';
 import Billing from './pages/Billing';
 import Landing from './pages/Landing';
 import TInfo from './pages/TInfo';
@@ -70,8 +71,8 @@ const SettingsMenu = () => {
       <button
         onClick={() => { setOpen(!open); setApiKey(null); setCopied(false); setError(''); }}
         className={`p-2 rounded-xl transition-all border ${open
-            ? 'bg-white/10 text-white border-white/20'
-            : 'text-slate-400 hover:text-white hover:bg-white/5 border-transparent'
+          ? 'bg-white/10 text-white border-white/20'
+          : 'text-slate-400 hover:text-white hover:bg-white/5 border-transparent'
           }`}
         title="Settings"
       >
@@ -108,8 +109,8 @@ const SettingsMenu = () => {
                 <button
                   onClick={handleCopy}
                   className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${copied
-                      ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                      : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
+                    ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                    : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                     }`}
                 >
                   {copied ? <><CheckCircle2 size={14} /> Copied!</> : <><Copy size={14} /> Copy to Clipboard</>}
@@ -193,6 +194,12 @@ const Layout = ({ children }) => {
                 Dashboard
               </NavLink>
               <NavLink
+                to="/databases"
+                className={({ isActive }) => `px-4 py-2 rounded-xl text-sm font-semibold transition-all ${isActive ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+              >
+                Databases
+              </NavLink>
+              <NavLink
                 to="/billing"
                 className={({ isActive }) => `px-4 py-2 rounded-xl text-sm font-semibold transition-all ${isActive ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
               >
@@ -264,6 +271,12 @@ export default function App() {
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/databases" element={
+            <ProtectedRoute>
+              <Databases />
             </ProtectedRoute>
           } />
 

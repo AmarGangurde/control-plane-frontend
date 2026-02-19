@@ -66,5 +66,13 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ amount })
     })
+  },
+  databases: {
+    list: () => apiFetch('/databases'),
+    create: (name) => apiFetch('/databases', {
+      method: 'POST',
+      body: JSON.stringify({ name })
+    }),
+    delete: (id) => apiFetch(`/databases/${id}`, { method: 'DELETE' })
   }
 };
