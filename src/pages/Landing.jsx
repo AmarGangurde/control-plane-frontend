@@ -17,7 +17,11 @@ import {
     Linkedin,
     ExternalLink,
     LogIn,
-    Lock
+    Lock,
+    Database,
+    HardDrive,
+    ShieldCheck,
+    Infinity
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -147,14 +151,13 @@ export default function Landing() {
                             Cloud Native Orchestration
                         </div>
                         <h1 className="text-6xl md:text-[84px] font-black leading-[1.05] mb-8 tracking-tight">
-                            Deploy your apps <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
+                            Deploy your apps & <br />databases <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
                                 without the noise.
                             </span>
                         </h1>
                         <p className="text-xl text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed font-medium">
-                            The PAAS for builders. One command deployment, instant global reach,
-                            and Kubernetes scale without the YAML headache.
+                            The PAAS for builders. One command APP & DB deployment, instant global reach,
+                            and Kubernetes scale with managed PostgreSQL.
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
@@ -238,9 +241,13 @@ export default function Landing() {
                                         <Globe size={16} className="text-purple-400" />
                                         Routing: <span className="text-purple-400">app-6277.10.58.89.249.nip.io</span>
                                     </p>
+                                    <p className="flex items-center gap-3">
+                                        <Database size={16} className="text-emerald-400" />
+                                        Database: <span className="text-emerald-400">Postgres 16 (1Gi NVMe)</span>
+                                    </p>
                                     <p className="flex items-center gap-3 pt-4 text-green-400 font-bold">
                                         <CheckCircle2 size={18} />
-                                        ✓ Application Live: https://my-api.wrexer.com
+                                        ✓ Infrastructure Ready: https://console.wrexer.com
                                     </p>
                                 </div>
                             </div>
@@ -269,36 +276,26 @@ export default function Landing() {
                         </p>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-8">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
                         <FeatureCard
                             icon={<Zap className="text-yellow-400" />}
-                            title="Instant Cold Start"
+                            title="Instant Apps"
                             desc="Optimized container orchestration ensures your apps are live and serving traffic in milliseconds."
                         />
                         <FeatureCard
-                            icon={<Shield className="text-blue-400" />}
-                            title="Hardened Security"
-                            desc="Isolated namespaces, automated SSL, and DDoS protection baked into every deployment."
+                            icon={<Database className="text-emerald-400" />}
+                            title="Managed DBs"
+                            desc="Provision production-grade PostgreSQL 16 instances with one click. High availability included."
                         />
                         <FeatureCard
-                            icon={<Box className="text-purple-400" />}
-                            title="Auto-Healing K3s"
-                            desc="Powered by k3s, we automatically restart or migrate your apps if any underlying hardware fails."
+                            icon={<HardDrive className="text-blue-400" />}
+                            title="NVMe Storage"
+                            desc="Persistent Volume Claims (PVC) ensure your data survives crashes, updates, and restarts."
                         />
                         <FeatureCard
-                            icon={<Globe className="text-emerald-400" />}
-                            title="Smart Routing"
-                            desc="Global edge routing through Traefik ensures low-latency access from anywhere in the world."
-                        />
-                        <FeatureCard
-                            icon={<Layers className="text-rose-400" />}
-                            title="Resource Control"
-                            desc="Granular cgroup limits (CPU/RAM) ensure your apps never fight for resources."
-                        />
-                        <FeatureCard
-                            icon={<Terminal className="text-indigo-400" />}
-                            title="API First"
-                            desc="Full programmatic control. Integrate wrexer into your existing CI/CD or internal tools."
+                            icon={<ShieldCheck className="text-indigo-400" />}
+                            title="Private Mesh"
+                            desc="Databases are strictly internal. Accessible only via high-speed internal Kubernetes DNS."
                         />
                     </div>
                 </div>
@@ -370,8 +367,60 @@ export default function Landing() {
                         />
                     </div>
 
+                    {/* Database Section */}
+                    <div className="mt-32">
+                        <div className="text-center mb-16">
+                            <div className="flex items-center gap-4 mb-4 justify-center">
+                                <div className="h-px w-12 bg-emerald-500/30" />
+                                <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                                    <Database size={14} className="text-emerald-400" />
+                                    <span className="text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em]">DBaaS</span>
+                                </div>
+                                <div className="h-px w-12 bg-emerald-500/30" />
+                            </div>
+                            <h3 className="text-3xl md:text-5xl font-black text-white mb-6">High Performance Databases.</h3>
+                            <p className="text-slate-500 max-w-xl mx-auto font-medium">Fully managed PostgreSQL 16 on dedicated NVMe storage tiers.</p>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            <PlanCard
+                                name="DB Small"
+                                price="₹1.50/hr"
+                                monthly="₹1,080/mo"
+                                cpu="250m"
+                                ram="256Mi"
+                                storage="1Gi SSD"
+                                bestFor="Dev & Small Apps"
+                                isMain={false}
+                                type="database"
+                            />
+                            <PlanCard
+                                name="DB Medium"
+                                price="₹3.00/hr"
+                                monthly="₹2,160/mo"
+                                cpu="500m"
+                                ram="512Mi"
+                                storage="5Gi SSD"
+                                bestFor="Growing Apps"
+                                isMain={true}
+                                type="database"
+                            />
+                            <PlanCard
+                                name="DB Large"
+                                price="₹6.00/hr"
+                                monthly="₹4,320/mo"
+                                cpu="1.0 Core"
+                                ram="1024Mi"
+                                storage="10Gi SSD"
+                                bestFor="Production Traffic"
+                                isMain={false}
+                                type="database"
+                            />
+                        </div>
+                    </div>
+
                     {/* Kata Container Plans — Coming Soon */}
-                    <div className="mt-16 mb-4">
+                    <div className="mt-32">
                         <div className="flex items-center gap-4 mb-8">
                             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
                             <div className="flex items-center gap-2 px-5 py-2 rounded-full bg-purple-500/10 border border-purple-500/20">
@@ -383,39 +432,39 @@ export default function Landing() {
                         <p className="text-center text-slate-500 text-sm font-medium max-w-xl mx-auto mb-10">
                             Hardware-virtualized isolation for security-critical workloads. Each pod runs in its own lightweight VM.
                         </p>
-                    </div>
 
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        <PlanCard
-                            name="Kata Small"
-                            price="₹0.28/hr"
-                            monthly="₹199/mo"
-                            cpu="100m"
-                            ram="128Mi"
-                            bestFor="Secure Microservices"
-                            isMain={false}
-                            comingSoon={true}
-                        />
-                        <PlanCard
-                            name="Kata Medium"
-                            price="₹0.69/hr"
-                            monthly="₹499/mo"
-                            cpu="500m"
-                            ram="512Mi"
-                            bestFor="Isolated Workloads"
-                            isMain={false}
-                            comingSoon={true}
-                        />
-                        <PlanCard
-                            name="Kata Large"
-                            price="₹1.39/hr"
-                            monthly="₹999/mo"
-                            cpu="1.0 Core"
-                            ram="1024Mi"
-                            bestFor="VM-level Security"
-                            isMain={false}
-                            comingSoon={true}
-                        />
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            <PlanCard
+                                name="Kata Small"
+                                price="₹0.28/hr"
+                                monthly="₹199/mo"
+                                cpu="100m"
+                                ram="128Mi"
+                                bestFor="Secure Microservices"
+                                isMain={false}
+                                comingSoon={true}
+                            />
+                            <PlanCard
+                                name="Kata Medium"
+                                price="₹0.69/hr"
+                                monthly="₹499/mo"
+                                cpu="500m"
+                                ram="512Mi"
+                                bestFor="Isolated Workloads"
+                                isMain={false}
+                                comingSoon={true}
+                            />
+                            <PlanCard
+                                name="Kata Large"
+                                price="₹1.39/hr"
+                                monthly="₹999/mo"
+                                cpu="1.0 Core"
+                                ram="1024Mi"
+                                bestFor="VM-level Security"
+                                isMain={false}
+                                comingSoon={true}
+                            />
+                        </div>
                     </div>
                 </div>
             </section>
@@ -499,10 +548,14 @@ function FeatureCard({ icon, title, desc }) {
     );
 }
 
-function PlanCard({ name, price, monthly, cpu, ram, bestFor, isMain, comingSoon = false }) {
+function PlanCard({ name, price, monthly, cpu, ram, storage, bestFor, isMain, type = 'app', comingSoon = false }) {
     return (
         <div className={`p-10 rounded-[2.5rem] border relative flex flex-col ${comingSoon
-                ? 'bg-white/[0.01] border-purple-500/20 opacity-70'
+            ? 'bg-white/[0.01] border-purple-500/20 opacity-70'
+            : type === 'database'
+                ? isMain
+                    ? 'bg-emerald-600 border-emerald-400 shadow-[0_20px_50px_rgba(16,185,129,0.3)] scale-105 relative z-10'
+                    : 'bg-white/[0.02] border-emerald-500/10 hover:bg-white/[0.04] transition-all'
                 : isMain
                     ? 'bg-blue-600 border-blue-400 shadow-[0_20px_50px_rgba(37,99,235,0.3)] scale-105 relative z-10'
                     : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.04] transition-all'
@@ -527,29 +580,35 @@ function PlanCard({ name, price, monthly, cpu, ram, bestFor, isMain, comingSoon 
 
             <ul className="space-y-4 mb-10 flex-1">
                 <li className={`flex items-center gap-3 text-sm font-semibold ${comingSoon ? 'text-slate-600' : ''}`}>
-                    <Cpu size={18} className={comingSoon ? 'text-purple-500/40' : isMain ? 'text-white' : 'text-blue-500'} />
+                    <Cpu size={18} className={comingSoon ? 'text-purple-500/40' : isMain ? 'text-white' : type === 'database' ? 'text-emerald-500' : 'text-blue-500'} />
                     {cpu} Cluster Slice
                 </li>
                 <li className={`flex items-center gap-3 text-sm font-semibold ${comingSoon ? 'text-slate-600' : ''}`}>
-                    <Layers size={18} className={comingSoon ? 'text-purple-500/40' : isMain ? 'text-white' : 'text-indigo-500'} />
+                    <Layers size={18} className={comingSoon ? 'text-purple-500/40' : isMain ? 'text-white' : type === 'database' ? 'text-emerald-500' : 'text-indigo-500'} />
                     {ram} Memory Guard
                 </li>
+                {storage && (
+                    <li className={`flex items-center gap-3 text-sm font-semibold ${comingSoon ? 'text-slate-600' : ''}`}>
+                        <HardDrive size={18} className={comingSoon ? 'text-purple-500/40' : isMain ? 'text-white' : 'text-emerald-500'} />
+                        {storage} NVMe Storage
+                    </li>
+                )}
                 <li className={`flex items-center gap-3 text-sm font-semibold ${comingSoon ? 'text-slate-600' : ''}`}>
                     {comingSoon
                         ? <Shield size={18} className="text-purple-500/40" />
                         : <CheckCircle2 size={18} className={isMain ? 'text-white' : 'text-green-500'} />
                     }
-                    {comingSoon ? 'VM-level Isolation' : 'Instant Scalability'}
+                    {comingSoon ? 'VM-level Isolation' : type === 'database' ? 'PostgreSQL 16' : 'Instant Scalability'}
                 </li>
             </ul>
 
             <button
                 disabled={comingSoon}
                 className={`w-full py-4 rounded-2xl font-bold transition-all ${comingSoon
-                        ? 'bg-purple-500/10 text-purple-400/50 border border-purple-500/20 cursor-not-allowed'
-                        : isMain
-                            ? 'bg-white text-blue-600 hover:bg-blue-50'
-                            : 'bg-white/10 text-white hover:bg-white/20'
+                    ? 'bg-purple-500/10 text-purple-400/50 border border-purple-500/20 cursor-not-allowed'
+                    : isMain
+                        ? 'bg-white text-blue-600 hover:bg-blue-50'
+                        : 'bg-white/10 text-white hover:bg-white/20'
                     }`}
             >
                 {comingSoon ? 'Coming Soon' : `Choose ${name}`}
