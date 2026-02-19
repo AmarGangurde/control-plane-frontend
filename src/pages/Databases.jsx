@@ -198,10 +198,10 @@ export default function Databases() {
                                         </div>
                                         <div className="flex flex-col mt-2">
                                             <span className={`text-[10px] font-black uppercase tracking-wider ${selectedPlan === plan.id ? 'text-emerald-400' : 'text-slate-500'}`}>
-                                                ₹{(plan.price_per_hour / 100).toFixed(2)}/hr
+                                                ₹{((plan.price_per_hour + (parseInt(plan.storage?.replace('Gi', '')) || 0) * 2) / 100).toFixed(2)}/hr
                                             </span>
                                             <span className="text-[9px] font-bold text-slate-600">
-                                                {plan.storage} Storage included
+                                                {plan.storage} Storage included (₹{((parseInt(plan.storage?.replace('Gi', '')) || 0) * 0.02).toFixed(2)}/hr)
                                             </span>
                                         </div>
                                     </div>
@@ -294,8 +294,14 @@ export default function Databases() {
                                             <span className="text-[10px] text-emerald-500/70 font-bold uppercase tracking-wider mb-0.5">
                                                 {db.plan_id.replace('db-', '').toUpperCase()}
                                             </span>
-                                            <div className="text-[9px] text-emerald-400/80 font-medium mb-1">
-                                                ₹{(db.hourly_rate / 100).toFixed(2)}/hr
+                                            <div className="text-[10px] text-emerald-400 font-black mb-0.5">
+                                                ₹{(((db.status === 'running' ? (db.hourly_rate || 0) : 0) + (db.storage_hourly_rate || 0)) / 100).toFixed(2)}/hr
+                                            </div>
+                                            <div className="text-[7px] text-emerald-500/40 uppercase font-bold tracking-tighter mb-1 leading-none">
+                                                {db.status === 'running'
+                                                    ? `Pod: ${(db.hourly_rate / 100).toFixed(2)} + Storage: ${(db.storage_hourly_rate / 100).toFixed(2)}`
+                                                    : `Storage Only: ${(db.storage_hourly_rate / 100).toFixed(2)}`
+                                                }
                                             </div>
                                             <span className="text-xs text-emerald-500 font-bold uppercase tracking-wider">
                                                 ₹{((db.total_charged || 0) / 100).toFixed(2)} <span className="text-[9px] font-normal opacity-70">paid</span>
@@ -356,7 +362,7 @@ export default function Databases() {
                                         <div className="w-16 h-16 bg-white/5 text-slate-500 rounded-full flex items-center justify-center mx-auto mb-4">
                                             <Database size={32} />
                                         </div>
-                                        <h4 className="text-white font-black uppercase tracking-widest text-sm mb-1">No Instances Active</h4>
+                                        <h4 className="text-white font-black uppercase tracking-widest text-sm mb-1">No Databases Active</h4>
                                         <p className="text-slate-500 text-xs font-medium italic">Provision your first high-performance SQL cluster above.</p>
                                     </td>
                                 </tr>

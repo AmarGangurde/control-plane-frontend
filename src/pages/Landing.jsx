@@ -385,8 +385,8 @@ export default function Landing() {
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                             <PlanCard
                                 name="DB Small"
-                                price="₹1.50/hr"
-                                monthly="₹1,080/mo"
+                                price="₹0.34/hr"
+                                monthly="₹245/mo"
                                 cpu="250m"
                                 ram="256Mi"
                                 storage="1Gi SSD"
@@ -396,8 +396,8 @@ export default function Landing() {
                             />
                             <PlanCard
                                 name="DB Medium"
-                                price="₹3.00/hr"
-                                monthly="₹2,160/mo"
+                                price="₹0.55/hr"
+                                monthly="₹396/mo"
                                 cpu="500m"
                                 ram="512Mi"
                                 storage="5Gi SSD"
@@ -407,8 +407,8 @@ export default function Landing() {
                             />
                             <PlanCard
                                 name="DB Large"
-                                price="₹6.00/hr"
-                                monthly="₹4,320/mo"
+                                price="₹1.09/hr"
+                                monthly="₹785/mo"
                                 cpu="1.0 Core"
                                 ram="1024Mi"
                                 storage="10Gi SSD"

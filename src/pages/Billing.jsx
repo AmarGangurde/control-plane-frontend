@@ -57,14 +57,18 @@ export default function Billing() {
             setTransactions(transRes.map(tx => ({ ...tx, amount: tx.amount / 100 })));
 
             const activeApps = appsRes.filter(a => a.status === 'running');
-            const activeDbs = dbsRes.filter(d => d.status === 'running');
+            const runningDbs = dbsRes.filter(d => d.status === 'running');
+            const existingDbs = dbsRes.filter(d => d.status !== 'deleted');
+
             setAppsCount(activeApps.length);
-            setDbsCount(activeDbs.length);
+            setDbsCount(existingDbs.length);
 
             // Calculate combined hourly cost
             const appCost = activeApps.reduce((acc, app) => acc + (app.hourly_rate || 0), 0);
-            const dbCost = activeDbs.reduce((acc, db) => acc + (db.hourly_rate || 0), 0);
-            setHourlyCost((appCost + dbCost) / 100);
+            const dbPodCost = runningDbs.reduce((acc, db) => acc + (db.hourly_rate || 0), 0);
+            const dbStorageCost = existingDbs.reduce((acc, db) => acc + (db.storage_hourly_rate || 0), 0);
+
+            setHourlyCost((appCost + dbPodCost + dbStorageCost) / 100);
         } catch (err) {
             console.error(err);
             setError('Failed to load billing data');
