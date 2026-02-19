@@ -111,103 +111,97 @@ export default function Databases() {
             </div>
 
             {/* Create Database Card */}
-            <div className="bg-white/5 p-8 rounded-3xl border border-white/5 mb-10 overflow-hidden relative">
-                <div className="absolute top-0 right-0 p-8 opacity-5">
-                    <Database size={120} />
+            <div className="bg-white/5 p-8 rounded-3xl border border-white/5 mb-10 transition-all">
+                <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-black tracking-tight">Deploy New Database</h3>
                 </div>
 
-                <div className="relative z-10">
-                    <h3 className="text-xl font-black tracking-tight mb-6 flex items-center gap-2 uppercase italic">
-                        <Plus size={20} className="text-emerald-500" />
-                        Provision New Instance
-                    </h3>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div className="space-y-6">
-                            <div>
-                                <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-[0.2em]">Database Name</label>
-                                <input
-                                    className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:border-emerald-500 transition-all font-bold placeholder:text-white/10"
-                                    placeholder="e.g. production-clusters"
-                                    value={name}
-                                    onChange={e => setName(e.target.value)}
-                                />
+                {newDbDetails && (
+                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6 mb-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="w-12 h-12 bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center border border-emerald-500/20 shadow-lg shadow-emerald-500/20">
+                                <ShieldCheck size={24} />
                             </div>
-
                             <div>
-                                <label className="block text-[11px] font-black text-slate-500 mb-3 uppercase tracking-[0.2em]">Select Instance Plan</label>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    {plans.map(plan => (
-                                        <button
-                                            key={plan.id}
-                                            onClick={() => setSelectedPlan(plan.id)}
-                                            className={`p-4 rounded-2xl border transition-all text-left flex flex-col gap-1 group ${selectedPlan === plan.id
-                                                ? 'bg-emerald-500/10 border-emerald-500 ring-4 ring-emerald-500/10'
-                                                : 'bg-black/40 border-white/5 hover:border-white/20'
-                                                }`}
-                                        >
-                                            <span className={`text-[10px] font-black uppercase tracking-widest ${selectedPlan === plan.id ? 'text-emerald-400' : 'text-slate-500'}`}>
-                                                {plan.name.replace('DB ', '')}
-                                            </span>
-                                            <span className="text-lg font-black text-white">₹{(plan.price_per_hour / 100).toFixed(2)}<span className="text-[10px] text-slate-500">/hr</span></span>
-                                            <div className="mt-2 space-y-1">
-                                                <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400">
-                                                    <Cpu size={10} /> {plan.cpu} vCPU
-                                                </div>
-                                                <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400">
-                                                    <Activity size={10} /> {plan.memory} RAM
-                                                </div>
-                                                <div className="flex items-center gap-1.5 text-[9px] font-bold text-emerald-400">
-                                                    <HardDrive size={10} /> {plan.storage} Storage
-                                                </div>
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
+                                <h4 className="text-white font-black uppercase tracking-widest text-sm">Instance Provisioned</h4>
+                                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Secure credentials generated</p>
                             </div>
                         </div>
 
-                        <div className="bg-black/40 rounded-3xl p-6 border border-white/5 flex flex-col items-center justify-center text-center space-y-4">
-                            {newDbDetails ? (
-                                <div className="w-full space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                    <div className="w-16 h-16 bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-2 border border-emerald-500/20">
-                                        <ShieldCheck size={32} />
-                                    </div>
-                                    <h4 className="text-white font-black uppercase tracking-widest text-sm">Instance Provisioned</h4>
-                                    <p className="text-slate-400 text-xs px-4">Your database is ready. Copy these credentials now. They will only be shown once.</p>
-
-                                    <div className="space-y-2 text-left w-full">
-                                        <div className="bg-black/60 p-3 rounded-xl border border-white/5 group relative overflow-hidden">
-                                            <label className="block text-[8px] font-black text-slate-600 uppercase mb-1">Public Endpoint</label>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-[10px] font-mono text-emerald-300 truncate mr-2">{newDbDetails.url}</span>
-                                                <button onClick={() => copyToClipboard(newDbDetails.url, 'new-url')} className="p-1.5 hover:bg-emerald-500/20 rounded-md text-emerald-400">
-                                                    {copiedId === 'new-url' ? <CheckCircle2 size={14} /> : <Copy size={14} />}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <button onClick={() => setNewDbDetails(null)} className="text-xs font-black text-slate-500 uppercase hover:text-white transition-colors">Dismiss</button>
-                                </div>
-                            ) : (
-                                <>
-                                    <div className="w-12 h-12 bg-white/5 text-slate-500 rounded-full flex items-center justify-center mb-2">
-                                        <Server size={24} />
-                                    </div>
-                                    <p className="text-slate-400 text-xs font-medium max-w-[240px]">
-                                        Every database is isolated in its own K8s pod with dedicated CPU, RAM, and Persistent Storage.
-                                    </p>
-                                    <button
-                                        onClick={handleCreate}
-                                        disabled={creating || !name.trim()}
-                                        className="w-full max-w-[200px] bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2 group"
-                                    >
-                                        {creating ? <RefreshCw size={14} className="animate-spin" /> : <><Plus size={16} className="group-hover:rotate-90 transition-transform" /> Deploy Now</>}
+                        <div className="space-y-3">
+                            <div className="bg-black/40 p-4 rounded-xl border border-white/5 group relative overflow-hidden transition-all hover:border-emerald-500/30">
+                                <label className="block text-[8px] font-black text-slate-600 uppercase mb-1.5 tracking-widest">Internal Connection String</label>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-mono text-emerald-300 truncate mr-4">{newDbDetails.url}</span>
+                                    <button onClick={() => copyToClipboard(newDbDetails.url, 'new-url')} className="p-2 hover:bg-emerald-500/20 rounded-lg text-emerald-400 transition-colors">
+                                        {copiedId === 'new-url' ? <CheckCircle2 size={16} /> : <Copy size={16} />}
                                     </button>
-                                </>
-                            )}
+                                </div>
+                            </div>
+                            <p className="text-[10px] text-amber-400/60 font-medium italic text-center">
+                                credentials will only be shown once for security
+                            </p>
+                        </div>
+
+                        <div className="mt-4 flex justify-center">
+                            <button onClick={() => setNewDbDetails(null)} className="text-[10px] font-black text-slate-500 uppercase hover:text-white transition-colors tracking-widest">Dismiss Credentials</button>
                         </div>
                     </div>
+                )}
+
+                <div className="grid grid-cols-1 gap-8">
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-[11px] font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Database Name</label>
+                            <input
+                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500/50 transition-all font-medium"
+                                placeholder="e.g. production-db"
+                                value={name}
+                                onChange={e => setName(e.target.value)}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-[11px] font-bold text-slate-500 mb-2 uppercase tracking-wider">Select Instance Plan</label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                {plans.map(plan => (
+                                    <div
+                                        key={plan.id}
+                                        onClick={() => setSelectedPlan(plan.id)}
+                                        className={`p-4 rounded-2xl border transition-all cursor-pointer relative group ${selectedPlan === plan.id
+                                            ? 'bg-emerald-500/10 border-emerald-500 ring-4 ring-emerald-500/10 shadow-lg shadow-emerald-500/10'
+                                            : 'bg-white/5 border-white/10 hover:border-white/30 hover:bg-white/10 shadow-xl'
+                                            }`}
+                                    >
+                                        <div className={`font-bold text-sm ${selectedPlan === plan.id ? 'text-emerald-400' : 'text-white'}`}>
+                                            {plan.name.replace('DB ', '')}
+                                        </div>
+                                        <div className="text-[10px] mt-1 font-medium text-slate-400">
+                                            {plan.cpu} vCPU / {plan.memory} RAM
+                                        </div>
+                                        <div className="flex flex-col mt-2">
+                                            <span className={`text-[10px] font-black uppercase tracking-wider ${selectedPlan === plan.id ? 'text-emerald-400' : 'text-slate-500'}`}>
+                                                ₹{(plan.price_per_hour / 100).toFixed(2)}/hr
+                                            </span>
+                                            <span className="text-[9px] font-bold text-slate-600">
+                                                {plan.storage} Storage included
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mt-8 border-t border-white/5 pt-8">
+                    <button
+                        onClick={handleCreate}
+                        disabled={creating || !name.trim()}
+                        className="bg-emerald-600 text-white px-10 py-4 rounded-2xl hover:bg-emerald-500 disabled:opacity-50 font-black transition-all shadow-xl shadow-emerald-600/30 w-full md:w-auto uppercase tracking-widest text-xs"
+                    >
+                        {creating ? 'Provisioning Instance...' : 'Deploy Database'}
+                    </button>
                 </div>
             </div>
 
@@ -410,9 +404,9 @@ export default function Databases() {
                         <Info size={20} />
                     </div>
                     <div>
-                        <h4 className="text-white font-black text-sm uppercase tracking-widest mb-1">Public TCP Access</h4>
+                        <h4 className="text-white font-black text-sm uppercase tracking-widest mb-1">Private Network Access</h4>
                         <p className="text-xs text-slate-400 leading-relaxed font-bold italic">
-                            Each database gets a dedicated NodePort on wrexer.com. You can connect from your local terminal or any external application using the provided connection string.
+                            Each database is protected within a secure internal network. Applications running inside the cluster can connect directly using the internal DNS host provided in your connection string.
                         </p>
                     </div>
                 </div>

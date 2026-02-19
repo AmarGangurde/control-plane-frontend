@@ -191,7 +191,7 @@ const Layout = ({ children }) => {
                 to="/dashboard"
                 className={({ isActive }) => `px-4 py-2 rounded-xl text-sm font-semibold transition-all ${isActive ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
               >
-                Dashboard
+                Apps
               </NavLink>
               <NavLink
                 to="/databases"
