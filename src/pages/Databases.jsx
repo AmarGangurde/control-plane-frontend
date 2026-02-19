@@ -219,7 +219,7 @@ export default function Databases() {
                     <table className="min-w-full divide-y divide-white/5">
                         <thead>
                             <tr className="bg-white/[0.02]">
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Instance Details</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Database</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Status</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Resources</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Storage & Billing</th>
@@ -273,15 +273,16 @@ export default function Databases() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex flex-col">
-                                            <div className="flex items-baseline gap-1.5">
-                                                <span className="text-white font-bold text-sm">₹{(db.hourly_rate / 100).toFixed(2)}</span>
-                                                <span className="text-[10px] font-bold text-slate-600 uppercase">/ hr</span>
+                                        <div className="flex flex-col bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20 w-fit">
+                                            <span className="text-[10px] text-emerald-500/70 font-bold uppercase tracking-wider mb-0.5">
+                                                {db.plan_id.replace('db-', '').toUpperCase()}
+                                            </span>
+                                            <div className="text-[9px] text-emerald-400/80 font-medium mb-1">
+                                                ₹{(db.hourly_rate / 100).toFixed(2)}/hr · {db.storage || '1Gi'}
                                             </div>
-                                            <div className="mt-1 flex items-center gap-1.5 text-slate-500 font-bold text-[10px]">
-                                                <HardDrive size={12} className="text-emerald-500/40" />
-                                                <span>{db.storage || '1Gi'} Allocated</span>
-                                            </div>
+                                            <span className="text-xs text-emerald-500 font-bold uppercase tracking-wider">
+                                                ₹{((db.total_charged || 0) / 100).toFixed(2)} <span className="text-[9px] font-normal opacity-70">paid</span>
+                                            </span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right">
