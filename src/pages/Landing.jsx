@@ -385,33 +385,33 @@ export default function Landing() {
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                             <PlanCard
                                 name="DB Small"
-                                price="₹0.34/hr"
-                                monthly="₹245/mo"
+                                price="₹0.50/hr"
+                                monthly="₹360/mo"
                                 cpu="250m"
-                                ram="256Mi"
-                                storage="1Gi SSD"
+                                ram="512Mi"
+                                storage="5Gi SSD"
                                 bestFor="Dev & Small Apps"
                                 isMain={false}
                                 type="database"
                             />
                             <PlanCard
                                 name="DB Medium"
-                                price="₹0.55/hr"
-                                monthly="₹396/mo"
+                                price="₹0.76/hr"
+                                monthly="₹547/mo"
                                 cpu="500m"
                                 ram="512Mi"
-                                storage="5Gi SSD"
+                                storage="10Gi SSD"
                                 bestFor="Growing Apps"
                                 isMain={true}
                                 type="database"
                             />
                             <PlanCard
                                 name="DB Large"
-                                price="₹1.09/hr"
-                                monthly="₹785/mo"
-                                cpu="1.0 Core"
+                                price="₹1.15/hr"
+                                monthly="₹828/mo"
+                                cpu="700m"
                                 ram="1024Mi"
-                                storage="10Gi SSD"
+                                storage="20Gi SSD"
                                 bestFor="Production Traffic"
                                 isMain={false}
                                 type="database"
