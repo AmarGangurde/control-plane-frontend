@@ -69,10 +69,13 @@ export const api = {
   },
   databases: {
     list: () => apiFetch('/databases'),
-    create: (name) => apiFetch('/databases', {
+    get: (id) => apiFetch(`/databases/${id}`),
+    create: (data) => apiFetch('/databases', {
       method: 'POST',
-      body: JSON.stringify({ name })
+      body: JSON.stringify(data)
     }),
-    delete: (id) => apiFetch(`/databases/${id}`, { method: 'DELETE' })
+    stop: (id) => apiFetch(`/databases/${id}/stop`, { method: 'POST' }),
+    start: (id) => apiFetch(`/databases/${id}/start`, { method: 'POST' }),
+    destroy: (id) => apiFetch(`/databases/${id}`, { method: 'DELETE' })
   }
 };
