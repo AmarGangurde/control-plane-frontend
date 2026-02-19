@@ -239,7 +239,7 @@ export default function Databases() {
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Database</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Status</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Resources</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Storage & Billing</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Billing</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Created</th>
                                 <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-widest">Management</th>
                             </tr>
@@ -255,8 +255,9 @@ export default function Databases() {
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="text-white font-black text-base">{db.name}</span>
-                                                <div className="flex items-center gap-2 mt-0.5">
+                                                <div className="flex flex-col gap-0.5 mt-0.5">
                                                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Plan: <span className="text-slate-300">{db.plan_id.replace('db-', '').toUpperCase()}</span></span>
+                                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Storage: <span className="text-emerald-500/60 font-mono">{db.storage || '1Gi'}</span></span>
                                                 </div>
                                             </div>
                                         </div>
@@ -294,7 +295,7 @@ export default function Databases() {
                                                 {db.plan_id.replace('db-', '').toUpperCase()}
                                             </span>
                                             <div className="text-[9px] text-emerald-400/80 font-medium mb-1">
-                                                ₹{(db.hourly_rate / 100).toFixed(2)}/hr · {db.storage || '1Gi'}
+                                                ₹{(db.hourly_rate / 100).toFixed(2)}/hr
                                             </div>
                                             <span className="text-xs text-emerald-500 font-bold uppercase tracking-wider">
                                                 ₹{((db.total_charged || 0) / 100).toFixed(2)} <span className="text-[9px] font-normal opacity-70">paid</span>
