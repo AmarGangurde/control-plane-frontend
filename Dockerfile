@@ -5,7 +5,7 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 
-# Pass build-time variables
+# Pass build-time variables nice
 ARG VITE_API_BASE
 ARG VITE_PHONEPE_CALLBACK
 ARG VITE_GOOGLE_CLIENT_ID
