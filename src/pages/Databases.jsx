@@ -122,7 +122,7 @@ export default function Databases() {
                     <div className="text-sm font-semibold text-slate-400 bg-white/5 px-4 py-2 rounded-xl border border-white/5 flex items-center gap-2">
                         <Database size={14} className="text-emerald-400" />
                         <span className="text-white">{databases.length}</span>
-                        <span className="text-slate-500">instances</span>
+                        <span className="text-slate-500">databases</span>
                     </div>
                 </div>
             </div>
