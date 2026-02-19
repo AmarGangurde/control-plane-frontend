@@ -3,7 +3,7 @@ import { api } from '../api/client';
 import {
     Database, Plus, Trash2, Copy, CheckCircle2, RefreshCw,
     AlertCircle, HardDrive, Server, Power, X, ExternalLink,
-    Cpu, Activity, ShieldCheck, Info
+    Cpu, Activity, ShieldCheck, Info, CloudDownload
 } from 'lucide-react';
 
 const maskUrl = (url) => url ? url.replace(/:([^:@]+)(?=@)/, ':••••••••') : '';
@@ -95,6 +95,34 @@ export default function Databases() {
             setTimeout(() => setError(''), 5000);
         } finally {
             setActionLoading(prev => ({ ...prev, [id]: false }));
+        }
+    };
+
+    const downloadBackup = async (db) => {
+        if (db.status !== 'running') return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${api.baseUrl}/databases/${db.id}/backup`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) throw new Error('Download failed');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${db.name}_backup_${new Date().toISOString().split('T')[0]}.sql`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (e) {
+            console.error(e);
+            alert('Failed to download backup: ' + e.message);
         }
     };
 
@@ -333,14 +361,24 @@ export default function Databases() {
                                                     {actionLoading[db.id] ? <RefreshCw size={18} className="animate-spin" /> : <Power size={18} />}
                                                 </button>
                                             ) : (
-                                                <button
-                                                    onClick={() => handleAction(db.id, 'stop')}
-                                                    disabled={actionLoading[db.id] || db.status === 'provisioning'}
-                                                    className="p-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-2xl transition-all border border-amber-500/20 disabled:opacity-30"
-                                                    title="Stop DB (Preserves PVC)"
-                                                >
-                                                    {actionLoading[db.id] ? <RefreshCw size={18} className="animate-spin" /> : <Power size={18} />}
-                                                </button>
+                                                <>
+                                                    <button
+                                                        onClick={() => downloadBackup(db)}
+                                                        disabled={db.status !== 'running'}
+                                                        className="p-3 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 rounded-2xl transition-all border border-blue-500/20 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                        title="Download SQL Dump"
+                                                    >
+                                                        <CloudDownload size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleAction(db.id, 'stop')}
+                                                        disabled={actionLoading[db.id] || db.status === 'provisioning'}
+                                                        className="p-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-2xl transition-all border border-amber-500/20 disabled:opacity-30"
+                                                        title="Stop DB (Preserves PVC)"
+                                                    >
+                                                        {actionLoading[db.id] ? <RefreshCw size={18} className="animate-spin" /> : <Power size={18} />}
+                                                    </button>
+                                                </>
                                             )}
 
                                             <button
