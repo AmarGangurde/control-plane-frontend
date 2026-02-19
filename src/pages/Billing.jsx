@@ -12,6 +12,7 @@ import {
     ChevronDown,
     Zap,
     Box,
+    HardDrive,
     ArrowRight
 } from 'lucide-react';
 
@@ -34,6 +35,7 @@ export default function Billing() {
     const [selectedAmount, setSelectedAmount] = useState(100);
     const [transactions, setTransactions] = useState([]);
     const [appsCount, setAppsCount] = useState(0);
+    const [dbsCount, setDbsCount] = useState(0);
     const [hourlyCost, setHourlyCost] = useState(0);
     const [loading, setLoading] = useState(false);
     const [historyLoading, setHistoryLoading] = useState(true);
@@ -43,10 +45,11 @@ export default function Billing() {
 
     const fetchData = async () => {
         try {
-            const [balRes, transRes, appsRes] = await Promise.all([
+            const [balRes, transRes, appsRes, dbsRes] = await Promise.all([
                 apiFetch('/billing/balance'),
                 apiFetch('/billing/transactions'),
-                apiFetch('/apps')
+                apiFetch('/apps'),
+                apiFetch('/databases')
             ]);
             setBalance(balRes.balance / 100);
             setReservedBalance(balRes.reserved_balance / 100);
@@ -54,11 +57,14 @@ export default function Billing() {
             setTransactions(transRes.map(tx => ({ ...tx, amount: tx.amount / 100 })));
 
             const activeApps = appsRes.filter(a => a.status === 'running');
+            const activeDbs = dbsRes.filter(d => d.status === 'running');
             setAppsCount(activeApps.length);
+            setDbsCount(activeDbs.length);
 
-            // Calculate hourly cost based on active apps' hourly_rate (converted to INR)
-            const cost = activeApps.reduce((acc, app) => acc + (app.hourly_rate || 0), 0);
-            setHourlyCost(cost / 100);
+            // Calculate combined hourly cost
+            const appCost = activeApps.reduce((acc, app) => acc + (app.hourly_rate || 0), 0);
+            const dbCost = activeDbs.reduce((acc, db) => acc + (db.hourly_rate || 0), 0);
+            setHourlyCost((appCost + dbCost) / 100);
         } catch (err) {
             console.error(err);
             setError('Failed to load billing data');
@@ -174,19 +180,37 @@ export default function Billing() {
                             Live Consumption
                         </h2>
                         <div className="grid grid-cols-2 gap-8">
-                            <div>
-                                <div className="text-3xl font-black text-white mb-1">{appsCount}</div>
-                                <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-4">Active Pods</div>
+                            <div className="space-y-4">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                                        <div className="text-2xl font-black text-white">{appsCount}</div>
+                                    </div>
+                                    <div className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Active Pods</div>
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                                        <div className="text-2xl font-black text-white">{dbsCount}</div>
+                                    </div>
+                                    <div className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Active Databases</div>
+                                </div>
 
-                                <div className="text-xl font-black text-indigo-400 mb-0.5">₹{liveReserved.toFixed(4)}</div>
-                                <div className="text-[10px] text-indigo-400/50 font-black uppercase tracking-widest">Reserve Money</div>
+                                <div className="pt-2">
+                                    <div className="text-lg font-black text-indigo-400 mb-0.5">₹{liveReserved.toFixed(4)}</div>
+                                    <div className="text-[9px] text-indigo-400/50 font-black uppercase tracking-widest">Reserve Money</div>
+                                </div>
                             </div>
-                            <div>
-                                <div className="text-3xl font-black text-white mb-1">₹{hourlyCost.toFixed(2)}</div>
-                                <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-4">Cost / Hour</div>
+                            <div className="flex flex-col justify-center">
+                                <div className="mb-4">
+                                    <div className="text-3xl font-black text-white mb-1">₹{hourlyCost.toFixed(2)}</div>
+                                    <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Total / Hour</div>
+                                </div>
 
-                                <div className="text-xl font-black text-indigo-400 mb-0.5">₹{(hourlyCost / 60).toFixed(4)}</div>
-                                <div className="text-[10px] text-indigo-400/50 font-black uppercase tracking-widest">Cost / Minute</div>
+                                <div>
+                                    <div className="text-xl font-black text-indigo-400 mb-0.5">₹{(hourlyCost / 60).toFixed(4)}</div>
+                                    <div className="text-[10px] text-indigo-400/50 font-black uppercase tracking-widest">Total / Minute</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -200,8 +224,13 @@ export default function Billing() {
                         </div>
                         <div className="flex -space-x-2">
                             {[...Array(Math.min(appsCount, 4))].map((_, i) => (
-                                <div key={i} className="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center backdrop-blur-sm">
-                                    <Box size={10} className="text-indigo-400" />
+                                <div key={`app-${i}`} className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center backdrop-blur-sm shadow-lg shadow-blue-500/10">
+                                    <Box size={10} className="text-blue-400" />
+                                </div>
+                            ))}
+                            {[...Array(Math.min(dbsCount, 4))].map((_, i) => (
+                                <div key={`db-${i}`} className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center backdrop-blur-sm shadow-lg shadow-emerald-500/10">
+                                    <HardDrive size={10} className="text-emerald-400" />
                                 </div>
                             ))}
                         </div>
@@ -288,36 +317,39 @@ export default function Billing() {
                                 transactions.map((tx) => (
                                     <tr key={tx.id} className="hover:bg-white/[0.02] transition-colors group">
                                         <td className="px-10 py-6">
-                                            <div className="font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">
-                                                {tx.type === 'topup' ? 'Credit Injection' :
-                                                    tx.type === 'reservation' ? 'Pod Start Reservation' :
-                                                        tx.type === 'refund' ? 'Reservation Refund' :
-                                                            tx.type === 'pod_burn_receipt' ? `Usage Receipt: ${tx.external_id || 'Pod'}` :
-                                                                tx.type}
-                                            </div>
-                                            {tx.type === 'pod_burn_receipt' ? (
-                                                <div className="text-[10px] text-slate-500 font-mono tracking-tighter uppercase flex items-center gap-2">
-                                                    <span>Already Deducted</span>
-                                                    {tx.metadata && (() => {
-                                                        try {
-                                                            const meta = typeof tx.metadata === 'string' ? JSON.parse(tx.metadata) : tx.metadata;
-                                                            if (meta.duration) {
-                                                                return (
-                                                                    <>
-                                                                        <span className="w-1 h-1 rounded-full bg-slate-500/50" />
-                                                                        <span>{formatDuration(meta.duration)}</span>
-                                                                    </>
-                                                                );
-                                                            }
-                                                        } catch (e) { }
-                                                        return null;
-                                                    })()}
-                                                </div>
-                                            ) : (
-                                                <div className="text-[10px] text-slate-500 font-mono tracking-tighter uppercase">
-                                                    {tx.id}
-                                                </div>
-                                            )}
+                                            {(() => {
+                                                const meta = typeof tx.metadata === 'string' ? JSON.parse(tx.metadata || '{}') : (tx.metadata || {});
+                                                const isDb = meta.type === 'database';
+
+                                                return (
+                                                    <>
+                                                        <div className={`font-bold text-white mb-1 transition-colors ${isDb ? 'group-hover:text-emerald-400' : 'group-hover:text-blue-400'}`}>
+                                                            {tx.type === 'topup' ? 'Credit Injection' :
+                                                                tx.type === 'reservation' ? `${isDb ? 'Database' : 'Pod'} Start Reservation` :
+                                                                    tx.type === 'refund' ? `${isDb ? 'Database' : 'Pod'} Reservation Refund` :
+                                                                        tx.type === 'pod_burn_receipt' ? `Usage Receipt: ${tx.external_id || 'Resource'}` :
+                                                                            tx.type}
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${isDb ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-blue-500/10 text-blue-500 border border-blue-500/20'}`}>
+                                                                {isDb ? 'Database' : 'Pod'}
+                                                            </span>
+                                                            <span className="text-[10px] text-slate-600 font-mono tracking-tighter uppercase">{tx.id}</span>
+                                                            {tx.type === 'pod_burn_receipt' && (
+                                                                <div className="flex items-center gap-2 ml-auto text-[9px] text-slate-500 font-bold uppercase tracking-tighter">
+                                                                    <span>Already Deducted</span>
+                                                                    {meta.duration && (
+                                                                        <>
+                                                                            <span className="w-1 h-1 rounded-full bg-slate-500/50" />
+                                                                            <span>{formatDuration(meta.duration)}</span>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </>
+                                                );
+                                            })()}
                                         </td>
                                         <td className="px-10 py-6">
                                             <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-widest ${tx.status === 'success'
