@@ -3,7 +3,7 @@ import { api } from '../api/client';
 import {
     Database, Plus, Trash2, Copy, CheckCircle2, RefreshCw,
     AlertCircle, HardDrive, Server, Power, X, ExternalLink,
-    Cpu, Activity,
+    Cpu, Activity, ShieldCheck, Info
 } from 'lucide-react';
 
 const maskUrl = (url) => url ? url.replace(/:([^:@]+)(?=@)/, ':••••••••') : '';
