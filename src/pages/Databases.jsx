@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { api } from '../api/client';
+import { api, API_BASE } from '../api/client';
 import {
     Database, Plus, Trash2, Copy, CheckCircle2, RefreshCw,
     AlertCircle, HardDrive, Server, Power, X, ExternalLink,
@@ -103,7 +103,8 @@ export default function Databases() {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${api.baseUrl}/databases/${db.id}/backup`, {
+            const baseUrl = API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`;
+            const response = await fetch(`${baseUrl}/databases/${db.id}/backup`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
