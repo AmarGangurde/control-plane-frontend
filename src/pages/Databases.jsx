@@ -385,7 +385,7 @@ export default function Databases() {
                                     className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-center text-white focus:outline-none focus:border-red-500 transition-all font-black uppercase placeholder:text-white/5"
                                     placeholder="Required"
                                     value={destroyConfirmText}
-                                    onChange={e => setDestroyConfirmText(e.target.value)}
+                                    onChange={e => setDestroyConfirmText(e.target.value.toUpperCase())}
                                 />
                             </div>
 
