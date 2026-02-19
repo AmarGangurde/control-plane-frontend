@@ -3,8 +3,25 @@ import { api } from '../api/client';
 import {
     Database, Plus, Trash2, Copy, CheckCircle2, RefreshCw,
     AlertCircle, HardDrive, Server, Power, X, ExternalLink,
-    Cpu, Activity, ShieldCheck, Info
+    Cpu, Activity,
 } from 'lucide-react';
+
+const maskUrl = (url) => url ? url.replace(/:([^:@]+)(?=@)/, ':••••••••') : '';
+
+function getUptime(dateString) {
+    if (!dateString) return '';
+    const start = new Date(dateString);
+    if (isNaN(start.getTime())) return '';
+    const now = new Date();
+    const diff = now - start;
+    if (diff < 0) return 'Just started';
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    if (days > 0) return `${days}d ${hours % 24}h`;
+    if (hours > 0) return `${hours}h ${minutes % 60}m`;
+    return `${minutes}m`;
+}
 
 export default function Databases() {
     const [databases, setDatabases] = useState([]);
@@ -130,7 +147,7 @@ export default function Databases() {
 
                         <div className="space-y-3">
                             <div className="bg-black/40 p-4 rounded-xl border border-white/5 group relative overflow-hidden transition-all hover:border-emerald-500/30">
-                                <label className="block text-[8px] font-black text-slate-600 uppercase mb-1.5 tracking-widest">Internal Connection String</label>
+                                <label className="block text-[8px] font-black text-slate-600 uppercase mb-1.5 tracking-widest">Full Connection String (Copy Now!)</label>
                                 <div className="flex items-center justify-between">
                                     <span className="text-xs font-mono text-emerald-300 truncate mr-4">{newDbDetails.url}</span>
                                     <button onClick={() => copyToClipboard(newDbDetails.url, 'new-url')} className="p-2 hover:bg-emerald-500/20 rounded-lg text-emerald-400 transition-colors">
@@ -223,6 +240,7 @@ export default function Databases() {
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Status</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Resources</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Storage & Billing</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Created</th>
                                 <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-widest">Management</th>
                             </tr>
                         </thead>
@@ -239,8 +257,6 @@ export default function Databases() {
                                                 <span className="text-white font-black text-base">{db.name}</span>
                                                 <div className="flex items-center gap-2 mt-0.5">
                                                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Plan: <span className="text-slate-300">{db.plan_id.replace('db-', '').toUpperCase()}</span></span>
-                                                    <span className="text-slate-700 font-black text-[8px]">•</span>
-                                                    <span className="text-[10px] font-mono text-slate-500">{db.db_host}:{db.db_port}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -285,12 +301,17 @@ export default function Databases() {
                                             </span>
                                         </div>
                                     </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="text-xs text-slate-500 font-mono">
+                                            {getUptime(db.created_at)}
+                                        </span>
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right">
                                         <div className="flex items-center justify-end gap-3 translate-x-2 opacity-100 group-hover:opacity-100 transition-all">
                                             <button
-                                                onClick={() => copyToClipboard(db.url, db.id)}
+                                                onClick={() => copyToClipboard(maskUrl(db.url), db.id)}
                                                 className="p-3 bg-white/5 hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-400 rounded-2xl transition-all border border-transparent hover:border-emerald-500/20"
-                                                title="Copy Connection URL"
+                                                title="Copy Masked Connection URL"
                                             >
                                                 {copiedId === db.id ? <CheckCircle2 size={18} /> : <Copy size={18} />}
                                             </button>
