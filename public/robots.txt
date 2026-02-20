@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /billing
+Disallow: /databases
+Disallow: /api/
+
+Sitemap: https://wrexer.com/sitemap.xml
