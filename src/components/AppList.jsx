@@ -143,11 +143,39 @@ export default function AppList() {
     setEditView(prev => ({ ...prev, args: prev.args.filter((_, i) => i !== index) }));
   };
   const updateEditArg = (index, value) => {
+    // Auto-split logic
+    if (value.trim().includes(' ') && !value.includes('\\ ')) {
+      const parts = value.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g);
+      if (parts && parts.length > 1) {
+        setEditView(prev => {
+          const cleanedParts = parts.map(p => p.replace(/^["']|["']$/g, ''));
+          const updated = [...prev.args];
+          updated.splice(index, 1, ...cleanedParts);
+          return { ...prev, args: updated };
+        });
+        return;
+      }
+    }
+
     setEditView(prev => {
       const updated = [...prev.args];
       updated[index] = value;
       return { ...prev, args: updated };
     });
+  };
+
+  const getArgWarning = (val) => {
+    if (!val) return null;
+    if (val.startsWith('"') || val.endsWith('"') || val.startsWith("'") || val.endsWith("'")) {
+      return "Leading/trailing quotes detected. The system handles quotes automatically.";
+    }
+    if (val.includes(',')) {
+      return "Comma detected. Use separate fields for each argument index.";
+    }
+    if (val.trim().includes(' ') && !val.includes('"') && !val.includes("'")) {
+      return "Multiple values detected. These should usually be separate fields.";
+    }
+    return null;
   };
 
   const submitUpdate = async () => {
@@ -537,7 +565,10 @@ export default function AppList() {
 
                 <div className="p-4 bg-black/20 rounded-2xl border border-white/5">
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Arguments</label>
+                    <div>
+                      <label className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Arguments</label>
+                      <p className="text-[9px] text-slate-500 font-bold uppercase mt-0.5">Separate values. No quotes.</p>
+                    </div>
                     <button
                       type="button"
                       onClick={addEditArg}
@@ -546,25 +577,36 @@ export default function AppList() {
                       <Plus size={14} />
                     </button>
                   </div>
-                  <div className="space-y-2">
-                    {editView.args.map((arg, i) => (
-                      <div key={i} className="flex gap-2">
-                        <input
-                          placeholder={`Arg ${i + 1}`}
-                          className="flex-1 bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-amber-500/30 transition-all font-mono"
-                          value={arg}
-                          onChange={(e) => updateEditArg(i, e.target.value)}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeEditArg(i)}
-                          className="p-2 text-slate-500 hover:text-red-400 transition-colors"
-                          disabled={editView.args.length === 1 && arg === ''}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    ))}
+                  <div className="space-y-3">
+                    {editView.args.map((arg, i) => {
+                      const warning = getArgWarning(arg);
+                      return (
+                        <div key={i} className="space-y-1">
+                          <div className="flex gap-2">
+                            <input
+                              placeholder={`Arg ${i + 1}`}
+                              className={`flex-1 bg-white/5 border rounded-lg p-2 text-xs text-white focus:outline-none transition-all font-mono ${warning ? 'border-amber-500/50 focus:border-amber-500' : 'border-white/10 focus:border-amber-500/50'
+                                }`}
+                              value={arg}
+                              onChange={(e) => updateEditArg(i, e.target.value)}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeEditArg(i)}
+                              className="p-2 text-slate-500 hover:text-red-400 transition-colors"
+                              disabled={editView.args.length === 1 && arg === ''}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                          {warning && (
+                            <div className="text-[8px] font-black text-amber-500 uppercase px-1">
+                              {warning}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

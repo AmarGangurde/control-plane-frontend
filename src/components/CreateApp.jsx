@@ -39,9 +39,36 @@ export default function CreateApp() {
   const addArg = () => setArgs([...args, '']);
   const removeArg = (index) => setArgs(args.filter((_, i) => i !== index));
   const updateArg = (index, value) => {
+    // 1. Auto-splitting logic: If user pastes or types multiple args (respecting quotes)
+    // We only trigger auto-split if there's a space that's not just trailing
+    if (value.trim().includes(' ') && !value.includes('\\ ')) {
+      const parts = value.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g);
+      if (parts && parts.length > 1) {
+        const cleanedParts = parts.map(p => p.replace(/^["']|["']$/g, ''));
+        const updated = [...args];
+        updated.splice(index, 1, ...cleanedParts);
+        setArgs(updated);
+        return;
+      }
+    }
+
     const updated = [...args];
     updated[index] = value;
     setArgs(updated);
+  };
+
+  const getArgWarning = (val) => {
+    if (!val) return null;
+    if (val.startsWith('"') || val.endsWith('"') || val.startsWith("'") || val.endsWith("'")) {
+      return "Leading/trailing quotes detected. The system handles quotes automatically.";
+    }
+    if (val.includes(',')) {
+      return "Comma detected. Use separate fields for each argument index.";
+    }
+    if (val.trim().includes(' ') && !val.includes('"') && !val.includes("'")) {
+      return "Multiple values detected. These should usually be separate fields.";
+    }
+    return null;
   };
 
   const submit = async () => {
@@ -203,10 +230,10 @@ export default function CreateApp() {
 
               {/* Arguments */}
               <div className="p-6 bg-black/20 rounded-2xl border border-white/5">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-2">
                   <div>
                     <label className="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Arguments (Args)</label>
-                    <p className="text-[10px] text-slate-500 mt-1 uppercase">Flags and values for execution</p>
+                    <p className="text-[10px] text-slate-500 mt-1 uppercase">Each argument is passed separately. Do NOT include quotes or multiple values in one field.</p>
                   </div>
                   <button
                     type="button"
@@ -217,25 +244,37 @@ export default function CreateApp() {
                   </button>
                 </div>
 
-                <div className="space-y-3">
-                  {args.map((arg, i) => (
-                    <div key={i} className="flex gap-3">
-                      <input
-                        placeholder={`Arg ${i + 1} (e.g. --port=80)`}
-                        className="flex-1 bg-white/5 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-blue-500/30 transition-all font-mono"
-                        value={arg}
-                        onChange={(e) => updateArg(i, e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeArg(i)}
-                        className="p-2.5 text-slate-500 hover:text-red-400 transition-colors"
-                        disabled={args.length === 1 && arg === ''}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  ))}
+                <div className="space-y-4">
+                  {args.map((arg, i) => {
+                    const warning = getArgWarning(arg);
+                    return (
+                      <div key={i} className="space-y-1.5">
+                        <div className="flex gap-3">
+                          <input
+                            placeholder={`Arg ${i + 1} (e.g. --port=80)`}
+                            className={`flex-1 bg-white/5 border rounded-xl p-2.5 text-xs text-white focus:outline-none transition-all font-mono ${warning ? 'border-amber-500/50 focus:border-amber-500' : 'border-white/10 focus:border-blue-500/30'
+                              }`}
+                            value={arg}
+                            onChange={(e) => updateArg(i, e.target.value)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeArg(i)}
+                            className="p-2.5 text-slate-500 hover:text-red-400 transition-colors"
+                            disabled={args.length === 1 && arg === ''}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                        {warning && (
+                          <div className="flex items-center gap-1.5 text-[9px] font-bold text-amber-500/80 uppercase px-1">
+                            <span className="w-1 h-1 rounded-full bg-amber-500" />
+                            {warning}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
