@@ -651,7 +651,7 @@ function PlanCard({ name, price, monthly, cpu, ram, storage, bestFor, isMain, ty
                 </div>
             )}
             {isMain && !comingSoon && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl">
+                <div className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 ${type === 'database' ? 'bg-emerald-500' : 'bg-blue-500'} text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl`}>
                     Popular
                 </div>
             )}
@@ -688,19 +688,6 @@ function PlanCard({ name, price, monthly, cpu, ram, storage, bestFor, isMain, ty
                 </li>
             </ul>
 
-            <button
-                disabled={comingSoon}
-                className={`w-full py-3 rounded-xl font-bold transition-all text-sm ${comingSoon
-                    ? 'bg-purple-500/5 text-purple-400/50 border border-purple-500/20 cursor-not-allowed'
-                    : isMain
-                        ? type === 'database'
-                            ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/25'
-                            : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/25'
-                        : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10'
-                    }`}
-            >
-                {comingSoon ? 'Coming Soon' : `Deploy ${name}`}
-            </button>
         </div>
     );
 }
