@@ -35,7 +35,11 @@ export default function Billing() {
     const [selectedAmount, setSelectedAmount] = useState(100);
     const [transactions, setTransactions] = useState([]);
     const [appsCount, setAppsCount] = useState(0);
-    const [dbsCount, setDbsCount] = useState(0);
+    const [runningDbsCount, setRunningDbsCount] = useState(0);
+    const [pvcCount, setPvcCount] = useState(0);
+    const [appMinuteRate, setAppMinuteRate] = useState(0);
+    const [dbMinuteRate, setDbMinuteRate] = useState(0);
+    const [pvcMinuteRate, setPvcMinuteRate] = useState(0);
     const [hourlyCost, setHourlyCost] = useState(0);
     const [loading, setLoading] = useState(false);
     const [historyLoading, setHistoryLoading] = useState(true);
@@ -61,14 +65,18 @@ export default function Billing() {
             const existingDbs = dbsRes.filter(d => d.status !== 'deleted');
 
             setAppsCount(activeApps.length);
-            setDbsCount(existingDbs.length);
+            setRunningDbsCount(runningDbs.length);
+            setPvcCount(existingDbs.length);
 
             // Calculate combined hourly cost
-            const appCost = activeApps.reduce((acc, app) => acc + (app.hourly_rate || 0), 0);
-            const dbPodCost = runningDbs.reduce((acc, db) => acc + (db.hourly_rate || 0), 0);
-            const dbStorageCost = existingDbs.reduce((acc, db) => acc + (db.storage_hourly_rate || 0), 0);
+            const appHourly = activeApps.reduce((acc, app) => acc + (app.hourly_rate || 0), 0);
+            const dbPodHourly = runningDbs.reduce((acc, db) => acc + (db.hourly_rate || 0), 0);
+            const dbStorageHourly = existingDbs.reduce((acc, db) => acc + (db.storage_hourly_rate || 0), 0);
 
-            setHourlyCost((appCost + dbPodCost + dbStorageCost) / 100);
+            setAppMinuteRate((appHourly / 60) / 100);
+            setDbMinuteRate((dbPodHourly / 60) / 100);
+            setPvcMinuteRate((dbStorageHourly / 60) / 100);
+            setHourlyCost((appHourly + dbPodHourly + dbStorageHourly) / 100);
         } catch (err) {
             console.error(err);
             setError('Failed to load billing data');
@@ -161,11 +169,45 @@ export default function Billing() {
                             <span className="text-slate-500 text-sm font-bold tracking-widest uppercase">INR</span>
                         </div>
 
-                        <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
-                            <div className="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-2">System Status</div>
-                            <div className="text-sm font-bold text-white flex items-center gap-2">
-                                <div className={`w-2.5 h-2.5 rounded-full ${balance > 0 ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-                                Account {balance > 0 ? 'Verified & Active' : 'Credit Required'}
+                        <div className="space-y-4">
+                            <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                                <div className="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-2">System Status</div>
+                                <div className="text-sm font-bold text-white flex items-center gap-2">
+                                    <div className={`w-2.5 h-2.5 rounded-full ${balance > 0 ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                                    Account {balance > 0 ? 'Verified & Active' : 'Credit Required'}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="p-3 bg-indigo-500/5 rounded-xl border border-indigo-500/10">
+                                    <div className="text-[8px] text-indigo-400 font-black uppercase mb-1 tracking-widest">Reserve Money</div>
+                                    <div className="text-sm font-black text-white tracking-tight">₹{liveReserved.toFixed(2)}</div>
+                                </div>
+                                <div className="p-3 bg-indigo-500/5 rounded-xl border border-indigo-500/10">
+                                    <div className="text-[8px] text-indigo-400 font-black uppercase mb-1 tracking-widest">Total / Minute</div>
+                                    <div className="text-sm font-black text-white tracking-tight">₹{(hourlyCost / 60).toFixed(4)}</div>
+                                </div>
+                            </div>
+
+                            <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+                                <div>
+                                    <div className="text-[9px] text-slate-500 font-black mb-1 tracking-widest uppercase">Project Burn</div>
+                                    <div className="text-xs font-black text-indigo-400 font-mono">
+                                        RE-WALLET = ₹{reservedBalance.toFixed(2)}
+                                    </div>
+                                </div>
+                                <div className="flex -space-x-1.5">
+                                    {[...Array(Math.min(appsCount, 3))].map((_, i) => (
+                                        <div key={`app-bal-${i}`} className="w-5 h-5 rounded-md bg-blue-500/10 border border-blue-500/20 flex items-center justify-center backdrop-blur-sm shadow-lg shadow-blue-500/10">
+                                            <Box size={8} className="text-blue-400" />
+                                        </div>
+                                    ))}
+                                    {[...Array(Math.min(pvcCount, 3))].map((_, i) => (
+                                        <div key={`db-bal-${i}`} className="w-5 h-5 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center backdrop-blur-sm shadow-lg shadow-emerald-500/10">
+                                            <HardDrive size={8} className="text-emerald-400" />
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -178,65 +220,59 @@ export default function Billing() {
                     transition={{ delay: 0.1 }}
                     className="bg-white/5 rounded-[2rem] p-8 border border-white/5 shadow-2xl flex flex-col justify-between"
                 >
-                    <div>
+                    <div className="h-full flex flex-col">
                         <h2 className="text-indigo-400 text-xs font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                             <Box size={16} />
                             Live Consumption
                         </h2>
-                        <div className="grid grid-cols-2 gap-8">
-                            <div className="space-y-4">
-                                <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                                        <div className="text-2xl font-black text-white">{appsCount}</div>
+                        <div className="space-y-6 flex-grow flex flex-col justify-center py-2">
+                            <div className="flex items-center justify-between group">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                                        <Box size={20} className="text-blue-400" />
                                     </div>
-                                    <div className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Active Pods</div>
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                                        <div className="text-2xl font-black text-white">{dbsCount}</div>
+                                    <div>
+                                        <div className="text-lg font-black text-white tracking-tight">{appsCount}</div>
+                                        <div className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Active Pods</div>
                                     </div>
-                                    <div className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Active Databases</div>
                                 </div>
-
-                                <div className="pt-2">
-                                    <div className="text-lg font-black text-indigo-400 mb-0.5">₹{liveReserved.toFixed(4)}</div>
-                                    <div className="text-[9px] text-indigo-400/50 font-black uppercase tracking-widest">Reserve Money</div>
+                                <div className="text-right">
+                                    <div className="text-sm font-black text-white tracking-tight">₹{appMinuteRate.toFixed(4)}</div>
+                                    <div className="text-[7px] text-slate-500 font-bold uppercase tracking-wider">Per Minute</div>
                                 </div>
                             </div>
-                            <div className="flex flex-col justify-center">
-                                <div className="mb-4">
-                                    <div className="text-3xl font-black text-white mb-1">₹{hourlyCost.toFixed(2)}</div>
-                                    <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Total / Hour</div>
-                                </div>
 
-                                <div>
-                                    <div className="text-xl font-black text-indigo-400 mb-0.5">₹{(hourlyCost / 60).toFixed(4)}</div>
-                                    <div className="text-[10px] text-indigo-400/50 font-black uppercase tracking-widest">Total / Minute</div>
+                            <div className="flex items-center justify-between group">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                                        <HardDrive size={20} className="text-emerald-400" />
+                                    </div>
+                                    <div>
+                                        <div className="text-lg font-black text-white tracking-tight">{runningDbsCount}</div>
+                                        <div className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Active Databases</div>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-sm font-black text-white tracking-tight">₹{dbMinuteRate.toFixed(4)}</div>
+                                    <div className="text-[7px] text-slate-500 font-bold uppercase tracking-wider">Per Minute</div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <div className="mt-8 pt-8 border-t border-white/5 flex items-center justify-between">
-                        <div>
-                            <div className="text-[10px] text-slate-500 font-black mb-1 tracking-widest uppercase">Project Burn</div>
-                            <div className="text-sm font-black text-indigo-400 font-mono">
-                                RE-WALLET = ₹{reservedBalance.toFixed(2)}
+                            <div className="flex items-center justify-between group">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                                        <HardDrive size={20} className="text-amber-400" />
+                                    </div>
+                                    <div>
+                                        <div className="text-lg font-black text-white tracking-tight">{pvcCount}</div>
+                                        <div className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Active PVC</div>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-sm font-black text-white tracking-tight">₹{pvcMinuteRate.toFixed(4)}</div>
+                                    <div className="text-[7px] text-slate-500 font-bold uppercase tracking-wider">Per Minute</div>
+                                </div>
                             </div>
-                        </div>
-                        <div className="flex -space-x-2">
-                            {[...Array(Math.min(appsCount, 4))].map((_, i) => (
-                                <div key={`app-${i}`} className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center backdrop-blur-sm shadow-lg shadow-blue-500/10">
-                                    <Box size={10} className="text-blue-400" />
-                                </div>
-                            ))}
-                            {[...Array(Math.min(dbsCount, 4))].map((_, i) => (
-                                <div key={`db-${i}`} className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center backdrop-blur-sm shadow-lg shadow-emerald-500/10">
-                                    <HardDrive size={10} className="text-emerald-400" />
-                                </div>
-                            ))}
                         </div>
                     </div>
                 </motion.div>
