@@ -148,16 +148,19 @@ export default function Landing() {
                     >
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-[0.2em] mb-8">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                            Cloud Native Orchestration
+                            Fast, Cheap Cloud Hosting India
                         </div>
-                        <h1 className="text-6xl md:text-[84px] font-black leading-[1.05] mb-8 tracking-tight">
-                            Deploy your apps & <br />databases <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
-                                without the noise.
+                        <h1 className="text-5xl md:text-[72px] font-black leading-[1.05] mb-8 tracking-tight">
+                            Deploy apps & PostgreSQL in seconds —<br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
+                                without cloud complexity.
                             </span>
                         </h1>
-                        <p className="text-xl text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed font-medium">
-                            The PAAS for builders. One command APP & DB deployment, instant global reach,
-                            and Kubernetes scale with managed PostgreSQL.
+                        <p className="text-xl text-slate-300 mb-4 max-w-2xl mx-auto leading-relaxed font-medium">
+                            Simple, powerful, and affordable cloud hosting with transparent pricing. No DevOps. No surprises.
+                        </p>
+                        <p className="text-lg text-slate-500 mb-12 max-w-2xl mx-auto leading-relaxed font-medium">
+                            Cheaper than traditional cloud. Built for developers who just want things to work.
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
@@ -166,11 +169,12 @@ export default function Landing() {
                                     onClick={() => navigate('/dashboard')}
                                     className="w-full sm:w-auto bg-white text-slate-950 px-10 py-4 rounded-2xl font-bold text-lg hover:bg-slate-200 transition-all flex items-center justify-center gap-2 group shadow-2xl shadow-white/5"
                                 >
-                                    Go to Dashboard
+                                    Get Started Free
                                     <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
                                 </button>
                             ) : (
                                 <div className="google-btn-hero flex flex-col items-center gap-4">
+                                    <div className="text-sm font-bold text-white mb-[-8px]">Get Started Free</div>
                                     <div ref={heroBtnRef} className="h-[50px] min-w-[260px] flex items-center justify-center">
                                         {/* Google Sign-In button renders here */}
                                         <div className="flex items-center gap-2 text-slate-500 text-sm font-medium animate-pulse">
@@ -197,10 +201,10 @@ export default function Landing() {
                                 </div>
                             )}
                             <a
-                                href="#infrastructure"
+                                href="#features"
                                 className="w-full sm:w-auto px-10 py-4 rounded-2xl font-bold text-slate-400 hover:text-white border border-white/10 hover:bg-white/5 transition-all text-lg"
                             >
-                                Documentation
+                                Launch a sample app (no setup)
                             </a>
                         </div>
                     </motion.div>
@@ -266,6 +270,70 @@ export default function Landing() {
                 </div>
             </section>
 
+            {/* Simplicity Block */}
+            <section className="py-24 relative overflow-hidden">
+                <div className="max-w-5xl mx-auto px-6 text-center">
+                    <h2 className="text-3xl md:text-5xl font-black mb-16 tracking-tight">Deploy in under a minute</h2>
+                    <div className="grid md:grid-cols-3 gap-8 relative">
+                        {/* Connecting line */}
+                        <div className="hidden md:block absolute top-[25%] left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+
+                        <div className="relative bg-white/5 border border-white/10 p-8 rounded-[2rem] hover:bg-white/10 transition-all z-10">
+                            <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center font-bold text-xl mb-6 mx-auto">1</div>
+                            <h3 className="text-xl font-black text-white mb-2">Sign in with Google</h3>
+                            <p className="text-slate-400 font-medium">One click login. No credit card required.</p>
+                        </div>
+                        <div className="relative bg-white/5 border border-white/10 p-8 rounded-[2rem] hover:bg-white/10 transition-all z-10">
+                            <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center font-bold text-xl mb-6 mx-auto">2</div>
+                            <h3 className="text-xl font-black text-white mb-2">Click Launch</h3>
+                            <p className="text-slate-400 font-medium">Deploy Node.js app or PostgreSQL instantly.</p>
+                        </div>
+                        <div className="relative bg-white/5 border border-white/10 p-8 rounded-[2rem] hover:bg-white/10 transition-all z-10">
+                            <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center font-bold text-xl mb-6 mx-auto">3</div>
+                            <h3 className="text-xl font-black text-white mb-2">Your app is live</h3>
+                            <p className="text-slate-400 font-medium">Globally available with SSL included.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Competition / Positioning Section */}
+            <section className="py-20 bg-white/[0.01] border-t border-white/5">
+                <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center gap-16">
+                    <div className="flex-1">
+                        <h2 className="text-3xl md:text-5xl font-black mb-6 tracking-tight">A simpler alternative to complex cloud platforms</h2>
+                        <ul className="space-y-5 text-lg font-medium text-slate-400">
+                            <li className="flex items-center gap-3"><CheckCircle2 className="text-green-400" size={24} /> Cheaper than typical cloud setups (great Railway alternative & Render alternative)</li>
+                            <li className="flex items-center gap-3"><CheckCircle2 className="text-green-400" size={24} /> Cleaner, simpler UI</li>
+                            <li className="flex items-center gap-3"><CheckCircle2 className="text-green-400" size={24} /> No infrastructure complexity</li>
+                            <li className="flex items-center gap-3"><CheckCircle2 className="text-green-400" size={24} /> Built for speed and clarity</li>
+                        </ul>
+                    </div>
+                    <div className="flex-1 bg-white/[0.03] border border-white/10 p-10 rounded-[2.5rem]">
+                        <h3 className="text-2xl font-black text-white mb-6">Simple. Transparent. Reliable.</h3>
+                        <p className="mb-8 text-slate-400">See exactly how your money is used — in real time.</p>
+                        <div className="space-y-4">
+                            <div className="flex bg-white/5 p-4 rounded-xl gap-4 items-center">
+                                <Zap className="text-yellow-400" />
+                                <span className="font-bold">Transparent billing (pay per hour)</span>
+                            </div>
+                            <div className="flex bg-white/5 p-4 rounded-xl gap-4 items-center">
+                                <ShieldCheck className="text-emerald-400" />
+                                <span className="font-bold">No hidden costs</span>
+                            </div>
+                            <div className="flex bg-white/5 p-4 rounded-xl gap-4 items-center">
+                                <Terminal className="text-blue-400" />
+                                <span className="font-bold">Real-time usage tracking</span>
+                            </div>
+                            <div className="flex bg-white/5 p-4 rounded-xl gap-4 items-center">
+                                <Cloud className="text-purple-400" />
+                                <span className="font-bold">Instant deploy</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* Features Section */}
             <section id="features" className="py-32 relative">
                 <div className="max-w-7xl mx-auto px-6">
@@ -306,8 +374,11 @@ export default function Landing() {
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="text-center mb-24">
                         <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tight">Simple Pricing.</h2>
-                        <p className="text-slate-400 max-w-2xl mx-auto text-xl font-medium">
-                            Pay for what you use. No hidden fees, no complexity.
+                        <p className="text-blue-400 max-w-2xl mx-auto text-xl font-bold mb-4">
+                            Start for as low as ₹99/month — significantly cheaper than traditional cloud platforms.
+                        </p>
+                        <p className="text-slate-400 max-w-2xl mx-auto text-lg font-medium">
+                            Pay only for what you use. No hidden charges.
                         </p>
                     </div>
 
@@ -468,6 +539,15 @@ export default function Landing() {
                     </div>
                 </div>
             </section>
+
+            {/* Founder Trust Line */}
+            <div className="py-12 border-t border-white/5 bg-gradient-to-r from-[#020617] via-slate-900 to-[#020617]">
+                <div className="max-w-5xl mx-auto px-6 text-center">
+                    <p className="text-lg font-medium text-slate-300">
+                        "Built by an independent developer. Fast support. Constant improvements."
+                    </p>
+                </div>
+            </div>
 
             {/* Footer */}
             <footer className="py-24 border-t border-white/5 bg-[#020617] relative overflow-hidden">
