@@ -22,7 +22,8 @@ import {
     HardDrive,
     ShieldCheck,
     Infinity,
-    Play
+    Play,
+    Instagram
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -151,18 +152,12 @@ export default function Landing() {
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
                             Fast, Cheap Cloud Hosting India
                         </div>
-                        <h1 className="text-5xl md:text-[72px] font-black leading-[1.05] mb-8 tracking-tight">
+                        <h1 className="text-5xl md:text-[72px] font-black leading-[1.05] mb-12 tracking-tight">
                             Deploy apps & PostgreSQL in seconds —<br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
                                 without cloud complexity.
                             </span>
                         </h1>
-                        <p className="text-xl text-slate-300 mb-4 max-w-2xl mx-auto leading-relaxed font-medium">
-                            Simple, powerful, and affordable cloud hosting with transparent pricing. No DevOps. No surprises.
-                        </p>
-                        <p className="text-lg text-slate-500 mb-12 max-w-2xl mx-auto leading-relaxed font-medium">
-                            Cheaper than traditional cloud. Built for developers who just want things to work.
-                        </p>
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                             {isAuthenticated ? (
@@ -204,12 +199,19 @@ export default function Landing() {
                                     )}
                                 </div>
                             )}
-                            <a
-                                href="#demo-video"
-                                className="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-lg flex items-center justify-center gap-3 group"
-                            >
-                                <Play size={22} fill="currentColor" className="text-blue-400 group-hover:text-blue-300 transition-colors" /> Watch a Demo
-                            </a>
+
+                            {!isAuthenticated && (
+                                <button
+                                    onClick={() => window.location.href = `${API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`}/auth/github`}
+                                    className="relative bg-white/[0.04] hover:bg-white/[0.06] border border-white/10 p-2 pl-6 pr-2 rounded-full backdrop-blur-md flex items-center gap-4 transition-all overflow-visible group"
+                                >
+                                    <span className="text-white font-bold whitespace-nowrap hidden sm:block group-hover:text-blue-200 transition-colors">Start for Free</span>
+                                    <div className="bg-[#24292e] text-white rounded-full overflow-hidden flex items-center justify-center gap-2 px-6 h-[44px] transition-colors hover:bg-black w-full sm:w-auto" style={{ minWidth: '220px' }}>
+                                        <Github size={20} className="fill-current" />
+                                        <span className="font-medium text-sm">Sign in with Github</span>
+                                    </div>
+                                </button>
+                            )}
                         </div>
                     </motion.div>
 
@@ -261,23 +263,17 @@ export default function Landing() {
                             </div>
                         </div>
 
-                        {/* Video Player Mockup */}
+                        {/* Video Player */}
                         <div className="relative p-2 rounded-[2rem] bg-gradient-to-b from-white/10 to-transparent border border-white/10 h-full flex flex-col">
-                            <div className="bg-[#0b1121] rounded-[1.8rem] border border-white/5 shadow-[0_0_100px_-20px_rgba(16,185,129,0.3)] overflow-hidden flex-1 relative group aspect-video lg:aspect-auto flex items-center justify-center cursor-pointer min-h-[300px]">
-                                {/* Placeholder Background */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 to-purple-900/40" />
-                                <div className="absolute inset-0 bg-black/40" />
-
-                                {/* Play Button */}
-                                <div className="relative z-10 w-20 h-20 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover:scale-110 group-hover:bg-white/20 transition-all shadow-2xl">
-                                    <div className="w-0 h-0 border-t-[12px] border-t-transparent border-l-[20px] border-l-white border-b-[12px] border-b-transparent ml-2" />
-                                </div>
-
-                                {/* Video Overlay */}
-                                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs font-semibold text-slate-300 bg-black/60 backdrop-blur-md px-4 py-3 rounded-xl border border-white/10">
-                                    <span className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> Live Deployment Demo (Coming Soon)</span>
-                                    <span>0:45</span>
-                                </div>
+                            <div className="bg-[#0b1121] rounded-[1.8rem] border border-white/5 shadow-[0_0_100px_-20px_rgba(16,185,129,0.3)] overflow-hidden flex-1 relative aspect-video lg:aspect-auto">
+                                <iframe
+                                    className="absolute inset-0 w-full h-full"
+                                    src="https://www.youtube.com/embed/MLpWrANjFbI?autoplay=1&mute=1&loop=1&playlist=MLpWrANjFbI"
+                                    title="Wrexer Deployment Demo"
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                ></iframe>
                             </div>
                         </div>
                     </motion.div>
@@ -325,7 +321,8 @@ export default function Landing() {
                     </div>
                     <div className="flex-1 bg-white/[0.03] border border-white/10 p-10 rounded-[2.5rem]">
                         <h3 className="text-2xl font-black text-white mb-6">Simple. Transparent. Reliable.</h3>
-                        <p className="mb-8 text-slate-400">See exactly how your money is used — in real time.</p>
+                        <p className="mb-4 text-slate-300">Simple, powerful, and affordable cloud hosting with transparent pricing. No DevOps. No surprises.</p>
+                        <p className="mb-8 text-slate-400 text-sm">Cheaper than traditional cloud. Built for developers who just want things to work.</p>
                         <div className="space-y-4">
                             <div className="flex bg-white/5 p-4 rounded-xl gap-4 items-center">
                                 <Zap className="text-yellow-400" />
@@ -579,9 +576,10 @@ export default function Landing() {
                                 Built for developers who value speed and reliability.
                             </p>
                             <div className="flex gap-6 mt-8">
-                                <SocialLink icon={<Github size={20} />} href="#" />
-                                <SocialLink icon={<Twitter size={20} />} href="#" />
-                                <SocialLink icon={<Linkedin size={20} />} href="#" />
+                                <SocialLink icon={<Github size={20} />} href="https://github.com/wrexer" />
+                                <SocialLink icon={<Twitter size={20} />} href="https://twitter.com/wrexer" />
+                                <SocialLink icon={<Linkedin size={20} />} href="https://www.linkedin.com/company/wrexer" />
+                                <SocialLink icon={<Instagram size={20} />} href="https://www.instagram.com/wrexer.dev" />
                             </div>
                         </div>
 
