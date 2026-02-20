@@ -21,7 +21,8 @@ import {
     Database,
     HardDrive,
     ShieldCheck,
-    Infinity
+    Infinity,
+    Play
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -163,27 +164,30 @@ export default function Landing() {
                             Cheaper than traditional cloud. Built for developers who just want things to work.
                         </p>
 
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                             {isAuthenticated ? (
                                 <button
                                     onClick={() => navigate('/dashboard')}
-                                    className="w-full sm:w-auto bg-white text-slate-950 px-10 py-4 rounded-2xl font-bold text-lg hover:bg-slate-200 transition-all flex items-center justify-center gap-2 group shadow-2xl shadow-white/5"
+                                    className="w-full sm:w-auto bg-blue-600 text-white px-10 py-4 rounded-3xl font-bold text-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2 group shadow-xl shadow-blue-500/20"
                                 >
-                                    Get Started Free
+                                    Go to Dashboard
                                     <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
                                 </button>
                             ) : (
-                                <div className="google-btn-hero flex flex-col items-center gap-4">
-                                    <div className="text-sm font-bold text-white mb-[-8px]">Get Started Free</div>
-                                    <div ref={heroBtnRef} className="h-[50px] min-w-[260px] flex items-center justify-center">
-                                        {/* Google Sign-In button renders here */}
-                                        <div className="flex items-center gap-2 text-slate-500 text-sm font-medium animate-pulse">
-                                            <LogIn size={18} />
-                                            Initializing sign-in...
+                                <div className="google-btn-hero relative bg-white/[0.04] hover:bg-white/[0.06] border border-white/10 p-2 pl-6 pr-2 rounded-full backdrop-blur-md flex items-center gap-4 transition-all overflow-visible">
+                                    <span className="text-white font-bold whitespace-nowrap hidden sm:block">Start for Free</span>
+                                    <div className="bg-white rounded-full overflow-hidden" style={{ minWidth: '220px' }}>
+                                        <div ref={heroBtnRef} className="h-[44px] flex items-center justify-center">
+                                            {/* Google Sign-In button renders here */}
+                                            <div className="flex items-center gap-2 text-slate-500 text-sm font-medium animate-pulse">
+                                                <LogIn size={18} />
+                                                Loading...
+                                            </div>
                                         </div>
                                     </div>
+                                    {/* notifications */}
                                     {authLoading && (
-                                        <div className="flex items-center gap-2 text-blue-400 text-sm font-medium">
+                                        <div className="absolute top-[120%] left-1/2 -translate-x-1/2 flex items-center gap-2 text-blue-400 text-sm font-medium whitespace-nowrap mt-2">
                                             <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                                             Authenticating...
                                         </div>
@@ -192,7 +196,7 @@ export default function Landing() {
                                         <motion.div
                                             initial={{ opacity: 0, y: -5 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            className="text-red-400 text-sm bg-red-400/10 px-4 py-2 rounded-xl border border-red-400/10 flex items-center gap-2"
+                                            className="absolute top-[120%] left-1/2 -translate-x-1/2 text-red-400 text-sm bg-red-400/10 px-4 py-2 rounded-xl border border-red-400/10 flex items-center gap-2 whitespace-nowrap mt-2 z-10"
                                         >
                                             <Shield size={14} />
                                             {authError}
@@ -201,72 +205,82 @@ export default function Landing() {
                                 </div>
                             )}
                             <a
-                                href="#features"
-                                className="w-full sm:w-auto px-10 py-4 rounded-2xl font-bold text-slate-400 hover:text-white border border-white/10 hover:bg-white/5 transition-all text-lg"
+                                href="#demo-video"
+                                className="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-lg flex items-center justify-center gap-3 group"
                             >
-                                Launch a sample app (no setup)
+                                <Play size={22} fill="currentColor" className="text-blue-400 group-hover:text-blue-300 transition-colors" /> Watch a Demo
                             </a>
                         </div>
                     </motion.div>
 
-                    {/* Dashboard Preview / Terminal Mockup */}
+                    {/* Visual Proof: Terminal + Video */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.8, delay: 0.3 }}
-                        className="mt-24 relative p-2 rounded-[2rem] bg-gradient-to-b from-white/10 to-transparent border border-white/10 max-w-5xl mx-auto"
+                        className="mt-24 grid lg:grid-cols-2 gap-8 max-w-7xl mx-auto items-stretch"
+                        id="demo-video"
                     >
-                        <div className="bg-[#0b1121] rounded-[1.8rem] border border-white/5 shadow-[0_0_100px_-20px_rgba(59,130,246,0.3)] overflow-hidden">
-                            <div className="flex items-center gap-2 px-6 py-4 border-b border-white/5 bg-[#0b1121]/50">
-                                <div className="flex gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-red-500/40" />
-                                    <div className="w-3 h-3 rounded-full bg-yellow-500/40" />
-                                    <div className="w-3 h-3 rounded-full bg-green-500/40" />
+                        {/* Terminal Mockup */}
+                        <div className="relative p-2 rounded-[2rem] bg-gradient-to-b from-white/10 to-transparent border border-white/10 h-full flex flex-col">
+                            <div className="bg-[#0b1121] rounded-[1.8rem] border border-white/5 shadow-[0_0_100px_-20px_rgba(59,130,246,0.3)] overflow-hidden flex-1 flex flex-col">
+                                <div className="flex items-center gap-2 px-6 py-4 border-b border-white/5 bg-[#0b1121]/50">
+                                    <div className="flex gap-2">
+                                        <div className="w-3 h-3 rounded-full bg-red-500/40" />
+                                        <div className="w-3 h-3 rounded-full bg-yellow-500/40" />
+                                        <div className="w-3 h-3 rounded-full bg-green-500/40" />
+                                    </div>
+                                    <div className="mx-auto text-xs text-slate-500 font-mono flex items-center gap-2">
+                                        <Terminal size={12} />
+                                        deploy --app=api
+                                    </div>
                                 </div>
-                                <div className="mx-auto text-xs text-slate-500 font-mono flex items-center gap-2">
-                                    <Terminal size={12} />
-                                    deploy-service --cluster=rox-main --image=nginx:latest
+                                <div className="p-8 font-mono text-sm sm:text-base md:text-lg flex-1">
+                                    <div className="flex gap-3 text-slate-100 whitespace-pre text-left">
+                                        <span className="text-blue-500">$</span> wrexer deploy my-api --small
+                                    </div>
+                                    <div className="text-slate-400 mt-6 space-y-3 text-left">
+                                        <p className="flex items-center gap-3">
+                                            <Layers size={16} className="text-blue-500" />
+                                            Fetching image: nginx:latest
+                                        </p>
+                                        <p className="flex items-center gap-3">
+                                            <Cpu size={16} className="text-indigo-400" />
+                                            Provisioning: 100m CPU / 128Mi RAM
+                                        </p>
+                                        <p className="flex items-center gap-3">
+                                            <Globe size={16} className="text-purple-400" />
+                                            Routing: app-6277...nip.io
+                                        </p>
+                                        <p className="flex items-center gap-3 py-2 text-green-400 font-bold">
+                                            <CheckCircle2 size={18} />
+                                            ✓ Infrastructure Ready
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="p-10 font-mono text-base md:text-lg">
-                                <div className="flex gap-3 text-slate-100 whitespace-pre text-left">
-                                    <span className="text-blue-500">$</span> wrexer deploy my-api --small
+                        </div>
+
+                        {/* Video Player Mockup */}
+                        <div className="relative p-2 rounded-[2rem] bg-gradient-to-b from-white/10 to-transparent border border-white/10 h-full flex flex-col">
+                            <div className="bg-[#0b1121] rounded-[1.8rem] border border-white/5 shadow-[0_0_100px_-20px_rgba(16,185,129,0.3)] overflow-hidden flex-1 relative group aspect-video lg:aspect-auto flex items-center justify-center cursor-pointer min-h-[300px]">
+                                {/* Placeholder Background */}
+                                <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 to-purple-900/40" />
+                                <div className="absolute inset-0 bg-black/40" />
+
+                                {/* Play Button */}
+                                <div className="relative z-10 w-20 h-20 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover:scale-110 group-hover:bg-white/20 transition-all shadow-2xl">
+                                    <div className="w-0 h-0 border-t-[12px] border-t-transparent border-l-[20px] border-l-white border-b-[12px] border-b-transparent ml-2" />
                                 </div>
-                                <div className="text-slate-400 mt-6 space-y-2 text-left">
-                                    <p className="flex items-center gap-3">
-                                        <Layers size={16} className="text-blue-500" />
-                                        Fetching image: <span className="text-blue-400">nginx:latest</span>
-                                    </p>
-                                    <p className="flex items-center gap-3">
-                                        <Cpu size={16} className="text-indigo-400" />
-                                        Provisioning: <span className="text-indigo-400">100m CPU / 128Mi RAM</span>
-                                    </p>
-                                    <p className="flex items-center gap-3">
-                                        <Globe size={16} className="text-purple-400" />
-                                        Routing: <span className="text-purple-400">app-6277.10.58.89.249.nip.io</span>
-                                    </p>
-                                    <p className="flex items-center gap-3">
-                                        <Database size={16} className="text-emerald-400" />
-                                        Database: <span className="text-emerald-400">Postgres 16 (1Gi NVMe)</span>
-                                    </p>
-                                    <p className="flex items-center gap-3 pt-4 text-green-400 font-bold">
-                                        <CheckCircle2 size={18} />
-                                        ✓ Infrastructure Ready: https://console.wrexer.com
-                                    </p>
+
+                                {/* Video Overlay */}
+                                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs font-semibold text-slate-300 bg-black/60 backdrop-blur-md px-4 py-3 rounded-xl border border-white/10">
+                                    <span className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> Live Deployment Demo (Coming Soon)</span>
+                                    <span>0:45</span>
                                 </div>
                             </div>
                         </div>
                     </motion.div>
-                </div>
-            </section>
-
-            {/* Trusted By / Stats */}
-            <section className="py-20 border-y border-white/5 bg-white/[0.01]">
-                <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12 text-center">
-                    <StatItem label="Average Deployment" value="< 5s" />
-                    <StatItem label="Uptime Guarantee" value="99.9%" />
-                    <StatItem label="Active Containers" value="1.2k+" />
-                    <StatItem label="Server Overhead" value="0.1%" />
                 </div>
             </section>
 
@@ -604,14 +618,6 @@ export default function Landing() {
     );
 }
 
-function StatItem({ label, value }) {
-    return (
-        <div className="bg-white/[0.01] border border-white/5 p-8 rounded-3xl hover:bg-white/[0.03] transition-colors">
-            <div className="text-4xl font-black text-white mb-2">{value}</div>
-            <div className="text-slate-500 text-sm font-bold uppercase tracking-widest">{label}</div>
-        </div>
-    );
-}
 
 function FeatureCard({ icon, title, desc }) {
     return (
@@ -630,53 +636,55 @@ function FeatureCard({ icon, title, desc }) {
 
 function PlanCard({ name, price, monthly, cpu, ram, storage, bestFor, isMain, type = 'app', comingSoon = false }) {
     return (
-        <div className={`p-10 rounded-[2.5rem] border relative flex flex-col ${comingSoon
+        <div className={`p-8 rounded-3xl border relative flex flex-col ${comingSoon
             ? 'bg-white/[0.01] border-purple-500/20 opacity-70'
             : type === 'database'
                 ? isMain
-                    ? 'bg-emerald-600 border-emerald-400 shadow-[0_20px_50px_rgba(16,185,129,0.3)] scale-105 relative z-10'
-                    : 'bg-white/[0.02] border-emerald-500/10 hover:bg-white/[0.04] transition-all'
+                    ? 'bg-emerald-600/10 border-emerald-500 shadow-[0_0_40px_-10px_rgba(16,185,129,0.2)] scale-105 z-10'
+                    : 'bg-white/[0.02] border-emerald-500/20 hover:bg-emerald-500/5 transition-all'
                 : isMain
-                    ? 'bg-blue-600 border-blue-400 shadow-[0_20px_50px_rgba(37,99,235,0.3)] scale-105 relative z-10'
-                    : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.04] transition-all'
+                    ? 'bg-blue-600/10 border-blue-500 shadow-[0_0_40px_-10px_rgba(37,99,235,0.2)] scale-105 z-10'
+                    : 'bg-white/[0.02] border-white/10 hover:bg-white/5 transition-all'
             }`}>
             {comingSoon && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-purple-600 to-violet-600 text-white px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest shadow-xl flex items-center gap-1.5">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-purple-600 to-violet-600 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-1.5">
                     <Lock size={10} />
                     Coming Soon
                 </div>
             )}
             {isMain && !comingSoon && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white text-blue-600 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest shadow-xl">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl">
                     Popular
                 </div>
             )}
-            <h3 className={`text-xl font-bold mb-2 ${comingSoon ? 'text-purple-300/70' : isMain ? 'text-white' : 'text-slate-400'}`}>{name}</h3>
-            <div className="flex flex-col mb-6">
-                <span className={`text-4xl font-black ${comingSoon ? 'text-slate-500' : ''}`}>{price}</span>
-                {monthly && <span className={`text-sm font-bold mt-1 ${comingSoon ? 'text-slate-600' : isMain ? 'text-blue-200' : 'text-slate-500'}`}>or {monthly}</span>}
+            <h3 className={`text-lg font-bold mb-1 ${comingSoon ? 'text-purple-300/70' : 'text-white'}`}>{name}</h3>
+            <div className="flex flex-col mb-4">
+                <span className={`text-3xl font-black ${comingSoon ? 'text-slate-500' : 'text-white'}`}>{price}</span>
+                {monthly && <span className={`text-sm font-bold mt-1 ${comingSoon ? 'text-slate-600' : 'text-slate-400'}`}>or {monthly}</span>}
             </div>
-            <p className={`text-sm mb-8 font-medium ${comingSoon ? 'text-purple-400/50' : isMain ? 'text-blue-100' : 'text-slate-500'}`}>{bestFor}</p>
+            <p className={`text-sm mb-6 font-medium ${comingSoon ? 'text-purple-400/50' : 'text-slate-400'}`}>{bestFor}</p>
 
-            <ul className="space-y-4 mb-10 flex-1">
-                <li className={`flex items-center gap-3 text-sm font-semibold ${comingSoon ? 'text-slate-600' : ''}`}>
-                    <Cpu size={18} className={comingSoon ? 'text-purple-500/40' : isMain ? 'text-white' : type === 'database' ? 'text-emerald-500' : 'text-blue-500'} />
+            <div className="h-px w-full bg-white/10 mb-6" />
+
+            <ul className="space-y-3 mb-8 flex-1">
+                <li className={`flex items-center gap-3 text-sm font-medium ${comingSoon ? 'text-slate-600' : 'text-slate-300'}`}>
+                    <Cpu size={16} className={comingSoon ? 'text-purple-500/40' : type === 'database' ? 'text-emerald-400' : 'text-blue-400'} />
                     {cpu} Cluster Slice
                 </li>
-                <li className={`flex items-center gap-3 text-sm font-semibold ${comingSoon ? 'text-slate-600' : ''}`}>
-                    <Layers size={18} className={comingSoon ? 'text-purple-500/40' : isMain ? 'text-white' : type === 'database' ? 'text-emerald-500' : 'text-indigo-500'} />
+                <li className={`flex items-center gap-3 text-sm font-medium ${comingSoon ? 'text-slate-600' : 'text-slate-300'}`}>
+                    <Layers size={16} className={comingSoon ? 'text-purple-500/40' : type === 'database' ? 'text-emerald-400' : 'text-indigo-400'} />
                     {ram} Memory Guard
                 </li>
                 {storage && (
-                    <li className={`flex items-center gap-3 text-sm font-semibold ${comingSoon ? 'text-slate-600' : ''}`}>
-                        <HardDrive size={18} className={comingSoon ? 'text-purple-500/40' : isMain ? 'text-white' : 'text-emerald-500'} />
+                    <li className={`flex items-center gap-3 text-sm font-medium ${comingSoon ? 'text-slate-600' : 'text-slate-300'}`}>
+                        <HardDrive size={16} className={comingSoon ? 'text-purple-500/40' : 'text-emerald-400'} />
                         {storage} NVMe Storage
                     </li>
                 )}
-                <li className={`flex items-center gap-3 text-sm font-semibold ${comingSoon ? 'text-slate-600' : ''}`}>
+                <li className={`flex items-center gap-3 text-sm font-medium ${comingSoon ? 'text-slate-600' : 'text-slate-300'}`}>
                     {comingSoon
-                        ? <Shield size={18} className="text-purple-500/40" />
-                        : <CheckCircle2 size={18} className={isMain ? 'text-white' : 'text-green-500'} />
+                        ? <Shield size={16} className="text-purple-500/40" />
+                        : <CheckCircle2 size={16} className="text-green-400" />
                     }
                     {comingSoon ? 'VM-level Isolation' : type === 'database' ? 'PostgreSQL 16' : 'Instant Scalability'}
                 </li>
@@ -684,14 +692,16 @@ function PlanCard({ name, price, monthly, cpu, ram, storage, bestFor, isMain, ty
 
             <button
                 disabled={comingSoon}
-                className={`w-full py-4 rounded-2xl font-bold transition-all ${comingSoon
-                    ? 'bg-purple-500/10 text-purple-400/50 border border-purple-500/20 cursor-not-allowed'
+                className={`w-full py-3 rounded-xl font-bold transition-all text-sm ${comingSoon
+                    ? 'bg-purple-500/5 text-purple-400/50 border border-purple-500/20 cursor-not-allowed'
                     : isMain
-                        ? 'bg-white text-blue-600 hover:bg-blue-50'
-                        : 'bg-white/10 text-white hover:bg-white/20'
+                        ? type === 'database'
+                            ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/25'
+                            : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/25'
+                        : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10'
                     }`}
             >
-                {comingSoon ? 'Coming Soon' : `Choose ${name}`}
+                {comingSoon ? 'Coming Soon' : `Deploy ${name}`}
             </button>
         </div>
     );
