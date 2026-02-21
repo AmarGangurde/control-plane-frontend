@@ -36,7 +36,8 @@ jobs:
             --tag $IMAGE_ID:$VERSION \
             --build-arg VITE_API_BASE=${{ secrets.VITE_API_BASE }} \
             --build-arg VITE_PHONEPE_CALLBACK=${{ secrets.VITE_PHONEPE_CALLBACK }} \
-            --build-arg VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+            --build-arg VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }} \
+            --build-arg VITE_CASHFREE_ENV=${{ secrets.VITE_CASHFREE_ENV || 'sandbox' }}
           
           docker push $IMAGE_ID:$VERSION
 
