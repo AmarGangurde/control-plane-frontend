@@ -429,9 +429,10 @@ export default function Billing() {
                                             </span>
                                         </td>
                                         <td className={`px-10 py-6 text-right font-black text-lg ${tx.type === 'pod_burn_receipt' ? 'text-slate-500' :
-                                            tx.amount > 0 ? 'text-green-400' : 'text-white'
+                                            tx.status !== 'success' && tx.type === 'topup' ? 'text-slate-500' :
+                                                tx.amount > 0 ? 'text-green-400' : 'text-white'
                                             }`}>
-                                            {tx.type === 'pod_burn_receipt'
+                                            {tx.type === 'pod_burn_receipt' || (tx.status !== 'success' && tx.type === 'topup')
                                                 ? `₹${Math.abs(tx.amount).toFixed(2)}`
                                                 : (tx.amount > 0 ? `+₹${tx.amount.toFixed(2)}` : `-₹${Math.abs(tx.amount).toFixed(2)}`)}
                                         </td>
