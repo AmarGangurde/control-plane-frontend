@@ -145,7 +145,7 @@ export default function Billing() {
 
             // Redirect to Cashfree Hosted Checkout
             const cashfree = window.Cashfree({
-                mode: import.meta.env.MODE === "production" ? "production" : "sandbox"
+                mode: import.meta.env.VITE_CASHFREE_ENV || (import.meta.env.MODE === "production" ? "production" : "sandbox")
             });
 
             cashfree.checkout({
