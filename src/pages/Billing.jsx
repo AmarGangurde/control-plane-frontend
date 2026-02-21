@@ -93,19 +93,30 @@ export default function Billing() {
 
         // Check for success status from URL
         const params = new URLSearchParams(window.location.search);
-        if (params.get('topup') === 'success') {
-            setShowSuccess(true);
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-        if (params.get('topup') === 'cancelled') {
-            setStatusMessage('Payment was cancelled.');
-            setTimeout(() => setStatusMessage(null), 5000);
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-        if (params.get('status') === 'processing') {
-            setStatusMessage('Verifying payment with PhonePe...');
-            setTimeout(() => setStatusMessage(null), 5000);
-            window.history.replaceState({}, document.title, window.location.pathname);
+        const orderId = params.get('order_id');
+
+        if (orderId) {
+            setStatusMessage('Verifying payment...');
+            apiFetch('/billing/verify-return', {
+                method: 'POST',
+                body: JSON.stringify({ order_id: orderId })
+            }).then(res => {
+                if (res.status === 'success') {
+                    setShowSuccess(true);
+                } else if (res.status === 'cancelled') {
+                    setStatusMessage('Payment was cancelled.');
+                    setTimeout(() => setStatusMessage(null), 5000);
+                } else {
+                    setStatusMessage('Payment is pending or failed.');
+                    setTimeout(() => setStatusMessage(null), 5000);
+                }
+                window.history.replaceState({}, document.title, window.location.pathname);
+                fetchData();
+            }).catch(() => {
+                setStatusMessage('Could not verify payment status.');
+                setTimeout(() => setStatusMessage(null), 5000);
+                window.history.replaceState({}, document.title, window.location.pathname);
+            });
         }
 
         return () => clearInterval(interval);
@@ -131,8 +142,16 @@ export default function Billing() {
                 method: 'POST',
                 body: JSON.stringify({ amount: selectedAmount })
             });
-            // Redirect to PhonePe Standard Checkout
-            window.location.href = res.url;
+
+            // Redirect to Cashfree Hosted Checkout
+            const cashfree = window.Cashfree({
+                mode: import.meta.env.MODE === "production" ? "production" : "sandbox"
+            });
+
+            cashfree.checkout({
+                paymentSessionId: res.paymentSessionId,
+                redirectTarget: "_self"
+            });
         } catch (err) {
             setError(err.message || 'Failed to initiate payment');
             setLoading(false);
