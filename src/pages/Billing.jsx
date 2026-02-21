@@ -103,6 +103,7 @@ export default function Billing() {
             }).then(res => {
                 if (res.status === 'success') {
                     setShowSuccess(true);
+                    setStatusMessage(null);
                 } else if (res.status === 'cancelled') {
                     setStatusMessage('Payment was cancelled.');
                     setTimeout(() => setStatusMessage(null), 5000);
