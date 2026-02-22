@@ -1,4 +1,4 @@
-name: Build, Push to GHCR and Deploy to EC2
+name: Build Frontend and Push to GHCR
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -33,42 +33,7 @@ jobs:
           
           docker build . \
             --file Dockerfile \
-            --tag $IMAGE_ID:$VERSION \
-            --build-arg VITE_API_BASE=${{ secrets.VITE_API_BASE }} \
-            --build-arg VITE_PHONEPE_CALLBACK=${{ secrets.VITE_PHONEPE_CALLBACK }} \
-            --build-arg VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }} \
-            --build-arg VITE_CASHFREE_ENV=${{ secrets.VITE_CASHFREE_ENV || 'sandbox' }}
+            --tag $IMAGE_ID:$VERSION
           
           docker push $IMAGE_ID:$VERSION
-
-      - name: Deploy to EC2 via SSH
-        uses: appleboy/ssh-action@v0.1.6
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: ${{ secrets.EC2_SSH_PORT || '22' }}
-          script: |
-            set -e
-            IMAGE_ID=ghcr.io/${{ github.repository }}
-            IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-            VERSION=latest
-            
-            echo "Logging into GHCR and pulling $IMAGE_ID:$VERSION"
-            # Ensure actor is lowercased for login (sometimes helps with 403)
-            ACTOR=$(echo "${{ github.actor }}" | tr '[A-Z]' '[a-z]')
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ACTOR --password-stdin
-            
-            # Deploy using Docker Compose
-            cd ~/control-plane-frontend
-            git fetch origin main
-            git reset --hard origin/main
-            
-            echo "🐳 Pulling latest images from GHCR..."
-            docker compose pull
-            
-            echo "🚀 Starting updated containers..."
-            docker compose up -d
-            
-            echo "🏁 Deployment successful!"
 

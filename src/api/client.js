@@ -1,4 +1,7 @@
-export const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+const getEnv = (key) => (window._env_ && window._env_[key]) || import.meta.env[key];
+
+const VITE_API_BASE = getEnv('VITE_API_BASE');
+export const API_BASE = (VITE_API_BASE && VITE_API_BASE !== 'undefined') ? VITE_API_BASE : '';
 
 export const apiFetch = async (path, options = {}) => {
   const headers = {
@@ -14,7 +17,7 @@ export const apiFetch = async (path, options = {}) => {
     }
   }
 
-  const baseUrl = API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`;
+  const baseUrl = API_BASE ? (API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`) : '/api';
   const res = await fetch(`${baseUrl}${path}`, {
     ...options,
     headers,

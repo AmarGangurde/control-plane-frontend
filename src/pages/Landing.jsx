@@ -35,14 +35,17 @@ export default function Landing() {
 
     const heroBtnRef = useRef(null);
 
-    const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+    const getEnv = (key) => (window._env_ && window._env_[key]) || import.meta.env[key];
+
+    const CLIENT_ID = getEnv('VITE_GOOGLE_CLIENT_ID');
+    const VITE_API_BASE = getEnv('VITE_API_BASE');
+    const API_BASE = (VITE_API_BASE && VITE_API_BASE !== 'undefined') ? VITE_API_BASE : '';
 
     const handleCredential = async (id_token) => {
         setAuthLoading(true);
         setAuthError('');
         try {
-            const API_BASE_URL = API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`;
+            const API_BASE_URL = API_BASE ? (API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`) : '/api';
             const res = await fetch(`${API_BASE_URL}/auth/google`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
