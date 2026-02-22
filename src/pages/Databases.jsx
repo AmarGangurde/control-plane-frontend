@@ -23,28 +23,6 @@ function getUptime(dateString) {
     return `${minutes}m`;
 }
 
-// Convert CPU string to numeric millicores (m)
-const parseCpuToMillis = (cpu) => {
-    if (!cpu) return 0;
-    if (typeof cpu === 'number') return cpu;
-    if (String(cpu).endsWith('n')) return Math.round(parseInt(cpu) / 1000000); // nanocores to m
-    if (String(cpu).endsWith('m')) return parseInt(cpu); // millicores
-    // If just number, assume cores, so * 1000
-    if (!isNaN(cpu)) return parseFloat(cpu) * 1000;
-    return 0;
-};
-
-// Convert Memory string to numeric MiB
-const parseMemToMiB = (mem) => {
-    if (!mem) return 0;
-    if (typeof mem === 'number') return mem;
-    if (String(mem).endsWith('Ki')) return Math.round(parseInt(mem) / 1024);
-    if (String(mem).endsWith('Mi')) return parseInt(mem);
-    if (String(mem).endsWith('Gi')) return parseInt(mem) * 1024;
-    if (!isNaN(mem)) return parseInt(mem) / (1024 * 1024); // Assume bytes if just number
-    return 0;
-};
-
 export default function Databases() {
     const [databases, setDatabases] = useState([]);
     const [plans, setPlans] = useState([]);
@@ -78,7 +56,7 @@ export default function Databases() {
                             metrics: full.metrics || { cpu: '0', memory: '0' }
                         };
                     } catch {
-                        return { ...db, status: 'unknown', metrics: { cpu: '0', memory: '0' } };
+                        return { ...db, status: db.status || 'unknown', metrics: { cpu: '0', memory: '0' } };
                     }
                 })
             );
@@ -335,65 +313,39 @@ export default function Databases() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        {db.status === 'running' ? (() => {
-                                            const plan = plans.find(p => p.id === db.plan_id);
-                                            const cpuLimit = plan ? parseCpuToMillis(plan.cpu) : 1000;
-                                            const memLimit = plan ? parseMemToMiB(plan.memory) : 512;
-
-                                            const currentCpu = parseCpuToMillis(db.metrics?.cpu);
-                                            const currentMem = parseMemToMiB(db.metrics?.memory);
-
-                                            const cpuPercent = Math.min((currentCpu / cpuLimit) * 100, 100);
-                                            const memPercent = Math.min((currentMem / memLimit) * 100, 100);
-
-                                            return (
-                                                <div className="flex flex-col space-y-2 min-w-[180px]">
-                                                    {/* CPU */}
-                                                    <div>
-                                                        <div className="flex items-center justify-between mb-1">
-                                                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase">
-                                                                <Cpu size={10} className="text-blue-400" />
-                                                                <span>CPU</span>
-                                                            </div>
-                                                            <span className="text-[10px] font-mono font-bold text-slate-300">
-                                                                {currentCpu}m <span className="text-slate-600">/ {cpuLimit}m</span>
-                                                            </span>
+                                        <div className="w-[120px] space-y-2">
+                                            {db.status === 'running' ? (
+                                                <>
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="flex justify-between text-[9px] font-black uppercase text-slate-500">
+                                                            <span>CPU</span>
+                                                            <span className="text-slate-300">{db.metrics?.cpu && db.metrics.cpu !== '0' ? db.metrics.cpu : 'Idle'}</span>
                                                         </div>
-                                                        <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden border border-white/5">
-                                                            <div className="bg-blue-500 h-full rounded-full relative" style={{ width: `${cpuPercent}%` }}>
-                                                                <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
-                                                            </div>
+                                                        <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                                                            <div className="bg-blue-500 h-full rounded-full" style={{ width: db.metrics?.cpu && db.metrics.cpu !== '0' ? '40%' : '5%' }} />
                                                         </div>
                                                     </div>
-
-                                                    {/* RAM */}
-                                                    <div>
-                                                        <div className="flex items-center justify-between mb-1">
-                                                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase">
-                                                                <Activity size={10} className="text-purple-400" />
-                                                                <span>RAM</span>
-                                                            </div>
-                                                            <span className="text-[10px] font-mono font-bold text-slate-300">
-                                                                {currentMem}Mi <span className="text-slate-600">/ {memLimit}Mi</span>
-                                                            </span>
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="flex justify-between text-[9px] font-black uppercase text-slate-500">
+                                                            <span>RAM</span>
+                                                            <span className="text-slate-300">{db.metrics?.memory && db.metrics.memory !== '0' ? db.metrics.memory : 'Idle'}</span>
                                                         </div>
-                                                        <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden border border-white/5">
-                                                            <div className="bg-purple-500 h-full rounded-full relative" style={{ width: `${memPercent}%` }}>
-                                                                <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
-                                                            </div>
+                                                        <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                                                            <div className="bg-purple-500 h-full rounded-full" style={{ width: db.metrics?.memory && db.metrics.memory !== '0' ? '60%' : '5%' }} />
                                                         </div>
                                                     </div>
+                                                </>
+                                            ) : (
+                                                <div className="flex flex-col items-center justify-center bg-white/5 rounded-xl py-3 border border-white/5">
+                                                    <span className={`text-[10px] font-black uppercase tracking-widest ${db.status === 'stopped' ? 'text-slate-500' : 'text-amber-500'}`}>
+                                                        {db.status === 'stopped' ? 'Instance Stopped' : 'Provisioning...'}
+                                                    </span>
+                                                    <span className="text-[8px] text-slate-600 font-bold uppercase mt-0.5 tracking-tighter">
+                                                        {db.status === 'stopped' ? 'Metrics Unavailable' : 'Warming up resources'}
+                                                    </span>
                                                 </div>
-                                            );
-                                        })() : (
-                                            <div className="flex flex-col gap-1">
-                                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase">
-                                                    <Server size={10} />
-                                                    <span>Resources</span>
-                                                </div>
-                                                <span className="text-[10px] font-mono font-bold text-slate-600 italic">Instance Stopped</span>
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex flex-col bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20 w-fit">
