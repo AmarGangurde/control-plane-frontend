@@ -25,15 +25,28 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Extract version and SHA
+        id: meta
+        run: |
+          VERSION=v$(jq -r .version package.json)
+          SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "sha_tag=${VERSION}-${SHA}" >> $GITHUB_OUTPUT
+
       - name: Build and push Docker image
         run: |
           IMAGE_ID=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          VERSION=latest
           
-          docker build . \
-            --file Dockerfile \
-            --tag $IMAGE_ID:$VERSION
+          VERSION=${{ steps.meta.outputs.version }}
+          SHA_TAG=${{ steps.meta.outputs.sha_tag }}
+
+          echo "Pushing tags: $VERSION, $SHA_TAG"
+          
+          docker build . --file Dockerfile \
+            --tag $IMAGE_ID:$VERSION \
+            --tag $IMAGE_ID:$SHA_TAG
           
           docker push $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$SHA_TAG
 
