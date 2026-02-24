@@ -91,33 +91,48 @@ export default function Billing() {
         // Sync with server every 30s
         const interval = setInterval(fetchData, 30000);
 
-        // Check for success status from URL
-        const params = new URLSearchParams(window.location.search);
-        const orderId = params.get('order_id');
-
-        if (orderId) {
+        const checkPayment = async (orderId) => {
             setStatusMessage('Verifying payment...');
-            apiFetch('/billing/verify-return', {
-                method: 'POST',
-                body: JSON.stringify({ order_id: orderId })
-            }).then(res => {
+            try {
+                const res = await apiFetch('/billing/verify-return', {
+                    method: 'POST',
+                    body: JSON.stringify({ order_id: orderId })
+                });
+
                 if (res.status === 'success') {
                     setShowSuccess(true);
                     setStatusMessage(null);
+                    localStorage.removeItem('wrexer_pending_order_id');
                 } else if (res.status === 'cancelled') {
                     setStatusMessage('Payment was cancelled.');
                     setTimeout(() => setStatusMessage(null), 5000);
+                    localStorage.removeItem('wrexer_pending_order_id');
+                } else if (res.status === 'PAID') {
+                    setShowSuccess(true);
+                    setStatusMessage(null);
+                    localStorage.removeItem('wrexer_pending_order_id');
                 } else {
+                    // Still pending, don't remove from localStorage yet if it was from localStorage
                     setStatusMessage('Payment is pending or failed.');
                     setTimeout(() => setStatusMessage(null), 5000);
                 }
-                window.history.replaceState({}, document.title, window.location.pathname);
                 fetchData();
-            }).catch(() => {
+            } catch (err) {
                 setStatusMessage('Could not verify payment status.');
                 setTimeout(() => setStatusMessage(null), 5000);
-                window.history.replaceState({}, document.title, window.location.pathname);
-            });
+            }
+        };
+
+        // Check for success status from URL
+        const params = new URLSearchParams(window.location.search);
+        const orderIdFromUrl = params.get('order_id');
+        const savedOrderId = localStorage.getItem('wrexer_pending_order_id');
+
+        if (orderIdFromUrl) {
+            checkPayment(orderIdFromUrl);
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (savedOrderId) {
+            checkPayment(savedOrderId);
         }
 
         return () => clearInterval(interval);
@@ -143,6 +158,16 @@ export default function Billing() {
                 method: 'POST',
                 body: JSON.stringify({ amount: selectedAmount })
             });
+
+            // Extract order_id from paymentSessionId or similar if possible, 
+            // but initiate-payment usually returns the internal transaction ID if we modify it.
+            // For now, Cashfree usually has the order_id as a separate field in the response if we provide it.
+            // Looking back at billing.controller.js, initiatePayment DOES NOT return order_id.
+            // Let's modify initiatePayment to return orderId.
+
+            if (res.orderId) {
+                localStorage.setItem('wrexer_pending_order_id', res.orderId);
+            }
 
             // Redirect to Cashfree Hosted Checkout
             const cashfree = window.Cashfree({
