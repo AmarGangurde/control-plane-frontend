@@ -16,6 +16,7 @@ export default function CreateApp() {
   const [envVars, setEnvVars] = useState([{ name: '', value: '' }]);
   const [command, setCommand] = useState('');
   const [args, setArgs] = useState(['']);
+  const [replicas, setReplicas] = useState(1);
 
   useEffect(() => {
     // fetch plans — regular first, then coming_soon (Kata) at the end
@@ -91,7 +92,8 @@ export default function CreateApp() {
         planId: selectedPlan,
         env: filteredEnv.length > 0 ? filteredEnv : undefined,
         command: parsedCommand,
-        args: filteredArgs.length > 0 ? filteredArgs : undefined
+        args: filteredArgs.length > 0 ? filteredArgs : undefined,
+        replicas: parseInt(replicas, 10)
       });
 
       setCreateMsg({ type: 'success', text: `Deployed: ${res.url}` });
@@ -157,6 +159,18 @@ export default function CreateApp() {
             placeholder="Auto-detect (e.g. 80)"
             value={port}
             onChange={e => setPort(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Replicas</label>
+          <input
+            type="number"
+            min="1"
+            max="10"
+            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500/50 transition-all font-mono"
+            value={replicas}
+            onChange={e => setReplicas(e.target.value)}
           />
         </div>
 

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { api } from '../api/client';
-import { Terminal, X, RefreshCw, Cpu, Activity, Pencil, Plus, Trash2, RotateCw, ExternalLink, Box } from 'lucide-react';
+import { Terminal, X, RefreshCw, Cpu, Activity, Pencil, Plus, Trash2, RotateCw, ExternalLink, Box, AlertCircle } from 'lucide-react';
 
 export default function AppList() {
   const [apps, setApps] = useState([]);
@@ -10,6 +10,8 @@ export default function AppList() {
   const [deleting, setDeleting] = useState({});
   const [logView, setLogView] = useState(null); // { id, name, logs, loading }
   const [editView, setEditView] = useState(null); // { app, image, port, env, command, args, loading, msg }
+  const [showConfirmDelete, setShowConfirmDelete] = useState(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const logEndRef = useRef(null);
 
   // --- Parsing Helpers ---
@@ -110,6 +112,7 @@ export default function AppList() {
       app,
       image: app.image || '',
       port: app.container_port ? String(app.container_port) : '',
+      replicas: app.replicas ? String(app.replicas) : '1',
       env: envArray,
       command: cmdStr,
       args: argsArray,
@@ -192,6 +195,9 @@ export default function AppList() {
       if (editView.image !== editView.app.image) payload.image = editView.image.trim();
       const newPort = editView.port ? parseInt(editView.port, 10) : undefined;
       if (newPort && newPort !== editView.app.container_port) payload.port = newPort;
+      const newReplicas = editView.replicas ? parseInt(editView.replicas, 10) : undefined;
+      if (newReplicas !== undefined && newReplicas !== editView.app.replicas) payload.replicas = newReplicas;
+
       if (filteredEnv.length > 0) payload.env = filteredEnv;
       else payload.env = [];
       if (parsedCommand) payload.command = parsedCommand;
@@ -214,6 +220,25 @@ export default function AppList() {
         loading: false,
         msg: { type: 'error', text: e.message }
       }));
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (deleteConfirmText !== 'DELETE') return;
+    setDeleting(d => ({ ...d, [id]: true }));
+    try {
+      await api.apps.delete(id);
+      setShowConfirmDelete(null);
+      setDeleteConfirmText('');
+      await loadApps();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setDeleting(d => {
+        const copy = { ...d };
+        delete copy[id];
+        return copy;
+      });
     }
   };
 
@@ -286,6 +311,11 @@ export default function AppList() {
                             <div className="flex items-center text-[10px] text-slate-500 font-mono gap-2">
                               {app.image}
                             </div>
+                            {app.type === 'app' && (
+                              <div className="flex items-center text-[10px] text-blue-400 font-black gap-2 mt-0.5 uppercase tracking-wide">
+                                {app.replicas || 1} {app.replicas > 1 ? 'Replicas' : 'Replica'}
+                              </div>
+                            )}
                             <a href={app.url} target="_blank" className="text-[10px] text-blue-500 hover:text-blue-400 hover:underline cursor-pointer truncate max-w-[150px] flex items-center gap-1 mt-0.5">
                               {app.url.replace('https://', '')}
                               <ExternalLink size={8} />
@@ -379,21 +409,9 @@ export default function AppList() {
                             <Terminal size={14} />
                           </button>
                           <button
-                            onClick={async () => {
-                              if (!confirm('Delete this app?')) return;
-                              setDeleting(d => ({ ...d, [app.id]: true }));
-                              try {
-                                await api.apps.delete(app.id);
-                                await loadApps();
-                              } catch (e) {
-                                setError(e.message);
-                              } finally {
-                                setDeleting(d => {
-                                  const copy = { ...d };
-                                  delete copy[app.id];
-                                  return copy;
-                                });
-                              }
+                            onClick={() => {
+                              setShowConfirmDelete(app);
+                              setDeleteConfirmText('');
                             }}
                             disabled={!!deleting[app.id]}
                             className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-all"
@@ -511,6 +529,22 @@ export default function AppList() {
                   onChange={e => updateEditField('port', e.target.value)}
                 />
               </div>
+
+              {/* Replicas */}
+              {editView.app.type === 'app' && (
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Replicas (Scale)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500/50 transition-all font-mono text-sm"
+                    value={editView.replicas}
+                    onChange={e => updateEditField('replicas', e.target.value)}
+                  />
+                  <p className="text-[9px] text-slate-500 mt-1 uppercase font-bold tracking-tight">Billing updates automatically based on pod count.</p>
+                </div>
+              )}
 
               {/* Env Vars */}
               <div className="p-4 bg-black/20 rounded-2xl border border-white/5">
@@ -647,6 +681,50 @@ export default function AppList() {
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Destroy Confirmation Modal */}
+      {showConfirmDelete && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+          <div className="bg-[#0b0f1a] border border-red-500/30 rounded-[2.5rem] max-w-md w-full p-10 shadow-3xl animate-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Trash2 size={32} />
+            </div>
+            <h3 className="text-xl font-black text-white text-center mb-2 uppercase tracking-tight">Destroy Application</h3>
+            <p className="text-slate-400 text-center text-xs font-medium mb-8 leading-relaxed">
+              Warning: This will permanently delete <span className="text-white font-bold">{showConfirmDelete.name}</span> and all associated resources. This action is irreversible.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest text-center italic">Type <span className="text-white">DELETE</span> to confirm</label>
+                <input
+                  className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-center text-white focus:outline-none focus:border-red-500 transition-all font-black uppercase placeholder:text-white/5"
+                  placeholder="Required"
+                  value={deleteConfirmText}
+                  onChange={e => setDeleteConfirmText(e.target.value.toUpperCase())}
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  onClick={() => { setShowConfirmDelete(null); setDeleteConfirmText(''); }}
+                  className="flex-1 px-6 py-4 rounded-2xl bg-white/5 text-slate-400 font-black text-xs uppercase hover:bg-white/10 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDelete(showConfirmDelete.id)}
+                  disabled={deleteConfirmText !== 'DELETE'}
+                  className="flex-1 px-6 py-4 rounded-2xl bg-red-600 text-white font-black text-xs uppercase hover:bg-red-500 disabled:opacity-20 transition-all shadow-xl shadow-red-600/20"
+                >
+                  Destroy
+                </button>
+              </div>
             </div>
           </div>
         </div>
