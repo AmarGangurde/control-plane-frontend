@@ -41,14 +41,12 @@ jobs:
           VERSION=${{ steps.meta.outputs.version }}
           SHA_TAG=${{ steps.meta.outputs.sha_tag }}
 
-          echo "Pushing tags: $VERSION, $SHA_TAG, latest"
+          echo "Pushing tags: $VERSION, $SHA_TAG"
           
           docker build . --file Dockerfile \
             --tag $IMAGE_ID:$VERSION \
-            --tag $IMAGE_ID:$SHA_TAG \
-            --tag $IMAGE_ID:latest
+            --tag $IMAGE_ID:$SHA_TAG
           
           docker push $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$SHA_TAG
-          docker push $IMAGE_ID:latest
 
