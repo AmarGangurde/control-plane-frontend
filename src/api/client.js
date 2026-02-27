@@ -65,10 +65,15 @@ export const api = {
   billing: {
     plans: () => apiFetch('/billing/plans'),
     balance: () => apiFetch('/billing/balance'),
-    topUp: (amount) => apiFetch('/billing/topup', {
+    initiatePayment: (amount) => apiFetch('/billing/initiate-payment', {
       method: 'POST',
       body: JSON.stringify({ amount })
-    })
+    }),
+    verifyReturn: (order_id) => apiFetch('/billing/verify-return', {
+      method: 'POST',
+      body: JSON.stringify({ order_id })
+    }),
+    transactions: () => apiFetch('/billing/transactions')
   },
   databases: {
     list: () => apiFetch('/databases'),
@@ -79,6 +84,7 @@ export const api = {
     }),
     stop: (id) => apiFetch(`/databases/${id}/stop`, { method: 'POST' }),
     start: (id) => apiFetch(`/databases/${id}/start`, { method: 'POST' }),
-    destroy: (id) => apiFetch(`/databases/${id}`, { method: 'DELETE' })
+    destroy: (id) => apiFetch(`/databases/${id}`, { method: 'DELETE' }),
+    backup: (id) => apiFetch(`/databases/${id}/backup`)
   }
 };
