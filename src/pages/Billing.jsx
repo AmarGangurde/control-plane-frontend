@@ -64,12 +64,13 @@ export default function Billing() {
             const runningDbs = dbsRes.filter(d => d.status === 'running');
             const existingDbs = dbsRes.filter(d => d.status !== 'deleted');
 
-            setAppsCount(activeApps.length);
+            const totalReplicas = activeApps.reduce((acc, app) => acc + (app.replicas || 1), 0);
+            setAppsCount(totalReplicas);
             setRunningDbsCount(runningDbs.length);
             setPvcCount(existingDbs.length);
 
             // Calculate combined hourly cost
-            const appHourly = activeApps.reduce((acc, app) => acc + (app.hourly_rate || 0), 0);
+            const appHourly = activeApps.reduce((acc, app) => acc + ((app.hourly_rate || 0) * (app.replicas || 1)), 0);
             const dbPodHourly = runningDbs.reduce((acc, db) => acc + (db.hourly_rate || 0), 0);
             const dbStorageHourly = existingDbs.reduce((acc, db) => acc + (db.storage_hourly_rate || 0), 0);
 
@@ -112,7 +113,6 @@ export default function Billing() {
                     setStatusMessage(null);
                     localStorage.removeItem('wrexer_pending_order_id');
                 } else {
-                    // Still pending, don't remove from localStorage yet if it was from localStorage
                     setStatusMessage('Payment is pending or failed.');
                     setTimeout(() => setStatusMessage(null), 5000);
                 }
@@ -123,7 +123,6 @@ export default function Billing() {
             }
         };
 
-        // Check for success status from URL
         const params = new URLSearchParams(window.location.search);
         const orderIdFromUrl = params.get('order_id');
         const savedOrderId = localStorage.getItem('wrexer_pending_order_id');
@@ -138,7 +137,6 @@ export default function Billing() {
         return () => clearInterval(interval);
     }, []);
 
-    // Per-second "Live Drain" Effect
     useEffect(() => {
         if (hourlyCost <= 0) return;
 
@@ -159,17 +157,10 @@ export default function Billing() {
                 body: JSON.stringify({ amount: selectedAmount })
             });
 
-            // Extract order_id from paymentSessionId or similar if possible, 
-            // but initiate-payment usually returns the internal transaction ID if we modify it.
-            // For now, Cashfree usually has the order_id as a separate field in the response if we provide it.
-            // Looking back at billing.controller.js, initiatePayment DOES NOT return order_id.
-            // Let's modify initiatePayment to return orderId.
-
             if (res.orderId) {
                 localStorage.setItem('wrexer_pending_order_id', res.orderId);
             }
 
-            // Redirect to Cashfree Hosted Checkout
             const cashfree = window.Cashfree({
                 mode: res.environment || import.meta.env.VITE_CASHFREE_ENV || (import.meta.env.MODE === "production" ? "production" : "sandbox")
             });
@@ -258,65 +249,63 @@ export default function Billing() {
                     </div>
                 </motion.div>
 
-                {/* Usage Card (The Gap Filler) */}
+                {/* Usage Card */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="bg-white/5 rounded-[2rem] p-8 border border-white/5 shadow-2xl flex flex-col justify-between"
+                    className="bg-white/5 rounded-[2rem] p-8 border border-white/5 shadow-2xl flex flex-col"
                 >
-                    <div className="h-full flex flex-col">
-                        <h2 className="text-indigo-400 text-xs font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                            <Box size={16} />
-                            Live Consumption
-                        </h2>
-                        <div className="space-y-6 flex-grow flex flex-col justify-center py-2">
-                            <div className="flex items-center justify-between group">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-                                        <Box size={20} className="text-blue-400" />
-                                    </div>
-                                    <div>
-                                        <div className="text-lg font-black text-white tracking-tight">{appsCount}</div>
-                                        <div className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Active Pods</div>
-                                    </div>
+                    <h2 className="text-indigo-400 text-xs font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                        <Box size={16} />
+                        Live Consumption
+                    </h2>
+                    <div className="space-y-6 flex-grow flex flex-col justify-center py-2">
+                        <div className="flex items-center justify-between group">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                                    <Box size={20} className="text-blue-400" />
                                 </div>
-                                <div className="text-right">
-                                    <div className="text-sm font-black text-white tracking-tight">₹{appMinuteRate.toFixed(4)}</div>
-                                    <div className="text-[7px] text-slate-500 font-bold uppercase tracking-wider">Per Minute</div>
+                                <div>
+                                    <div className="text-lg font-black text-white tracking-tight">{appsCount}</div>
+                                    <div className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Total Replicas</div>
                                 </div>
                             </div>
+                            <div className="text-right">
+                                <div className="text-sm font-black text-white tracking-tight">₹{appMinuteRate.toFixed(4)}</div>
+                                <div className="text-[7px] text-slate-500 font-bold uppercase tracking-wider">Per Minute</div>
+                            </div>
+                        </div>
 
-                            <div className="flex items-center justify-between group">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                                        <HardDrive size={20} className="text-emerald-400" />
-                                    </div>
-                                    <div>
-                                        <div className="text-lg font-black text-white tracking-tight">{runningDbsCount}</div>
-                                        <div className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Active Databases</div>
-                                    </div>
+                        <div className="flex items-center justify-between group">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                                    <HardDrive size={20} className="text-emerald-400" />
                                 </div>
-                                <div className="text-right">
-                                    <div className="text-sm font-black text-white tracking-tight">₹{dbMinuteRate.toFixed(4)}</div>
-                                    <div className="text-[7px] text-slate-500 font-bold uppercase tracking-wider">Per Minute</div>
+                                <div>
+                                    <div className="text-lg font-black text-white tracking-tight">{runningDbsCount}</div>
+                                    <div className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Active Databases</div>
                                 </div>
                             </div>
+                            <div className="text-right">
+                                <div className="text-sm font-black text-white tracking-tight">₹{dbMinuteRate.toFixed(4)}</div>
+                                <div className="text-[7px] text-slate-500 font-bold uppercase tracking-wider">Per Minute</div>
+                            </div>
+                        </div>
 
-                            <div className="flex items-center justify-between group">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                                        <HardDrive size={20} className="text-amber-400" />
-                                    </div>
-                                    <div>
-                                        <div className="text-lg font-black text-white tracking-tight">{pvcCount}</div>
-                                        <div className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Active PVC</div>
-                                    </div>
+                        <div className="flex items-center justify-between group">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                                    <HardDrive size={20} className="text-amber-400" />
                                 </div>
-                                <div className="text-right">
-                                    <div className="text-sm font-black text-white tracking-tight">₹{pvcMinuteRate.toFixed(4)}</div>
-                                    <div className="text-[7px] text-slate-500 font-bold uppercase tracking-wider">Per Minute</div>
+                                <div>
+                                    <div className="text-lg font-black text-white tracking-tight">{pvcCount}</div>
+                                    <div className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Active PVC</div>
                                 </div>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-sm font-black text-white tracking-tight">₹{pvcMinuteRate.toFixed(4)}</div>
+                                <div className="text-[7px] text-slate-500 font-bold uppercase tracking-wider">Per Minute</div>
                             </div>
                         </div>
                     </div>
@@ -410,14 +399,14 @@ export default function Billing() {
                                                     <>
                                                         <div className={`font-bold text-white mb-1 transition-colors ${isDb ? 'group-hover:text-emerald-400' : 'group-hover:text-blue-400'}`}>
                                                             {tx.type === 'topup' ? 'Credit Injection' :
-                                                                tx.type === 'reservation' ? `${isDb ? 'Database' : 'Pod'} Start Reservation` :
-                                                                    tx.type === 'refund' ? `${isDb ? 'Database' : 'Pod'} Reservation Refund` :
+                                                                tx.type === 'reservation' ? `${isDb ? 'Database' : 'Deployment'} Start Reservation` :
+                                                                    tx.type === 'refund' ? `${isDb ? 'Database' : 'Deployment'} Reservation Refund` :
                                                                         tx.type === 'pod_burn_receipt' ? `Usage Receipt: ${tx.external_id || 'Resource'}` :
                                                                             tx.type}
                                                         </div>
                                                         <div className="flex items-center gap-2">
                                                             <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${isDb ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-blue-500/10 text-blue-500 border border-blue-500/20'}`}>
-                                                                {isDb ? 'Database' : 'Pod'}
+                                                                {isDb ? 'Database' : 'Deployment'}
                                                             </span>
                                                             <span className="text-[10px] text-slate-600 font-mono tracking-tighter uppercase">{tx.id}</span>
                                                             {tx.type === 'pod_burn_receipt' && (
@@ -509,7 +498,7 @@ export default function Billing() {
                             </div>
                             <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">Top-up Successful!</h2>
                             <p className="text-slate-500 font-medium mb-10 leading-relaxed">
-                                Your credits have been synchronized. You can now continue deploying high-performance pods.
+                                Your credits have been synchronized. You can now continue deploying high-performance deployments.
                             </p>
                             <button
                                 onClick={() => setShowSuccess(false)}
@@ -523,5 +512,4 @@ export default function Billing() {
             </AnimatePresence>
         </div>
     );
-};
-
+}
