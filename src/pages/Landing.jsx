@@ -156,7 +156,7 @@ export default function Landing() {
                             Fast, Cheap Cloud Hosting India
                         </div>
                         <h1 className="text-5xl md:text-[72px] font-black leading-[1.05] mb-12 tracking-tight">
-                            Deploy services & PostgreSQL in seconds —<br />
+                            Deploy apps & PostgreSQL in seconds —<br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
                                 without cloud complexity.
                             </span>
@@ -361,8 +361,8 @@ export default function Landing() {
                     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
                         <FeatureCard
                             icon={<Zap className="text-yellow-400" />}
-                            title="Instant Deployments"
-                            desc="Optimized container orchestration ensures your deployments are live and serving traffic in milliseconds."
+                            title="Instant Apps"
+                            desc="Optimized container orchestration ensures your apps are live and serving traffic in milliseconds."
                         />
                         <FeatureCard
                             icon={<Database className="text-emerald-400" />}

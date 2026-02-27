@@ -120,7 +120,7 @@ export default function CreateApp() {
       className="bg-white/5 p-8 rounded-3xl border border-white/5 mb-10"
     >
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-black tracking-tight">Deploy New Deployment</h3>
+        <h3 className="text-xl font-black tracking-tight">Deploy New App</h3>
         <button
           type="button"
           onClick={() => setShowAdvanced(!showAdvanced)}
@@ -143,10 +143,10 @@ export default function CreateApp() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-[11px] font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Deployment Name</label>
+          <label className="block text-[11px] font-bold text-slate-500 mb-1.5 uppercase tracking-wider">App Name</label>
           <input
             className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500/50 transition-all font-medium"
-            placeholder="e.g. my-awesome-deployment"
+            placeholder="e.g. my-awesome-app"
             value={name}
             onChange={e => setName(e.target.value)}
           />
@@ -163,10 +163,7 @@ export default function CreateApp() {
         </div>
 
         <div>
-          <label className="block text-[11px] font-bold text-blue-400 mb-1.5 uppercase tracking-wider flex items-center gap-2">
-            Replicas (Scaling)
-            <span className="bg-blue-500/10 px-1.5 py-0.5 rounded text-[8px] border border-blue-500/20">Cost Factor</span>
-          </label>
+          <label className="block text-[11px] font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Replicas</label>
           <input
             type="number"
             min="1"
@@ -175,7 +172,6 @@ export default function CreateApp() {
             value={replicas}
             onChange={e => setReplicas(e.target.value)}
           />
-          <p className="text-[9px] text-slate-500 mt-1 uppercase font-bold italic tracking-tight">Each replica increases cost linearly.</p>
         </div>
 
         <div className="md:col-span-2">
@@ -357,7 +353,7 @@ export default function CreateApp() {
           disabled={loading || !image || !name}
           className="bg-blue-600 text-white px-10 py-4 rounded-2xl hover:bg-blue-500 disabled:opacity-50 font-black transition-all shadow-xl shadow-blue-600/30 w-full md:w-auto uppercase tracking-widest text-xs"
         >
-          {loading ? 'Initializing Deployment...' : 'Deploy Deployment'}
+          {loading ? 'Initializing Deployment...' : 'Deploy Application'}
         </button>
       </div>
     </form>

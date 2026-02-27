@@ -265,8 +265,8 @@ export default function AppList() {
           <div className="inline-flex p-4 rounded-full bg-slate-800 text-slate-500 mb-4">
             <Box size={32} />
           </div>
-          <h3 className="text-xl font-bold text-white mb-2">No Deployments Found</h3>
-          <p className="text-slate-400">Launch your first deployment to get started.</p>
+          <h3 className="text-xl font-bold text-white mb-2">No Apps Deployed</h3>
+          <p className="text-slate-400">Launch your first application to get started.</p>
         </div>
       )}
 
@@ -276,7 +276,7 @@ export default function AppList() {
             <table className="min-w-full divide-y divide-white/5">
               <thead className="bg-white/[0.02]">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Deployment</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Application</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Status</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Resources</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Billing</th>
@@ -296,9 +296,7 @@ export default function AppList() {
                   const cpuPercent = Math.min((currentCpu / cpuLimit) * 100, 100);
                   const memPercent = Math.min((currentMem / memLimit) * 100, 100);
 
-                  const baseHourlyRate = plan?.price_per_hour || 0;
-                  const replicas = app.replicas || 1;
-                  const hourlyRate = baseHourlyRate * replicas;
+                  const hourlyRate = plan?.price_per_hour || 0;
                   const totalCharged = app.total_charged || 0;
 
                   return (
@@ -315,7 +313,7 @@ export default function AppList() {
                             </div>
                             {app.type === 'app' && (
                               <div className="flex items-center text-[10px] text-blue-400 font-black gap-2 mt-0.5 uppercase tracking-wide">
-                                {replicas} {replicas > 1 ? 'Replicas' : 'Replica'}
+                                {app.replicas || 1} {app.replicas > 1 ? 'Replicas' : 'Replica'}
                               </div>
                             )}
                             <a href={app.url} target="_blank" className="text-[10px] text-blue-500 hover:text-blue-400 hover:underline cursor-pointer truncate max-w-[150px] flex items-center gap-1 mt-0.5">
@@ -330,10 +328,6 @@ export default function AppList() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col space-y-2 min-w-[180px]">
-                          {/* Label for metrics */}
-                          <div className="text-[8px] font-black text-slate-600 uppercase tracking-tighter mb-0.5 italic">
-                            Per replica (sampled)
-                          </div>
                           {/* CPU */}
                           <div>
                             <div className="flex items-center justify-between mb-1">
@@ -374,7 +368,16 @@ export default function AppList() {
                           </span>
                           {hourlyRate > 0 && (
                             <div className="text-[9px] text-blue-400/80 font-medium mb-1">
-                              ₹{(hourlyRate / 100).toFixed(2)}/hr · {replicas > 1 && <span className="text-[8px] opacity-70">({replicas}x)</span>}
+                              ₹{(hourlyRate / 100).toFixed(2)}/hr · ~₹{{
+                                'p-small': 99,
+                                'p-basic': 179,
+                                'p-medium': 249,
+                                'p-large': 499,
+                                'p-xlarge': 999,
+                                'p-kata-small': 199,
+                                'p-kata-medium': 499,
+                                'p-kata-large': 999
+                              }[plan?.id] || ((hourlyRate / 100) * 720).toFixed(0)}/mo
                             </div>
                           )}
                           <span className="text-xs text-blue-500 font-bold uppercase tracking-wider">
@@ -437,7 +440,7 @@ export default function AppList() {
                   <Terminal size={18} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-white text-sm">Deployment Logs</h3>
+                  <h3 className="font-bold text-white text-sm">System Logs</h3>
                   <p className="text-[11px] text-slate-500 font-medium tracking-tight truncate max-w-[200px]">{logView.name}</p>
                 </div>
               </div>
@@ -459,10 +462,10 @@ export default function AppList() {
             </div>
             <div className="flex-1 overflow-auto p-4 bg-black/40 font-mono text-[13px] leading-relaxed text-slate-300">
               {logView.loading ? (
-                <div className="flex items-center justify-center h-full text-slate-500 animate-pulse italic">Retrieving streaming logs (sampled)...</div>
+                <div className="flex items-center justify-center h-full text-slate-500 animate-pulse italic">Retrieving streaming logs...</div>
               ) : (
                 <div className="whitespace-pre-wrap">
-                  {logView.logs || 'No logs found for this deployment.'}
+                  {logView.logs || 'No logs found for this container.'}
                   <div ref={logEndRef} />
                 </div>
               )}
@@ -482,8 +485,8 @@ export default function AppList() {
                   <RotateCw size={18} />
                 </div>
                 <div>
-                  <h3 className="font-black text-white text-sm tracking-tight">Scale & Update</h3>
-                  <p className="text-[11px] text-slate-500 font-semibold mt-0.5 tracking-tight">{editView.app.name} — managed deployment</p>
+                  <h3 className="font-black text-white text-sm tracking-tight">Rolling Update</h3>
+                  <p className="text-[11px] text-slate-500 font-semibold mt-0.5 tracking-tight">{editView.app.name} — zero-downtime deployment</p>
                 </div>
               </div>
               <button
@@ -530,10 +533,7 @@ export default function AppList() {
               {/* Replicas */}
               {editView.app.type === 'app' && (
                 <div>
-                  <label className="block text-[11px] font-bold text-amber-500 mb-1.5 uppercase tracking-wider flex items-center gap-2">
-                    Scaling (Replicas)
-                    <span className="bg-amber-500/10 px-1.5 py-0.5 rounded text-[8px] border border-amber-500/20">Cost Multiplier</span>
-                  </label>
+                  <label className="block text-[11px] font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Replicas (Scale)</label>
                   <input
                     type="number"
                     min="1"
@@ -542,9 +542,7 @@ export default function AppList() {
                     value={editView.replicas}
                     onChange={e => updateEditField('replicas', e.target.value)}
                   />
-                  <p className="text-[9px] text-slate-500 mt-1 uppercase font-bold tracking-tight">
-                    Each additional replica increases hourly cost linearly (base rate &times; count).
-                  </p>
+                  <p className="text-[9px] text-slate-500 mt-1 uppercase font-bold tracking-tight">Billing updates automatically based on pod count.</p>
                 </div>
               )}
 
@@ -624,7 +622,7 @@ export default function AppList() {
                               className={`flex-1 bg-white/5 border rounded-lg p-2 text-xs text-white focus:outline-none transition-all font-mono ${warning ? 'border-amber-500/50 focus:border-amber-500' : 'border-white/10 focus:border-amber-500/50'
                                 }`}
                               value={arg}
-                              onChange={(e) => updateArg(i, e.target.value)}
+                              onChange={(e) => updateEditArg(i, e.target.value)}
                             />
                             <button
                               type="button"
@@ -653,7 +651,7 @@ export default function AppList() {
                   <RotateCw size={14} />
                 </div>
                 <p className="text-[11px] text-blue-300/70 leading-relaxed font-medium">
-                  <span className="text-blue-400 font-bold">Zero-downtime update:</span> Your current replicas stay live while the new versions start. Traffic switches only after new replicas are healthy.
+                  <span className="text-blue-400 font-bold">Zero-downtime update:</span> Your current pod stays live while the new version starts. Traffic switches only after the new pod is healthy.
                 </p>
               </div>
             </div>
@@ -674,12 +672,12 @@ export default function AppList() {
                 {editView.loading ? (
                   <>
                     <RotateCw size={14} className="animate-spin" />
-                    Updating...
+                    Deploying...
                   </>
                 ) : (
                   <>
                     <RotateCw size={14} />
-                    Apply Changes
+                    Deploy Update
                   </>
                 )}
               </button>
@@ -695,9 +693,9 @@ export default function AppList() {
             <div className="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
               <Trash2 size={32} />
             </div>
-            <h3 className="text-xl font-black text-white text-center mb-2 uppercase tracking-tight">Destroy Deployment</h3>
+            <h3 className="text-xl font-black text-white text-center mb-2 uppercase tracking-tight">Destroy Application</h3>
             <p className="text-slate-400 text-center text-xs font-medium mb-8 leading-relaxed">
-              Warning: This will permanently delete deployment <span className="text-white font-bold">{showConfirmDelete.name}</span> and all its replicas. This action is irreversible.
+              Warning: This will permanently delete <span className="text-white font-bold">{showConfirmDelete.name}</span> and all associated resources. This action is irreversible.
             </p>
 
             <div className="space-y-4">
