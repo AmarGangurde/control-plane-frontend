@@ -64,12 +64,13 @@ export default function Billing() {
             const runningDbs = dbsRes.filter(d => d.status === 'running');
             const existingDbs = dbsRes.filter(d => d.status !== 'deleted');
 
-            setAppsCount(activeApps.length);
+            const totalReplicas = activeApps.reduce((acc, app) => acc + (app.replicas || 1), 0);
+            setAppsCount(totalReplicas);
             setRunningDbsCount(runningDbs.length);
             setPvcCount(existingDbs.length);
 
             // Calculate combined hourly cost
-            const appHourly = activeApps.reduce((acc, app) => acc + (app.hourly_rate || 0), 0);
+            const appHourly = activeApps.reduce((acc, app) => acc + ((app.hourly_rate || 0) * (app.replicas || 1)), 0);
             const dbPodHourly = runningDbs.reduce((acc, db) => acc + (db.hourly_rate || 0), 0);
             const dbStorageHourly = existingDbs.reduce((acc, db) => acc + (db.storage_hourly_rate || 0), 0);
 
@@ -278,7 +279,7 @@ export default function Billing() {
                                     </div>
                                     <div>
                                         <div className="text-lg font-black text-white tracking-tight">{appsCount}</div>
-                                        <div className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Active Pods</div>
+                                        <div className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Total Replicas</div>
                                     </div>
                                 </div>
                                 <div className="text-right">

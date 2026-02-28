@@ -139,12 +139,9 @@ export default function Databases() {
         if (db.status !== 'running') return;
 
         try {
-            const token = localStorage.getItem('token');
             const baseUrl = API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`;
             const response = await fetch(`${baseUrl}/databases/${db.id}/backup`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                credentials: 'include'
             });
 
             if (!response.ok) throw new Error('Download failed');
@@ -501,7 +498,7 @@ export default function Databases() {
                         </div>
                         <h3 className="text-xl font-black text-white text-center mb-2 uppercase tracking-tight">Destroy Database</h3>
                         <p className="text-slate-400 text-center text-xs font-medium mb-8 leading-relaxed">
-                            Warning: This will permanently delete the namespace and the <span className="text-red-400 font-bold">1Gi PVC storage</span>. This action is irreversible. All data will be lost.
+                            Warning: This will permanently delete the database instance and the <span className="text-red-400 font-bold">1Gi PVC storage</span>. This action is irreversible. All data will be lost.
                         </p>
 
                         <div className="space-y-4">

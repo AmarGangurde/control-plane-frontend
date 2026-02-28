@@ -172,6 +172,7 @@ export default function CreateApp() {
             value={replicas}
             onChange={e => setReplicas(e.target.value)}
           />
+          <p className="text-[9px] text-slate-500 mt-1 uppercase font-bold tracking-tight">Each replica runs a separate instance and increases billing.</p>
         </div>
 
         <div className="md:col-span-2">

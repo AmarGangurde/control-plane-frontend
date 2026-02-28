@@ -287,8 +287,9 @@ export default function AppList() {
               <tbody className="divide-y divide-white/5 bg-[#0f172a]">
                 {apps.map(app => {
                   const plan = plans.find(p => p.id === app.plan_id);
-                  const cpuLimit = plan ? parseCpuToMillis(plan.cpu) : 1000;
-                  const memLimit = plan ? parseMemToMiB(plan.memory) : 512;
+                  const replicas = app.replicas || 1;
+                  const cpuLimit = plan ? parseCpuToMillis(plan.cpu) * replicas : 1000 * replicas;
+                  const memLimit = plan ? parseMemToMiB(plan.memory) * replicas : 512 * replicas;
 
                   const currentCpu = parseCpuToMillis(app.metrics?.cpu);
                   const currentMem = parseMemToMiB(app.metrics?.memory);
@@ -296,7 +297,7 @@ export default function AppList() {
                   const cpuPercent = Math.min((currentCpu / cpuLimit) * 100, 100);
                   const memPercent = Math.min((currentMem / memLimit) * 100, 100);
 
-                  const hourlyRate = plan?.price_per_hour || 0;
+                  const hourlyRate = (plan?.price_per_hour || 0) * (app.replicas || 1);
                   const totalCharged = app.total_charged || 0;
 
                   return (
@@ -313,7 +314,7 @@ export default function AppList() {
                             </div>
                             {app.type === 'app' && (
                               <div className="flex items-center text-[10px] text-blue-400 font-black gap-2 mt-0.5 uppercase tracking-wide">
-                                {app.replicas || 1} {app.replicas > 1 ? 'Replicas' : 'Replica'}
+                                {app.replicas || 1} {app.replicas > 1 ? 'replicas running' : 'replica running'}
                               </div>
                             )}
                             <a href={app.url} target="_blank" className="text-[10px] text-blue-500 hover:text-blue-400 hover:underline cursor-pointer truncate max-w-[150px] flex items-center gap-1 mt-0.5">
@@ -342,6 +343,7 @@ export default function AppList() {
                                 <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
                               </div>
                             </div>
+                            <span className="text-[9px] text-slate-500 mt-1 block">total usage</span>
                           </div>
 
                           {/* Memory */}
@@ -358,6 +360,7 @@ export default function AppList() {
                                 <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
                               </div>
                             </div>
+                            <span className="text-[9px] text-slate-500 mt-1 block">total usage</span>
                           </div>
                         </div>
                       </td>
@@ -368,7 +371,7 @@ export default function AppList() {
                           </span>
                           {hourlyRate > 0 && (
                             <div className="text-[9px] text-blue-400/80 font-medium mb-1">
-                              ₹{(hourlyRate / 100).toFixed(2)}/hr · ~₹{{
+                              ₹{(hourlyRate / 100).toFixed(2)}/hr (total) · ~₹{{
                                 'p-small': 99,
                                 'p-basic': 179,
                                 'p-medium': 249,
@@ -540,9 +543,12 @@ export default function AppList() {
                     max="10"
                     className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500/50 transition-all font-mono text-sm"
                     value={editView.replicas}
+                    disabled={editView.app.plan_id === 'p-tiny'}
                     onChange={e => updateEditField('replicas', e.target.value)}
                   />
-                  <p className="text-[9px] text-slate-500 mt-1 uppercase font-bold tracking-tight">Billing updates automatically based on pod count.</p>
+                  <p className="text-[9px] text-slate-500 mt-1 uppercase font-bold tracking-tight">
+                    {editView.app.plan_id === 'p-tiny' ? 'Tiny plan is limited to 1 replica.' : 'Scaling replicas increases cost linearly.'}
+                  </p>
                 </div>
               )}
 
