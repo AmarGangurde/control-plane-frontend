@@ -153,7 +153,7 @@ export default function Landing() {
                     >
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-[0.2em] mb-8">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                            Fast, Cheap Cloud Hosting India !
+                            Fast, Cheap Cloud Hosting India
                         </div>
                         <h1 className="text-5xl md:text-[72px] font-black leading-[1.05] mb-12 tracking-tight">
                             Deploy apps & PostgreSQL in seconds —<br />
