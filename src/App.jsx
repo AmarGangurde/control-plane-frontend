@@ -7,6 +7,7 @@ import Landing from './pages/Landing';
 import TInfo from './pages/TInfo';
 import PInfo from './pages/PInfo';
 import RInfo from './pages/RInfo';
+import ContactUs from './pages/ContactUs';
 import { useState, useRef, useEffect } from 'react';
 import { Settings, Key, LogOut, Copy, CheckCircle2, AlertCircle } from 'lucide-react';
 import { api } from './api/client';
@@ -267,6 +268,7 @@ export default function App() {
           <Route path="/terms" element={<TInfo />} />
           <Route path="/p-info" element={<PInfo />} />
           <Route path="/r-info" element={<RInfo />} />
+          <Route path="/contact" element={<ContactUs />} />
 
           <Route path="/dashboard" element={
             <ProtectedRoute>
