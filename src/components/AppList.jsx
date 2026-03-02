@@ -372,14 +372,17 @@ export default function AppList() {
                           {hourlyRate > 0 && (
                             <div className="text-[9px] text-blue-400/80 font-medium mb-1">
                               ₹{(hourlyRate / 100).toFixed(2)}/hr (total) · ~₹{{
-                                'p-small': 99,
-                                'p-basic': 179,
-                                'p-medium': 249,
-                                'p-large': 499,
-                                'p-xlarge': 999,
-                                'p-kata-small': 199,
-                                'p-kata-medium': 499,
-                                'p-kata-large': 999
+                                'p-small': 149,
+                                'p-basic': 279,
+                                'p-medium': 549,
+                                'p-large': 1049,
+                                'p-xlarge': 1999,
+                                'db-small': 449,
+                                'db-medium': 799,
+                                'db-large': 1499,
+                                'p-kata-small': 249,
+                                'p-kata-medium': 749,
+                                'p-kata-large': 1499
                               }[plan?.id] || ((hourlyRate / 100) * 720).toFixed(0)}/mo
                             </div>
                           )}

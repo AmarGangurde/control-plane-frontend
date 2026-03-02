@@ -389,7 +389,7 @@ export default function Landing() {
                     <div className="text-center mb-24">
                         <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tight">Simple Pricing.</h2>
                         <p className="text-blue-400 max-w-2xl mx-auto text-xl font-bold mb-4">
-                            Start for as low as ₹99/month — significantly cheaper than traditional cloud platforms.
+                            Start for as low as ₹149/month — significantly cheaper than traditional cloud platforms.
                         </p>
                         <p className="text-slate-400 max-w-2xl mx-auto text-lg font-medium">
                             Pay only for what you use. No hidden charges.
@@ -400,53 +400,53 @@ export default function Landing() {
                         <PlanCard
                             name="Tiny"
                             price="Free"
-                            cpu="25m"
-                            ram="64Mi"
+                            cpu="100m"
+                            ram="128Mi"
                             bestFor="Hobbies & Testing"
                             isMain={false}
                         />
                         <PlanCard
                             name="Small"
-                            price="₹0.14/hr"
-                            monthly="₹99/mo"
-                            cpu="100m"
-                            ram="128Mi"
+                            price="₹0.20/hr"
+                            monthly="₹149/mo"
+                            cpu="250m"
+                            ram="256Mi"
                             bestFor="Production APIs"
                             isMain={false}
                         />
                         <PlanCard
                             name="Basic"
-                            price="₹0.25/hr"
-                            monthly="₹179/mo"
-                            cpu="250m"
-                            ram="256Mi"
+                            price="₹0.39/hr"
+                            monthly="₹279/mo"
+                            cpu="500m"
+                            ram="512Mi"
                             bestFor="Static & Blogs"
                             isMain={false}
                         />
                         <PlanCard
                             name="Medium"
-                            price="₹0.35/hr"
-                            monthly="₹249/mo"
-                            cpu="500m"
-                            ram="512Mi"
+                            price="₹0.76/hr"
+                            monthly="₹549/mo"
+                            cpu="1000m (1 vCPU)"
+                            ram="1Gi"
                             bestFor="Dynamic Web Apps"
                             isMain={true}
                         />
                         <PlanCard
                             name="Large"
-                            price="₹0.69/hr"
-                            monthly="₹499/mo"
-                            cpu="1.0 Core"
-                            ram="1024Mi"
+                            price="₹1.45/hr"
+                            monthly="₹1049/mo"
+                            cpu="2000m (2 vCPU)"
+                            ram="2Gi"
                             bestFor="Heavy Compute"
                             isMain={false}
                         />
                         <PlanCard
                             name="XLarge"
-                            price="₹1.39/hr"
-                            monthly="₹999/mo"
-                            cpu="2.0 Core"
-                            ram="2048Mi"
+                            price="₹2.75/hr"
+                            monthly="₹1999/mo"
+                            cpu="4000m (4 vCPU)"
+                            ram="4Gi"
                             bestFor="Enterprise Loads"
                             isMain={false}
                         />
@@ -470,10 +470,10 @@ export default function Landing() {
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                             <PlanCard
                                 name="DB Small"
-                                price="₹0.50/hr"
-                                monthly="₹360/mo"
-                                cpu="250m"
-                                ram="512Mi"
+                                price="₹0.62/hr"
+                                monthly="₹449/mo"
+                                cpu="500m"
+                                ram="1Gi"
                                 storage="5Gi SSD"
                                 bestFor="Dev & Small Apps"
                                 isMain={false}
@@ -481,10 +481,10 @@ export default function Landing() {
                             />
                             <PlanCard
                                 name="DB Medium"
-                                price="₹0.76/hr"
-                                monthly="₹547/mo"
-                                cpu="500m"
-                                ram="512Mi"
+                                price="₹1.10/hr"
+                                monthly="₹799/mo"
+                                cpu="1000m"
+                                ram="2Gi"
                                 storage="10Gi SSD"
                                 bestFor="Growing Apps"
                                 isMain={true}
@@ -492,10 +492,10 @@ export default function Landing() {
                             />
                             <PlanCard
                                 name="DB Large"
-                                price="₹1.15/hr"
-                                monthly="₹828/mo"
-                                cpu="700m"
-                                ram="1024Mi"
+                                price="₹2.10/hr"
+                                monthly="₹1499/mo"
+                                cpu="2000m"
+                                ram="4Gi"
                                 storage="20Gi SSD"
                                 bestFor="Production Traffic"
                                 isMain={false}
@@ -521,30 +521,30 @@ export default function Landing() {
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                             <PlanCard
                                 name="Kata Small"
-                                price="₹0.28/hr"
-                                monthly="₹199/mo"
-                                cpu="100m"
-                                ram="128Mi"
+                                price="₹0.34/hr"
+                                monthly="₹249/mo"
+                                cpu="250m"
+                                ram="256Mi"
                                 bestFor="Secure Microservices"
                                 isMain={false}
                                 comingSoon={true}
                             />
                             <PlanCard
                                 name="Kata Medium"
-                                price="₹0.69/hr"
-                                monthly="₹499/mo"
-                                cpu="500m"
-                                ram="512Mi"
+                                price="₹1.04/hr"
+                                monthly="₹749/mo"
+                                cpu="1000m"
+                                ram="1Gi"
                                 bestFor="Isolated Workloads"
                                 isMain={false}
                                 comingSoon={true}
                             />
                             <PlanCard
                                 name="Kata Large"
-                                price="₹1.39/hr"
-                                monthly="₹999/mo"
-                                cpu="1.0 Core"
-                                ram="1024Mi"
+                                price="₹2.08/hr"
+                                monthly="₹1499/mo"
+                                cpu="2000m"
+                                ram="2Gi"
                                 bestFor="VM-level Security"
                                 isMain={false}
                                 comingSoon={true}
