@@ -329,14 +329,14 @@ export default function CreateApp() {
                     {p.price_per_hour > 0 && (
                       <span className={`text-[9px] font-bold ${isComingSoon ? 'text-purple-400/30' : 'text-slate-500'}`}>
                         approx. ₹{{
-                          'p-small': 99,
-                          'p-basic': 179,
-                          'p-medium': 249,
-                          'p-large': 499,
-                          'p-xlarge': 999,
-                          'p-kata-small': 199,
-                          'p-kata-medium': 499,
-                          'p-kata-large': 999
+                          'p-small': 149,
+                          'p-basic': 279,
+                          'p-medium': 549,
+                          'p-large': 1049,
+                          'p-xlarge': 1999,
+                          'p-kata-small': 249,
+                          'p-kata-medium': 749,
+                          'p-kata-large': 1499
                         }[p.id] || (p.price_per_hour / 100 * 24 * 30).toFixed(0)}/mo
                       </span>
                     )}

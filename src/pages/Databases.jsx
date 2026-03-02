@@ -261,10 +261,10 @@ export default function Databases() {
                                         </div>
                                         <div className="flex flex-col mt-2">
                                             <span className={`text-[10px] font-black uppercase tracking-wider ${selectedPlan === plan.id ? 'text-emerald-400' : 'text-slate-500'}`}>
-                                                ₹{((plan.price_per_hour + (parseInt(plan.storage?.replace('Gi', '')) || 0) * 2) / 100).toFixed(2)}/hr
+                                                ₹{((plan.price_per_hour + (parseInt(plan.storage?.replace('Gi', '')) || 0) * 3) / 100).toFixed(2)}/hr
                                             </span>
                                             <span className="text-[9px] font-bold text-slate-600">
-                                                {plan.storage} Storage included (₹{((parseInt(plan.storage?.replace('Gi', '')) || 0) * 0.02).toFixed(2)}/hr)
+                                                {plan.storage} Storage included (₹{((parseInt(plan.storage?.replace('Gi', '')) || 0) * 0.03).toFixed(2)}/hr)
                                             </span>
                                         </div>
                                     </div>
@@ -498,7 +498,7 @@ export default function Databases() {
                         </div>
                         <h3 className="text-xl font-black text-white text-center mb-2 uppercase tracking-tight">Destroy Database</h3>
                         <p className="text-slate-400 text-center text-xs font-medium mb-8 leading-relaxed">
-                            Warning: This will permanently delete the database instance and the <span className="text-red-400 font-bold">1Gi PVC storage</span>. This action is irreversible. All data will be lost.
+                            Warning: This will permanently delete the database instance and the <span className="text-red-400 font-bold">{showConfirmDestroy.storage || '1Gi'} PVC storage</span>. This action is irreversible. All data will be lost.
                         </p>
 
                         <div className="space-y-4">
