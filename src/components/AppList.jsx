@@ -297,27 +297,32 @@ export default function AppList() {
                   const cpuPercent = Math.min((currentCpu / cpuLimit) * 100, 100);
                   const memPercent = Math.min((currentMem / memLimit) * 100, 100);
 
-                  const hourlyRate = (plan?.price_per_hour || 0) * (app.replicas || 1);
+                  const isRunning = app.status === 'running';
+                  const storageRate = app.storage_hourly_rate || 0;
+                  const computeRate = plan?.price_per_hour || 0;
+
+                  // Dynamic rate based on status
+                  const hourlyRate = (isRunning ? (computeRate * replicas) : 0) + storageRate;
                   const totalCharged = app.total_charged || 0;
 
                   return (
                     <tr key={app.id} className="hover:bg-white/[0.02] transition-colors group">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-900/20 to-indigo-900/20 text-blue-400 border border-blue-500/20 flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
-                            <Box className="h-6 w-6" />
+                          <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br transition-transform border flex items-center justify-center mr-4 group-hover:scale-105 ${app.type === 'database' ? 'from-emerald-900/20 to-teal-900/20 text-emerald-400 border-emerald-500/20' : 'from-blue-900/20 to-indigo-900/20 text-blue-400 border-blue-500/20'}`}>
+                            {app.type === 'database' ? <Database className="h-6 w-6" /> : <Box className="h-6 w-6" />}
                           </div>
                           <div className="flex flex-col">
                             <span className="font-bold text-white leading-tight mb-0.5 text-sm">{app.name || 'Unnamed'}</span>
                             <div className="flex items-center text-[10px] text-slate-500 font-mono gap-2">
-                              {app.image}
+                              {app.type === 'database' ? 'PostgreSQL 16' : app.image}
                             </div>
                             {app.type === 'app' && (
                               <div className="flex items-center text-[10px] text-blue-400 font-black gap-2 mt-0.5 uppercase tracking-wide">
                                 {app.replicas || 1} {app.replicas > 1 ? 'replicas running' : 'replica running'}
                               </div>
                             )}
-                            <a href={app.url} target="_blank" className="text-[10px] text-blue-500 hover:text-blue-400 hover:underline cursor-pointer truncate max-w-[150px] flex items-center gap-1 mt-0.5">
+                            <a href={app.url} target="_blank" className="text-[10px] text-blue-500 hover:text-blue-400 hover:underline cursor-pointer truncate max-w-[150px] flex items-center gap-1 mt-0.5" onClick={e => e.stopPropagation()}>
                               {app.url.replace('https://', '')}
                               <ExternalLink size={8} />
                             </a>
@@ -365,25 +370,13 @@ export default function AppList() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20 w-fit">
-                          <span className="text-[10px] text-blue-500/70 font-bold uppercase tracking-wider mb-0.5">
+                        <div className={`flex flex-col px-3 py-1.5 rounded-lg border w-fit ${app.type === 'database' ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-blue-500/10 border-blue-500/20'}`}>
+                          <span className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${app.type === 'database' ? 'text-emerald-500/70' : 'text-blue-500/70'}`}>
                             {plan?.id?.replace('p-', '') || 'custom'}
                           </span>
-                          {hourlyRate > 0 && (
-                            <div className="text-[9px] text-blue-400/80 font-medium mb-1">
-                              ₹{(hourlyRate / 100).toFixed(2)}/hr (total) · ~₹{{
-                                'p-small': 149,
-                                'p-basic': 279,
-                                'p-medium': 549,
-                                'p-large': 1049,
-                                'p-xlarge': 1999,
-                                'db-small': 449,
-                                'db-medium': 799,
-                                'db-large': 1499,
-                                'p-kata-small': 249,
-                                'p-kata-medium': 749,
-                                'p-kata-large': 1499
-                              }[plan?.id] || ((hourlyRate / 100) * 720).toFixed(0)}/mo
+                          {computeRate > 0 && (
+                            <div className={`text-[9px] font-medium mb-1 ${app.type === 'database' ? 'text-emerald-400/80' : 'text-blue-400/80'}`}>
+                              ₹{(hourlyRate / 100).toFixed(2)}/hr · ~₹{((hourlyRate / 100) * 720).toFixed(0)}/mo
                             </div>
                           )}
                           <span className="text-xs text-blue-500 font-bold uppercase tracking-wider">

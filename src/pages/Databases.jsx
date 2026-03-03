@@ -308,170 +308,171 @@ export default function Databases() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
-                            {databases.map(db => (
-                                <tr key={db.id} className="group hover:bg-white/[0.02] transition-colors border-l-4 border-transparent hover:border-emerald-500/40">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-all ${db.status === 'running' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-slate-800 border-white/5 text-slate-500'
-                                                }`}>
-                                                <HardDrive size={24} className={db.status === 'running' ? 'animate-pulse' : ''} />
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-white font-black text-base">{db.name}</span>
-                                                <div className="flex flex-col gap-0.5 mt-0.5">
-                                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Plan: <span className="text-slate-300">{db.plan_id.replace('db-', '').toUpperCase()}</span></span>
-                                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Storage: <span className="text-emerald-500/60 font-mono">{db.storage || '1Gi'}</span></span>
+                            {databases.map(db => {
+                                const plan = plans.find(p => p.id === db.plan_id);
+                                return (
+                                    <tr key={db.id} className="group hover:bg-white/[0.02] transition-colors border-l-4 border-transparent hover:border-emerald-500/40">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-all ${db.status === 'running' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-slate-800 border-white/5 text-slate-500'
+                                                    }`}>
+                                                    <HardDrive size={24} className={db.status === 'running' ? 'animate-pulse' : ''} />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-white font-black text-base">{db.name}</span>
+                                                    <div className="flex flex-col gap-0.5 mt-0.5">
+                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Plan: <span className="text-slate-300">{db.plan_id.replace('db-', '').toUpperCase()}</span></span>
+                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Storage: <span className="text-emerald-500/60 font-mono">{db.storage || '1Gi'}</span></span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusColor(db.status)}`}>
-                                            {db.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        {(() => {
-                                            const plan = plans.find(p => p.id === db.plan_id);
-                                            const cpuLimit = plan ? parseCpuToMillis(plan.cpu) : 1000;
-                                            const memLimit = plan ? parseMemToMiB(plan.memory) : 512;
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusColor(db.status)}`}>
+                                                {db.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {(() => {
+                                                const cpuLimit = plan ? parseCpuToMillis(plan.cpu) : 1000;
+                                                const memLimit = plan ? parseMemToMiB(plan.memory) : 512;
+                                                const currentCpu = parseCpuToMillis(db.metrics?.cpu);
+                                                const currentMem = parseMemToMiB(db.metrics?.memory);
 
-                                            const currentCpu = parseCpuToMillis(db.metrics?.cpu);
-                                            const currentMem = parseMemToMiB(db.metrics?.memory);
+                                                const cpuPercent = Math.min((currentCpu / cpuLimit) * 100, 100);
+                                                const memPercent = Math.min((currentMem / memLimit) * 100, 100);
 
-                                            const cpuPercent = Math.min((currentCpu / cpuLimit) * 100, 100);
-                                            const memPercent = Math.min((currentMem / memLimit) * 100, 100);
-
-                                            return (
-                                                <div className="w-[180px] space-y-2">
-                                                    {db.status === 'running' ? (
-                                                        <>
-                                                            {/* CPU */}
-                                                            <div>
-                                                                <div className="flex items-center justify-between mb-1">
-                                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase">
-                                                                        <Cpu size={10} className="text-blue-400" />
-                                                                        <span>CPU</span>
+                                                return (
+                                                    <div className="w-[180px] space-y-2">
+                                                        {db.status === 'running' ? (
+                                                            <>
+                                                                {/* CPU */}
+                                                                <div>
+                                                                    <div className="flex items-center justify-between mb-1">
+                                                                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase">
+                                                                            <Cpu size={10} className="text-blue-400" />
+                                                                            <span>CPU</span>
+                                                                        </div>
+                                                                        <span className="text-[10px] font-mono font-bold text-slate-300">
+                                                                            {currentCpu}m <span className="text-slate-600">/ {cpuLimit}m</span>
+                                                                        </span>
                                                                     </div>
-                                                                    <span className="text-[10px] font-mono font-bold text-slate-300">
-                                                                        {currentCpu}m <span className="text-slate-600">/ {cpuLimit}m</span>
-                                                                    </span>
-                                                                </div>
-                                                                <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden border border-white/5">
-                                                                    <div className="bg-blue-500 h-full rounded-full relative transition-all duration-1000" style={{ width: `${cpuPercent}%` }}>
-                                                                        <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
+                                                                    <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden border border-white/5">
+                                                                        <div className="bg-blue-500 h-full rounded-full relative transition-all duration-1000" style={{ width: `${cpuPercent}%` }}>
+                                                                            <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
+                                                                        </div>
                                                                     </div>
                                                                 </div>
+
+                                                                {/* RAM */}
+                                                                <div>
+                                                                    <div className="flex items-center justify-between mb-1">
+                                                                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase">
+                                                                            <Activity size={10} className="text-purple-400" />
+                                                                            <span>MEM</span>
+                                                                        </div>
+                                                                        <span className="text-[10px] font-mono font-bold text-slate-300">
+                                                                            {currentMem}Mi <span className="text-slate-600">/ {memLimit}Mi</span>
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden border border-white/5">
+                                                                        <div className="bg-purple-500 h-full rounded-full relative transition-all duration-1000" style={{ width: `${memPercent}%` }}>
+                                                                            <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </>
+                                                        ) : (
+                                                            <div className="flex flex-col items-center justify-center bg-white/5 rounded-xl py-3 border border-white/5">
+                                                                <span className={`text-[10px] font-black uppercase tracking-widest ${db.status === 'stopped' ? 'text-slate-500' : 'text-amber-500'}`}>
+                                                                    {db.status === 'stopped' ? 'Instance Stopped' : 'Provisioning...'}
+                                                                </span>
+                                                                <span className="text-[8px] text-slate-600 font-bold uppercase mt-0.5 tracking-tighter">
+                                                                    {db.status === 'stopped' ? 'Metrics Unavailable' : 'Warming up resources'}
+                                                                </span>
                                                             </div>
-
-                                                            {/* RAM */}
-                                                            <div>
-                                                                <div className="flex items-center justify-between mb-1">
-                                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase">
-                                                                        <Activity size={10} className="text-purple-400" />
-                                                                        <span>MEM</span>
-                                                                    </div>
-                                                                    <span className="text-[10px] font-mono font-bold text-slate-300">
-                                                                        {currentMem}Mi <span className="text-slate-600">/ {memLimit}Mi</span>
-                                                                    </span>
-                                                                </div>
-                                                                <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden border border-white/5">
-                                                                    <div className="bg-purple-500 h-full rounded-full relative transition-all duration-1000" style={{ width: `${memPercent}%` }}>
-                                                                        <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </>
-                                                    ) : (
-                                                        <div className="flex flex-col items-center justify-center bg-white/5 rounded-xl py-3 border border-white/5">
-                                                            <span className={`text-[10px] font-black uppercase tracking-widest ${db.status === 'stopped' ? 'text-slate-500' : 'text-amber-500'}`}>
-                                                                {db.status === 'stopped' ? 'Instance Stopped' : 'Provisioning...'}
-                                                            </span>
-                                                            <span className="text-[8px] text-slate-600 font-bold uppercase mt-0.5 tracking-tighter">
-                                                                {db.status === 'stopped' ? 'Metrics Unavailable' : 'Warming up resources'}
-                                                            </span>
-                                                        </div>
-                                                    )}
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex flex-col bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20 w-fit">
+                                                <span className="text-[10px] text-emerald-500/70 font-bold uppercase tracking-wider mb-0.5">
+                                                    {db.plan_id.replace('db-', '').toUpperCase()}
+                                                </span>
+                                                <div className="text-[10px] text-emerald-400 font-black mb-0.5">
+                                                    ₹{(((db.status === 'running' ? (plan?.price_per_hour || 0) : 0) + (db.storage_hourly_rate || 0)) / 100).toFixed(2)}/hr
                                                 </div>
-                                            );
-                                        })()}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex flex-col bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20 w-fit">
-                                            <span className="text-[10px] text-emerald-500/70 font-bold uppercase tracking-wider mb-0.5">
-                                                {db.plan_id.replace('db-', '').toUpperCase()}
-                                            </span>
-                                            <div className="text-[10px] text-emerald-400 font-black mb-0.5">
-                                                ₹{(((db.status === 'running' ? (db.hourly_rate || 0) : 0) + (db.storage_hourly_rate || 0)) / 100).toFixed(2)}/hr
+                                                <div className="text-[7px] text-emerald-500/40 uppercase font-bold tracking-tighter mb-1 leading-none">
+                                                    {db.status === 'running'
+                                                        ? `Pod: ${((plan?.price_per_hour || 0) / 100).toFixed(2)} + Storage: ${(db.storage_hourly_rate / 100).toFixed(2)}`
+                                                        : `Storage Only: ${(db.storage_hourly_rate / 100).toFixed(2)}`
+                                                    }
+                                                </div>
+                                                <span className="text-xs text-emerald-500 font-bold uppercase tracking-wider">
+                                                    ₹{((db.total_charged || 0) / 100).toFixed(2)} <span className="text-[9px] font-normal opacity-70">paid</span>
+                                                </span>
                                             </div>
-                                            <div className="text-[7px] text-emerald-500/40 uppercase font-bold tracking-tighter mb-1 leading-none">
-                                                {db.status === 'running'
-                                                    ? `Pod: ${(db.hourly_rate / 100).toFixed(2)} + Storage: ${(db.storage_hourly_rate / 100).toFixed(2)}`
-                                                    : `Storage Only: ${(db.storage_hourly_rate / 100).toFixed(2)}`
-                                                }
-                                            </div>
-                                            <span className="text-xs text-emerald-500 font-bold uppercase tracking-wider">
-                                                ₹{((db.total_charged || 0) / 100).toFixed(2)} <span className="text-[9px] font-normal opacity-70">paid</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="text-xs text-slate-500 font-mono">
+                                                {getUptime(db.created_at)}
                                             </span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-xs text-slate-500 font-mono">
-                                            {getUptime(db.created_at)}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                                        <div className="flex items-center justify-end gap-3 translate-x-2 opacity-100 group-hover:opacity-100 transition-all">
-                                            <button
-                                                onClick={() => copyToClipboard(maskUrl(db.url), db.id)}
-                                                className="p-3 bg-white/5 hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-400 rounded-2xl transition-all border border-transparent hover:border-emerald-500/20"
-                                                title="Copy Masked Connection URL"
-                                            >
-                                                {copiedId === db.id ? <CheckCircle2 size={18} /> : <Copy size={18} />}
-                                            </button>
-
-                                            {db.status === 'stopped' ? (
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                                            <div className="flex items-center justify-end gap-3 translate-x-2 opacity-100 group-hover:opacity-100 transition-all">
                                                 <button
-                                                    onClick={() => handleAction(db.id, 'start')}
-                                                    disabled={actionLoading[db.id]}
-                                                    className="p-3 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-2xl transition-all border border-emerald-500/20"
-                                                    title="Start DB"
+                                                    onClick={() => copyToClipboard(maskUrl(db.url), db.id)}
+                                                    className="p-3 bg-white/5 hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-400 rounded-2xl transition-all border border-transparent hover:border-emerald-500/20"
+                                                    title="Copy Masked Connection URL"
                                                 >
-                                                    {actionLoading[db.id] ? <RefreshCw size={18} className="animate-spin" /> : <Power size={18} />}
+                                                    {copiedId === db.id ? <CheckCircle2 size={18} /> : <Copy size={18} />}
                                                 </button>
-                                            ) : (
-                                                <>
+
+                                                {db.status === 'stopped' ? (
                                                     <button
-                                                        onClick={() => downloadBackup(db)}
-                                                        disabled={db.status !== 'running'}
-                                                        className="p-3 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 rounded-2xl transition-all border border-blue-500/20 disabled:opacity-30 disabled:cursor-not-allowed"
-                                                        title="Download SQL Dump"
-                                                    >
-                                                        <CloudDownload size={18} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleAction(db.id, 'stop')}
-                                                        disabled={actionLoading[db.id] || db.status === 'provisioning'}
-                                                        className="p-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-2xl transition-all border border-amber-500/20 disabled:opacity-30"
-                                                        title="Stop DB (Preserves PVC)"
+                                                        onClick={() => handleAction(db.id, 'start')}
+                                                        disabled={actionLoading[db.id]}
+                                                        className="p-3 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-2xl transition-all border border-emerald-500/20"
+                                                        title="Start DB"
                                                     >
                                                         {actionLoading[db.id] ? <RefreshCw size={18} className="animate-spin" /> : <Power size={18} />}
                                                     </button>
-                                                </>
-                                            )}
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            onClick={() => downloadBackup(db)}
+                                                            disabled={db.status !== 'running'}
+                                                            className="p-3 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 rounded-2xl transition-all border border-blue-500/20 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                            title="Download SQL Dump"
+                                                        >
+                                                            <CloudDownload size={18} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleAction(db.id, 'stop')}
+                                                            disabled={actionLoading[db.id] || db.status === 'provisioning'}
+                                                            className="p-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-2xl transition-all border border-amber-500/20 disabled:opacity-30"
+                                                            title="Stop DB (Preserves PVC)"
+                                                        >
+                                                            {actionLoading[db.id] ? <RefreshCw size={18} className="animate-spin" /> : <Power size={18} />}
+                                                        </button>
+                                                    </>
+                                                )}
 
-                                            <button
-                                                onClick={() => setShowConfirmDestroy(db)}
-                                                disabled={actionLoading[db.id]}
-                                                className="p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-2xl transition-all border border-red-500/20"
-                                                title="Destroy Database (Permanent)"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                                                <button
+                                                    onClick={() => setShowConfirmDestroy(db)}
+                                                    disabled={actionLoading[db.id]}
+                                                    className="p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-2xl transition-all border border-red-500/20"
+                                                    title="Destroy Database (Permanent)"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
 
                             {databases.length === 0 && !loading && (
                                 <tr>
