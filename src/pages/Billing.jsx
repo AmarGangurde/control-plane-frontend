@@ -92,35 +92,37 @@ export default function Billing() {
         // Sync with server every 30s
         const interval = setInterval(fetchData, 30000);
 
-        const checkPayment = async (orderId) => {
-            setStatusMessage('Verifying payment...');
+        const checkPayment = async (orderId, silent = false) => {
+            if (!silent) setStatusMessage('Verifying payment...');
             try {
                 const res = await apiFetch('/billing/verify-return', {
                     method: 'POST',
                     body: JSON.stringify({ order_id: orderId })
                 });
 
-                if (res.status === 'success') {
+                if (res.status === 'success' || res.status === 'PAID') {
                     setShowSuccess(true);
                     setStatusMessage(null);
                     localStorage.removeItem('wrexer_pending_order_id');
                 } else if (res.status === 'cancelled') {
-                    setStatusMessage('Payment was cancelled.');
-                    setTimeout(() => setStatusMessage(null), 5000);
-                    localStorage.removeItem('wrexer_pending_order_id');
-                } else if (res.status === 'PAID') {
-                    setShowSuccess(true);
-                    setStatusMessage(null);
+                    if (!silent) {
+                        setStatusMessage('Payment was cancelled.');
+                        setTimeout(() => setStatusMessage(null), 5000);
+                    }
                     localStorage.removeItem('wrexer_pending_order_id');
                 } else {
-                    // Still pending, don't remove from localStorage yet if it was from localStorage
-                    setStatusMessage('Payment is pending or failed.');
-                    setTimeout(() => setStatusMessage(null), 5000);
+                    // Still pending
+                    if (!silent) {
+                        setStatusMessage('Payment is pending or failed.');
+                        setTimeout(() => setStatusMessage(null), 5000);
+                    }
                 }
                 fetchData();
             } catch (err) {
-                setStatusMessage('Could not verify payment status.');
-                setTimeout(() => setStatusMessage(null), 5000);
+                if (!silent) {
+                    setStatusMessage('Could not verify payment status.');
+                    setTimeout(() => setStatusMessage(null), 5000);
+                }
             }
         };
 
@@ -130,10 +132,10 @@ export default function Billing() {
         const savedOrderId = localStorage.getItem('wrexer_pending_order_id');
 
         if (orderIdFromUrl) {
-            checkPayment(orderIdFromUrl);
+            checkPayment(orderIdFromUrl); // Show message when returning from redirect
             window.history.replaceState({}, document.title, window.location.pathname);
         } else if (savedOrderId) {
-            checkPayment(savedOrderId);
+            checkPayment(savedOrderId, true); // Silent check when just visiting the page
         }
 
         return () => clearInterval(interval);
