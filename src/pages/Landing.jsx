@@ -203,7 +203,7 @@ export default function Landing() {
                                 </div>
                             )}
 
-                            {!isAuthenticated && (
+                            {false && !isAuthenticated && (
                                 <button
                                     onClick={() => window.location.href = `${API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`}/auth/github`}
                                     className="relative bg-white/[0.04] hover:bg-white/[0.06] border border-white/10 p-2 pl-6 pr-2 rounded-full backdrop-blur-md flex items-center gap-4 transition-all overflow-visible group"
@@ -580,7 +580,7 @@ export default function Landing() {
                             </p>
                             <div className="flex gap-6 mt-8">
                                 <SocialLink icon={<Github size={20} />} href="https://github.com/wrexer" />
-                                <SocialLink icon={<Twitter size={20} />} href="https://twitter.com/wrexer" />
+                                <SocialLink icon={<Twitter size={20} />} href="https://twitter.com/FounderWrexer" />
                                 <SocialLink icon={<Linkedin size={20} />} href="https://www.linkedin.com/company/wrexer" />
                                 <SocialLink icon={<Instagram size={20} />} href="https://www.instagram.com/wrexer.dev" />
                             </div>
