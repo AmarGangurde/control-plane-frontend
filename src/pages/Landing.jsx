@@ -203,12 +203,15 @@ export default function Landing() {
                                 </div>
                             )}
 
-                            {false && !isAuthenticated && (
+                            {!isAuthenticated && (
                                 <button
-                                    onClick={() => window.location.href = `${API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`}/auth/github`}
+                                    onClick={() => {
+                                        const API_BASE_URL = API_BASE ? (API_BASE.endsWith('/api') ? API_BASE : `${API_BASE}/api`) : '/api';
+                                        window.location.href = `${API_BASE_URL}/auth/github`;
+                                    }}
                                     className="relative bg-white/[0.04] hover:bg-white/[0.06] border border-white/10 p-2 pl-6 pr-2 rounded-full backdrop-blur-md flex items-center gap-4 transition-all overflow-visible group"
                                 >
-                                    <span className="text-white font-bold whitespace-nowrap hidden sm:block group-hover:text-blue-200 transition-colors">Start for Free</span>
+                                    <span className="text-white font-bold whitespace-nowrap hidden sm:block group-hover:text-blue-200 transition-colors">Alternative Login</span>
                                     <div className="bg-[#24292e] text-white rounded-full overflow-hidden flex items-center justify-center gap-2 px-6 h-[44px] transition-colors hover:bg-black w-full sm:w-auto" style={{ minWidth: '220px' }}>
                                         <Github size={20} className="fill-current" />
                                         <span className="font-medium text-sm">Sign in with Github</span>

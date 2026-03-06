@@ -47,6 +47,13 @@ export const api = {
     me: () => apiFetch('/auth/me'),
     createApiKey: () => apiFetch('/auth/api-key', { method: 'POST' }),
     getApiKeyStatus: () => apiFetch('/auth/api-key'),
+    // Docker Registry Token
+    updateDockerToken: (username, token) => apiFetch('/auth/docker-token', {
+      method: 'POST',
+      body: JSON.stringify({ username, token })
+    }),
+    getDockerTokenStatus: () => apiFetch('/auth/docker-token'),
+    deleteDockerToken: () => apiFetch('/auth/docker-token', { method: 'DELETE' }),
   },
   apps: {
     list: () => apiFetch('/apps'),

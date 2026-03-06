@@ -9,8 +9,155 @@ import PInfo from './pages/PInfo';
 import RInfo from './pages/RInfo';
 import ContactUs from './pages/ContactUs';
 import { useState, useRef, useEffect } from 'react';
-import { Settings, Key, LogOut, Copy, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Settings, Key, LogOut, Copy, CheckCircle2, AlertCircle, Container, Trash2 } from 'lucide-react';
 import { api } from './api/client';
+
+const DockerRegistrySection = () => {
+  const [status, setStatus] = useState(null); // { hasToken, username }
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [username, setUsername] = useState('');
+  const [token, setToken] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchStatus();
+  }, []);
+
+  const fetchStatus = async () => {
+    try {
+      const data = await api.auth.getDockerTokenStatus();
+      setStatus(data);
+      if (data.username) setUsername(data.username);
+    } catch (e) {
+      console.error('Failed to fetch docker status', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+    try {
+      await api.auth.updateDockerToken(username, token);
+      await fetchStatus();
+      setShowForm(false);
+      setToken('');
+    } catch (e) {
+      setError(e.message || 'Failed to save credentials');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to remove your Docker credentials?')) return;
+    try {
+      await api.auth.deleteDockerToken();
+      await fetchStatus();
+      setUsername('');
+      setToken('');
+    } catch (e) {
+      setError('Failed to remove credentials');
+    }
+  };
+
+  if (loading) return null;
+
+  return (
+    <div className="px-5 py-4 border-b border-white/5">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Container size={14} className="text-purple-400" />
+          <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">Docker Registry</span>
+        </div>
+        {status?.hasToken && !showForm && (
+          <button
+            onClick={handleDelete}
+            className="p-1 text-slate-500 hover:text-red-400 transition-colors"
+            title="Remove Credentials"
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
+      </div>
+
+      {showForm ? (
+        <form onSubmit={handleSave} className="space-y-3">
+          <input
+            type="text"
+            placeholder="Docker Hub Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-purple-500/50 transition-all"
+            required
+          />
+          <input
+            type="password"
+            placeholder="Access Token / Password"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-purple-500/50 transition-all"
+            required
+          />
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-3 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Save Credentials'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="px-3 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:bg-white/5 transition-all"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : status?.hasToken ? (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between bg-white/5 rounded-xl px-3 py-2.5 border border-white/5">
+            <div className="flex flex-col">
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">Username</span>
+              <span className="text-xs text-slate-300 font-medium">{status.username}</span>
+            </div>
+            <span className="text-[10px] text-purple-400 font-bold uppercase tracking-wider">Active</span>
+          </div>
+          <button
+            onClick={() => setShowForm(true)}
+            className="w-full bg-white/5 text-white hover:bg-white/10 px-3 py-2.5 rounded-xl text-xs font-bold transition-all border border-white/10"
+          >
+            Update Credentials
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-xs text-slate-500 font-medium">Add your Docker Hub token to launch private repository images.</p>
+          <button
+            onClick={() => setShowForm(true)}
+            className="w-full bg-purple-600/10 text-purple-400 hover:bg-purple-600/20 px-3 py-2.5 rounded-xl text-xs font-bold transition-all border border-purple-500/20 flex items-center justify-center gap-2"
+          >
+            <Container size={14} />
+            Add Docker Token
+          </button>
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-3 flex items-center gap-2 text-red-400 text-xs bg-red-400/10 px-3 py-2 rounded-xl border border-red-400/10">
+          <AlertCircle size={12} />
+          {error}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const SettingsMenu = () => {
   const { logout, user } = useAuth();
@@ -157,6 +304,9 @@ const SettingsMenu = () => {
               </div>
             )}
           </div>
+
+          {/* Docker Registry Section */}
+          <DockerRegistrySection />
 
           {/* Logout */}
           <button
