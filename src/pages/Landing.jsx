@@ -23,7 +23,8 @@ import {
     ShieldCheck,
     Infinity,
     Play,
-    Instagram
+    Instagram,
+    Network
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -686,6 +687,10 @@ function PlanCard({ name, price, monthly, cpu, ram, storage, bestFor, isMain, ty
                         {storage} NVMe Storage
                     </li>
                 )}
+                <li className={`flex items-center gap-3 text-sm font-medium ${comingSoon ? 'text-slate-600' : 'text-slate-300'}`}>
+                    <Network size={16} className={comingSoon ? 'text-purple-500/40' : type === 'database' ? 'text-emerald-400' : 'text-blue-400'} />
+                    1Gbps Shared Port
+                </li>
                 <li className={`flex items-center gap-3 text-sm font-medium ${comingSoon ? 'text-slate-600' : 'text-slate-300'}`}>
                     {comingSoon
                         ? <Shield size={16} className="text-purple-500/40" />
