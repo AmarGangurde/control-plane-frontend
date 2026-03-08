@@ -8,6 +8,7 @@ import TInfo from './pages/TInfo';
 import PInfo from './pages/PInfo';
 import RInfo from './pages/RInfo';
 import ContactUs from './pages/ContactUs';
+import Support from './pages/Support';
 import { useState, useRef, useEffect } from 'react';
 import { Settings, Key, LogOut, Copy, CheckCircle2, AlertCircle, Container, Trash2 } from 'lucide-react';
 import { api } from './api/client';
@@ -356,6 +357,12 @@ const Layout = ({ children }) => {
               >
                 Billing
               </NavLink>
+              <NavLink
+                to="/dashboard/support"
+                className={({ isActive }) => `px-4 py-2 rounded-xl text-sm font-semibold transition-all ${isActive ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+              >
+                Support
+              </NavLink>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -435,6 +442,12 @@ export default function App() {
           <Route path="/billing" element={
             <ProtectedRoute>
               <Billing />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/dashboard/support" element={
+            <ProtectedRoute>
+              <Support />
             </ProtectedRoute>
           } />
 

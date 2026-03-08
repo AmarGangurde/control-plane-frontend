@@ -1,25 +1,33 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, MessageSquare, User, Send, ArrowLeft, Globe, Zap } from 'lucide-react';
+import { Mail, MessageSquare, User, Send, ArrowLeft, Globe, Zap, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { api } from '../api/client';
 
 export default function ContactUs() {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
+        subject: '',
         message: ''
     });
+    const [submitting, setSubmitting] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+    const [error, setError] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const { name, email, message } = formData;
-        const subject = encodeURIComponent(`Contact from Wrexer Website - ${name}`);
-        const body = encodeURIComponent(
-            `Name: ${name}\n` +
-            `Email: ${email}\n\n` +
-            `Message:\n${message}`
-        );
-        window.location.href = `mailto:founder.wrexer@gmail.com?subject=${subject}&body=${body}`;
+        setSubmitting(true);
+        setError('');
+        try {
+            await api.support.createContact(formData);
+            setSubmitted(true);
+            setFormData({ name: '', email: '', subject: '', message: '' });
+        } catch (err) {
+            setError(err.message || 'Failed to send message');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const handleChange = (e) => {
@@ -106,73 +114,113 @@ export default function ContactUs() {
                         </div>
                     </motion.div>
 
-                    {/* Right Side: Form */}
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         className="bg-white/[0.02] border border-white/10 rounded-[2.5rem] p-8 md:p-10 backdrop-blur-sm shadow-2xl shadow-black/50"
                     >
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Full Name</label>
-                                <div className="relative">
-                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                                    <input
-                                        required
-                                        type="text"
-                                        name="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        placeholder="John Doe"
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium"
-                                    />
+                        {submitted ? (
+                            <div className="text-center py-12 space-y-6">
+                                <div className="inline-flex items-center justify-center p-4 bg-green-500/10 border border-green-500/20 rounded-full text-green-400 mb-4">
+                                    <CheckCircle size={48} />
                                 </div>
+                                <h2 className="text-3xl font-black text-white">Message Sent!</h2>
+                                <p className="text-slate-400 font-medium">
+                                    Thank you for reaching out. We've received your message and will get back to you shortly.
+                                </p>
+                                <button
+                                    onClick={() => setSubmitted(false)}
+                                    className="px-8 py-3 bg-white/5 border border-white/10 rounded-2xl text-white font-bold hover:bg-white/10 transition-all"
+                                >
+                                    Send another message
+                                </button>
                             </div>
-
-                            <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Email Address</label>
-                                <div className="relative">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                                    <input
-                                        required
-                                        type="email"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        placeholder="john@example.com"
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium"
-                                    />
+                        ) : (
+                            <form onSubmit={handleSubmit} className="space-y-6">
+                                {error && (
+                                    <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-sm font-bold animate-shake">
+                                        {error}
+                                    </div>
+                                )}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Full Name</label>
+                                    <div className="relative">
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                                        <input
+                                            required
+                                            type="text"
+                                            name="name"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            placeholder="John Doe"
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Your Message</label>
-                                <div className="relative">
-                                    <MessageSquare className="absolute left-4 top-4 text-slate-500" size={18} />
-                                    <textarea
-                                        required
-                                        name="message"
-                                        value={formData.message}
-                                        onChange={handleChange}
-                                        rows="5"
-                                        placeholder="How can we help you?"
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium resize-none"
-                                    ></textarea>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Email Address</label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                                        <input
+                                            required
+                                            type="email"
+                                            name="email"
+                                            value={formData.email}
+                                            onChange={handleChange}
+                                            placeholder="john@example.com"
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
 
-                            <button
-                                type="submit"
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-2xl font-bold text-lg shadow-xl shadow-blue-500/20 transition-all flex items-center justify-center gap-3 group"
-                            >
-                                <Send size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                                Send Message
-                            </button>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Subject</label>
+                                    <div className="relative">
+                                        <Zap className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                                        <input
+                                            type="text"
+                                            name="subject"
+                                            value={formData.subject}
+                                            onChange={handleChange}
+                                            placeholder="Sales Inquiry"
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium"
+                                        />
+                                    </div>
+                                </div>
 
-                            <p className="text-center text-slate-500 text-[10px] font-medium uppercase tracking-widest">
-                                Opens your default email client
-                            </p>
-                        </form>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Your Message</label>
+                                    <div className="relative">
+                                        <MessageSquare className="absolute left-4 top-4 text-slate-500" size={18} />
+                                        <textarea
+                                            required
+                                            name="message"
+                                            value={formData.message}
+                                            onChange={handleChange}
+                                            rows="5"
+                                            placeholder="How can we help you?"
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium resize-none"
+                                        ></textarea>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={submitting}
+                                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white py-5 rounded-2xl font-bold text-lg shadow-xl shadow-blue-500/20 transition-all flex items-center justify-center gap-3 group"
+                                >
+                                    {submitting ? (
+                                        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    ) : (
+                                        <>
+                                            <Send size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                                            Send Message
+                                        </>
+                                    )}
+                                </button>
+                            </form>
+                        )}
                     </motion.div>
                 </div>
             </div>

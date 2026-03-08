@@ -127,7 +127,7 @@ export default function Landing() {
                     <nav className="hidden md:flex gap-10 text-sm font-medium text-slate-400">
                         <a href="#features" className="hover:text-white transition-all hover:scale-105">Features</a>
                         <a href="#plans" className="hover:text-white transition-all hover:scale-105">Pricing</a>
-                        <a href="#about" className="hover:text-white transition-all hover:scale-105">Infrastructure</a>
+                        <a href="https://github.com/wrexer" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-all hover:scale-105">Docs</a>
                     </nav>
 
                     <div className="flex items-center gap-4">

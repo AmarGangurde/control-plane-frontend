@@ -87,5 +87,35 @@ export const api = {
     stop: (id) => apiFetch(`/databases/${id}/stop`, { method: 'POST' }),
     start: (id) => apiFetch(`/databases/${id}/start`, { method: 'POST' }),
     destroy: (id) => apiFetch(`/databases/${id}`, { method: 'DELETE' })
+  },
+  support: {
+    createContact: (data) => apiFetch('/contact', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+    listTickets: () => apiFetch('/tickets'),
+    createTicket: (data) => apiFetch('/tickets', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+    getTicketMessages: (id) => apiFetch(`/tickets/${id}/messages`),
+    replyTicket: (id, message) => apiFetch(`/tickets/${id}/message`, {
+      method: 'POST',
+      body: JSON.stringify({ message })
+    }),
+    // Admin Support
+    adminListContacts: () => apiFetch('/admin/contacts', { admin: true }),
+    adminUpdateContactStatus: (id, status) => apiFetch(`/admin/contacts/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+      admin: true
+    }),
+    adminListTickets: () => apiFetch('/admin/tickets', { admin: true }),
+    adminGetTicket: (id) => apiFetch(`/admin/tickets/${id}`, { admin: true }),
+    adminReplyTicket: (id, message) => apiFetch(`/admin/tickets/${id}/message`, {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+      admin: true
+    })
   }
 };
