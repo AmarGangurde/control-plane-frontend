@@ -1,0 +1,30 @@
+# Wrexer
+
+> High-performance application hosting on bare metal Kubernetes. Deploy apps & PostgreSQL in seconds without cloud complexity. A faster, more affordable alternative to Vercel, Railway, and Render.
+
+## Key Links
+
+- [Homepage](https://wrexer.com): Explore our platform's features and core offerings.
+- [Documentation](https://github.com/wrexer): Detailed technical guides, API references, and open-source resources.
+- [Pricing](https://wrexer.com/#plans): Transparent, pay-per-hour billing starting at ₹149/month.
+- [Contact Us](https://wrexer.com/contact): Get support directly from the founder.
+
+## Core Features
+
+- **Instant App Deployment**: Deploy Node.js, Python, or Go apps in seconds with optimized container orchestration.
+- **Managed PostgreSQL**: Production-grade PostgreSQL 16 instances with one-click provisioning and high availability.
+- **Persistent Storage**: NVMe-backed Persistent Volume Claims (PVC) ensure your data survives crashes and restarts.
+- **Private Networking**: Secure internal Kubernetes DNS for database connectivity; databases are not exposed to the public internet.
+- **VM-Level Isolation**: (Coming Soon) Hardware-virtualized isolation using Kata Containers for security-critical workloads.
+- **Transparent Billing**: Low-cost, pay-as-you-go pricing with no hidden fees. significantly cheaper than traditional cloud providers.
+
+## Deployment Options
+
+- **Tiny**: Free (100m CPU, 128Mi RAM) - Perfect for hobbies and testing.
+- **Medium**: ₹549/mo (1 vCPU, 1Gi RAM) - Ideal for dynamic web apps.
+- **Database Small**: ₹449/mo (500m CPU, 1Gi RAM, 5Gi SSD) - Managed PostgreSQL for growing apps.
+
+## Optional Resources
+
+- [Robots.txt](https://wrexer.com/robots.txt): Our standard web crawler instructions.
+- [Sitemap](https://wrexer.com/sitemap.xml): Complete map of our site structure.

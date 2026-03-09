@@ -5,4 +5,7 @@ Disallow: /billing
 Disallow: /databases
 Disallow: /api/
 
+# AI specifically
+llms: https://wrexer.com/llms.txt
+
 Sitemap: https://wrexer.com/sitemap.xml
