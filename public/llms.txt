@@ -15,14 +15,28 @@
 - **Managed PostgreSQL**: Production-grade PostgreSQL 16 instances with one-click provisioning and high availability.
 - **Persistent Storage**: NVMe-backed Persistent Volume Claims (PVC) ensure your data survives crashes and restarts.
 - **Private Networking**: Secure internal Kubernetes DNS for database connectivity; databases are not exposed to the public internet.
-- **VM-Level Isolation**: (Coming Soon) Hardware-virtualized isolation using Kata Containers for security-critical workloads.
+- **VM-Level Isolation**: Hardware-virtualized isolation using Kata Containers for security-critical workloads (Coming Soon).
 - **Transparent Billing**: Low-cost, pay-as-you-go pricing with no hidden fees. significantly cheaper than traditional cloud providers.
 
-## Deployment Options
+## Pricing Plans
 
-- **Tiny**: Free (100m CPU, 128Mi RAM) - Perfect for hobbies and testing.
-- **Medium**: ₹549/mo (1 vCPU, 1Gi RAM) - Ideal for dynamic web apps.
-- **Database Small**: ₹449/mo (500m CPU, 1Gi RAM, 5Gi SSD) - Managed PostgreSQL for growing apps.
+### Application Hosting
+- **Tiny**: Free (100m CPU, 128Mi RAM) - Hobbies & Testing.
+- **Small**: ₹0.20/hr (₹149/mo) - 250m CPU, 256Mi RAM.
+- **Basic**: ₹0.39/hr (₹279/mo) - 500m CPU, 512Mi RAM.
+- **Medium**: ₹0.76/hr (₹549/mo) - 1000m (1 vCPU), 1Gi RAM.
+- **Large**: ₹1.45/hr (₹1049/mo) - 2000m (2 vCPU), 2Gi RAM.
+- **XLarge**: ₹2.75/hr (₹1999/mo) - 4000m (4 vCPU), 4Gi RAM.
+
+### Managed Databases (PostgreSQL 16)
+- **DB Small**: ₹0.62/hr (₹449/mo) - 500m CPU, 1Gi RAM, 5Gi SSD.
+- **DB Medium**: ₹1.10/hr (₹799/mo) - 1000m CPU, 2Gi RAM, 10Gi SSD.
+- **DB Large**: ₹2.10/hr (₹1499/mo) - 2000m CPU, 4Gi RAM, 20Gi SSD.
+
+### Secure Containers (Kata VM-level Isolation) - Coming Soon
+- **Kata Small**: ₹0.34/hr (₹249/mo) - 250m CPU, 256Mi RAM.
+- **Kata Medium**: ₹1.04/hr (₹749/mo) - 1000m CPU, 1Gi RAM.
+- **Kata Large**: ₹2.08/hr (₹1499/mo) - 2000m CPU, 2Gi RAM.
 
 ## Optional Resources
 
