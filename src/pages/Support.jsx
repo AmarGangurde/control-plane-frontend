@@ -1,18 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import {
     MessageSquare,
     Plus,
     Send,
     History,
-    ChevronRight,
-    AlertCircle,
-    CheckCircle2,
-    Clock,
-    User,
     ShieldCheck
 } from 'lucide-react';
 import { api } from '../api/client';
+import { socket } from '../api/socket';
 import { useAuth } from '../context/AuthContext';
 
 const TicketStatus = ({ status }) => {
@@ -39,6 +35,54 @@ export default function Support() {
     const [newTicket, setNewTicket] = useState({ subject: '', message: '' });
     const [reply, setReply] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const messagesEndRef = useRef(null);
+    const currentTicketIdRef = useRef(null);
+
+    // Auto-scroll to newest message
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    // Connect socket when user is available
+    useEffect(() => {
+        if (!user) return;
+        if (!socket.connected) socket.connect();
+        return () => {
+            // Don't disconnect on unmount — socket stays alive across navigations
+        };
+    }, [user]);
+
+    // Listen for real-time events
+    useEffect(() => {
+        const onNewMessage = (msg) => {
+            // Only append if it's for the currently open ticket
+            if (currentTicketIdRef.current !== msg.ticket_id) return;
+            setMessages(prev => {
+                // Deduplicate (in case we already added it optimistically)
+                if (prev.some(m => m.id === msg.id)) return prev;
+                return [...prev, msg];
+            });
+        };
+
+        const onTicketStatus = ({ ticketId, status }) => {
+            // Update the selected ticket status live
+            setSelectedTicket(prev =>
+                prev && prev.id === ticketId ? { ...prev, status } : prev
+            );
+            // Also update the sidebar list
+            setTickets(prev =>
+                prev.map(t => t.id === ticketId ? { ...t, status } : t)
+            );
+        };
+
+        socket.on('new_message', onNewMessage);
+        socket.on('ticket_status', onTicketStatus);
+
+        return () => {
+            socket.off('new_message', onNewMessage);
+            socket.off('ticket_status', onTicketStatus);
+        };
+    }, []);
 
     useEffect(() => {
         fetchTickets();
@@ -56,8 +100,18 @@ export default function Support() {
     };
 
     const handleSelectTicket = async (ticket) => {
+        // Leave previous ticket room
+        if (currentTicketIdRef.current) {
+            socket.emit('leave_ticket', currentTicketIdRef.current);
+        }
+
         setSelectedTicket(ticket);
+        currentTicketIdRef.current = ticket.id;
         setLoadingMessages(true);
+
+        // Join new ticket room for live updates
+        socket.emit('join_ticket', ticket.id);
+
         try {
             const data = await api.support.getTicketMessages(ticket.id);
             setMessages(data);
@@ -86,11 +140,12 @@ export default function Support() {
 
     const handleSendReply = async (e) => {
         e.preventDefault();
-        if (!reply.trim()) return;
+        if (!reply.trim() || selectedTicket?.status === 'closed') return;
         setSubmitting(true);
         try {
             const newMessage = await api.support.replyTicket(selectedTicket.id, reply);
-            setMessages([...messages, newMessage]);
+            // Optimistically add our own message (socket will also fire but dedupe handles it)
+            setMessages(prev => prev.some(m => m.id === newMessage.id) ? prev : [...prev, newMessage]);
             setReply('');
         } catch (err) {
             alert(err.message);
@@ -122,7 +177,6 @@ export default function Support() {
             </header>
 
             <div className="grid lg:grid-cols-12 gap-8">
-                {/* Left: Ticket List / Create Form */}
                 <div className="lg:col-span-12">
                     {showCreate ? (
                         <motion.div
@@ -180,8 +234,8 @@ export default function Support() {
                                                 key={ticket.id}
                                                 onClick={() => handleSelectTicket(ticket)}
                                                 className={`w-full text-left p-5 rounded-3xl border transition-all group ${selectedTicket?.id === ticket.id
-                                                        ? 'bg-blue-600/10 border-blue-500/40'
-                                                        : 'bg-white/[0.02] border-white/5 hover:border-white/20'
+                                                    ? 'bg-blue-600/10 border-blue-500/40'
+                                                    : 'bg-white/[0.02] border-white/5 hover:border-white/20'
                                                     }`}
                                             >
                                                 <div className="flex items-center justify-between mb-2">
@@ -215,12 +269,9 @@ export default function Support() {
                                                     <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                                                 </div>
                                             ) : (
-                                                messages.map((msg, i) => (
-                                                    <div
-                                                        key={msg.id}
-                                                        className={`flex ${msg.sender_type === 'user' ? 'justify-end' : 'justify-start'}`}
-                                                    >
-                                                        <div className={`max-w-[80%] space-y-2`}>
+                                                messages.map((msg) => (
+                                                    <div key={msg.id} className={`flex ${msg.sender_type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                                        <div className="max-w-[80%] space-y-2">
                                                             <div className={`flex items-center gap-2 mb-1 ${msg.sender_type === 'user' ? 'justify-end' : 'justify-start'}`}>
                                                                 {msg.sender_type === 'admin' && <ShieldCheck size={14} className="text-purple-400" />}
                                                                 <span className={`text-[10px] font-black uppercase tracking-widest ${msg.sender_type === 'user' ? 'text-blue-400' : 'text-purple-400'}`}>
@@ -228,8 +279,8 @@ export default function Support() {
                                                                 </span>
                                                             </div>
                                                             <div className={`p-4 rounded-3xl text-sm font-medium leading-relaxed ${msg.sender_type === 'user'
-                                                                    ? 'bg-blue-600 text-white rounded-tr-none'
-                                                                    : 'bg-white/5 text-slate-200 border border-white/10 rounded-tl-none'
+                                                                ? 'bg-blue-600 text-white rounded-tr-none'
+                                                                : 'bg-white/5 text-slate-200 border border-white/10 rounded-tl-none'
                                                                 }`}>
                                                                 {msg.message}
                                                             </div>
@@ -240,9 +291,14 @@ export default function Support() {
                                                     </div>
                                                 ))
                                             )}
+                                            <div ref={messagesEndRef} />
                                         </div>
 
-                                        {selectedTicket.status !== 'closed' && (
+                                        {selectedTicket.status === 'closed' ? (
+                                            <div className="p-4 bg-slate-800/50 border-t border-white/10 flex items-center justify-center gap-2 text-sm font-medium text-slate-500">
+                                                <span>🔒</span> This ticket has been closed by support.
+                                            </div>
+                                        ) : (
                                             <div className="p-6 bg-white/[0.02] border-t border-white/10">
                                                 <form onSubmit={handleSendReply} className="relative">
                                                     <input
