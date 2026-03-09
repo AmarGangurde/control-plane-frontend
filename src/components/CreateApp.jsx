@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api/client';
-import { Plus, Trash2, Settings2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Settings2, ChevronDown, ChevronUp, Link, CheckCircle, XCircle, Loader } from 'lucide-react';
 
 export default function CreateApp() {
   const [name, setName] = useState('');
@@ -18,6 +18,10 @@ export default function CreateApp() {
   const [args, setArgs] = useState(['']);
   const [replicas, setReplicas] = useState(1);
 
+  // Alias state
+  const [aliasSlug, setAliasSlug] = useState('');
+  const [aliasStatus, setAliasStatus] = useState(null); // null | {checking} | {available, reason?}
+
   useEffect(() => {
     // fetch plans — regular first, then coming_soon (Kata) at the end
     api.billing.plans().then(data => {
@@ -28,6 +32,22 @@ export default function CreateApp() {
       setPlans([...regular, ...comingSoon]);
     }).catch(console.error);
   }, []);
+
+  // Debounced alias availability check
+  useEffect(() => {
+    const slug = aliasSlug.trim();
+    if (!slug || slug.length < 3) { setAliasStatus(null); return; }
+    setAliasStatus({ checking: true });
+    const timer = setTimeout(async () => {
+      try {
+        const res = await api.apps.checkAlias(slug);
+        setAliasStatus(res); // { available: bool, reason?: string }
+      } catch {
+        setAliasStatus({ available: false, reason: 'Could not check availability.' });
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [aliasSlug]);
 
   const addEnvVar = () => setEnvVars([...envVars, { name: '', value: '' }]);
   const removeEnvVar = (index) => setEnvVars(envVars.filter((_, i) => i !== index));
@@ -93,10 +113,14 @@ export default function CreateApp() {
         env: filteredEnv.length > 0 ? filteredEnv : undefined,
         command: parsedCommand,
         args: filteredArgs.length > 0 ? filteredArgs : undefined,
-        replicas: parseInt(replicas, 10)
+        replicas: parseInt(replicas, 10),
+        alias: aliasSlug.trim() || undefined,
       });
 
-      setCreateMsg({ type: 'success', text: `Deployed: ${res.url}` });
+      const msg = res.aliasWarning
+        ? `Deployed: ${res.url} — ⚠️ ${res.aliasWarning}`
+        : `Deployed: ${res.url}${aliasSlug.trim() ? ` · alias: ${aliasSlug.trim()}.wrexer.com` : ''}`;
+      setCreateMsg({ type: 'success', text: msg });
       window.dispatchEvent(new Event('apps:reload'));
 
       // Reset form
@@ -106,6 +130,8 @@ export default function CreateApp() {
       setEnvVars([{ name: '', value: '' }]);
       setCommand('');
       setArgs(['']);
+      setAliasSlug('');
+      setAliasStatus(null);
       setShowAdvanced(false);
     } catch (e) {
       setCreateMsg({ type: 'error', text: e.message });
@@ -292,6 +318,41 @@ export default function CreateApp() {
                   })}
                 </div>
               </div>
+            </div>
+
+            {/* Custom Alias */}
+            <div className="p-6 bg-black/20 rounded-2xl border border-white/5">
+              <div className="flex items-center gap-2 mb-1.5">
+                <Link size={13} className="text-violet-400" />
+                <label className="text-[11px] font-bold text-violet-400 uppercase tracking-wider">Custom Alias (Optional)</label>
+              </div>
+              <p className="text-[10px] text-slate-500 mb-3 uppercase">Claim a friendly URL at launch — you can also set this later</p>
+              <div className="flex items-stretch gap-2">
+                <div className="flex items-center flex-1 bg-white/5 border border-white/10 rounded-xl overflow-hidden focus-within:border-violet-500/50 transition-all">
+                  <input
+                    className="flex-1 bg-transparent p-3 text-white text-sm font-mono focus:outline-none placeholder:text-slate-600"
+                    placeholder="my-app"
+                    value={aliasSlug}
+                    onChange={e => setAliasSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                  />
+                  <span className="px-3 text-slate-500 text-sm font-mono shrink-0">.wrexer.com</span>
+                </div>
+                <div className="flex items-center justify-center w-10">
+                  {aliasStatus?.checking && <Loader size={16} className="text-slate-500 animate-spin" />}
+                  {!aliasStatus?.checking && aliasStatus?.available === true && <CheckCircle size={16} className="text-emerald-400" />}
+                  {!aliasStatus?.checking && aliasStatus?.available === false && <XCircle size={16} className="text-red-400" />}
+                </div>
+              </div>
+              {/* Status message */}
+              {aliasStatus && !aliasStatus.checking && (
+                <p className={`text-[10px] mt-1.5 font-semibold px-1 ${aliasStatus.available ? 'text-emerald-400' : 'text-red-400'
+                  }`}>
+                  {aliasStatus.available ? '✓ Available' : `✗ ${aliasStatus.reason || 'Already taken'}`}
+                </p>
+              )}
+              {!aliasStatus && aliasSlug.length > 0 && aliasSlug.length < 3 && (
+                <p className="text-[10px] mt-1.5 text-slate-600 px-1">Keep typing…</p>
+              )}
             </div>
           </div>
         )}

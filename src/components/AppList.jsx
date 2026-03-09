@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { api } from '../api/client';
-import { Terminal, X, RefreshCw, Cpu, Activity, Pencil, Plus, Trash2, RotateCw, ExternalLink, Box, AlertCircle } from 'lucide-react';
+import { Terminal, X, RefreshCw, Cpu, Activity, Pencil, Plus, Trash2, RotateCw, ExternalLink, Box, AlertCircle, Link, CheckCircle, XCircle } from 'lucide-react';
 
 export default function AppList() {
   const [apps, setApps] = useState([]);
@@ -117,7 +117,11 @@ export default function AppList() {
       command: cmdStr,
       args: argsArray,
       loading: false,
-      msg: null
+      msg: null,
+      // Alias state
+      aliasSlug: '',
+      aliasSaving: false,
+      aliasMsg: null,
     });
   };
 
@@ -220,6 +224,54 @@ export default function AppList() {
         loading: false,
         msg: { type: 'error', text: e.message }
       }));
+    }
+  };
+
+  const ALIAS_BLOCKLIST = new Set([
+    'www', 'api', 'admin', 'mail', 'dashboard', 'billing', 'app',
+    'wrexer', 'support', 'dev', 'staging', 'ns', 'ftp', 'smtp',
+    'cdn', 'static', 'assets', 'auth', 'login', 'signup', 'register',
+  ]);
+  const ALIAS_REGEX = /^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$/;
+
+  const validateSlug = (slug) => {
+    if (!slug) return null;
+    if (!ALIAS_REGEX.test(slug)) return 'Use 3–30 lowercase letters, numbers, hyphens. Must start and end with a letter or number.';
+    if (ALIAS_BLOCKLIST.has(slug)) return `"${slug}" is a reserved name.`;
+    return null;
+  };
+
+  const submitSetAlias = async () => {
+    const slug = editView.aliasSlug.toLowerCase().trim();
+    const err = validateSlug(slug);
+    if (err) { setEditView(prev => ({ ...prev, aliasMsg: { type: 'error', text: err } })); return; }
+    setEditView(prev => ({ ...prev, aliasSaving: true, aliasMsg: null }));
+    try {
+      const res = await api.apps.setAlias(editView.app.id, slug);
+      setEditView(prev => ({
+        ...prev,
+        aliasSaving: false,
+        aliasSlug: '',
+        aliasMsg: { type: 'success', text: `Alias set! Your app is now live at ${res.aliasUrl}` },
+        app: { ...prev.app, alias: slug }
+      }));
+    } catch (e) {
+      setEditView(prev => ({ ...prev, aliasSaving: false, aliasMsg: { type: 'error', text: e.message } }));
+    }
+  };
+
+  const submitRemoveAlias = async () => {
+    setEditView(prev => ({ ...prev, aliasSaving: true, aliasMsg: null }));
+    try {
+      await api.apps.removeAlias(editView.app.id);
+      setEditView(prev => ({
+        ...prev,
+        aliasSaving: false,
+        aliasMsg: { type: 'success', text: 'Alias removed. Original URL is still active.' },
+        app: { ...prev.app, alias: null }
+      }));
+    } catch (e) {
+      setEditView(prev => ({ ...prev, aliasSaving: false, aliasMsg: { type: 'error', text: e.message } }));
     }
   };
 
@@ -326,6 +378,12 @@ export default function AppList() {
                               {app.url.replace('https://', '')}
                               <ExternalLink size={8} />
                             </a>
+                            {app.alias && (
+                              <a href={`https://${app.alias}.wrexer.com`} target="_blank" className="text-[10px] text-violet-400 hover:text-violet-300 hover:underline cursor-pointer truncate max-w-[150px] flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                                {app.alias}.wrexer.com
+                                <Link size={8} />
+                              </a>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -656,6 +714,75 @@ export default function AppList() {
                   <span className="text-blue-400 font-bold">Zero-downtime update:</span> Your current pod stays live while the new version starts. Traffic switches only after the new pod is healthy.
                 </p>
               </div>
+
+              {/* Alias Section — only for apps */}
+              {editView.app.type === 'app' && (
+                <div className="p-4 bg-black/20 rounded-2xl border border-white/5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Link size={14} className="text-violet-400" />
+                    <label className="text-[11px] font-bold text-violet-400 uppercase tracking-wider">Custom Alias</label>
+                  </div>
+
+                  {/* Current alias display */}
+                  {editView.app.alias ? (
+                    <div className="flex items-center justify-between bg-violet-500/10 border border-violet-500/20 rounded-xl px-4 py-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <CheckCircle size={14} className="text-violet-400 shrink-0" />
+                        <span className="text-sm font-mono font-bold text-violet-300 truncate">
+                          {editView.app.alias}.wrexer.com
+                        </span>
+                      </div>
+                      <button
+                        onClick={submitRemoveAlias}
+                        disabled={editView.aliasSaving}
+                        className="ml-3 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 text-[10px] font-bold uppercase tracking-wider transition-all shrink-0 disabled:opacity-50"
+                      >
+                        {editView.aliasSaving ? <RefreshCw size={10} className="animate-spin" /> : 'Remove'}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex items-stretch gap-2">
+                        <div className="flex items-center flex-1 bg-white/5 border border-white/10 rounded-xl overflow-hidden focus-within:border-violet-500/50 transition-all">
+                          <input
+                            className="flex-1 bg-transparent p-3 text-white text-sm font-mono focus:outline-none placeholder:text-slate-600"
+                            placeholder="my-app"
+                            value={editView.aliasSlug}
+                            onChange={e => setEditView(prev => ({ ...prev, aliasSlug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
+                            onKeyDown={e => e.key === 'Enter' && submitSetAlias()}
+                          />
+                          <span className="px-3 text-slate-500 text-sm font-mono shrink-0">.wrexer.com</span>
+                        </div>
+                        <button
+                          onClick={submitSetAlias}
+                          disabled={editView.aliasSaving || !editView.aliasSlug}
+                          className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-[11px] font-black uppercase tracking-widest transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                        >
+                          {editView.aliasSaving ? <RefreshCw size={12} className="animate-spin" /> : 'Set'}
+                        </button>
+                      </div>
+                      {/* Inline validation hint */}
+                      {editView.aliasSlug && validateSlug(editView.aliasSlug) && (
+                        <p className="text-[10px] text-amber-400 font-semibold px-1">{validateSlug(editView.aliasSlug)}</p>
+                      )}
+                      <p className="text-[10px] text-slate-600 font-medium px-1">Free · 1 per app · 3–30 chars · lowercase + hyphens</p>
+                    </div>
+                  )}
+
+                  {/* Alias result banner */}
+                  {editView.aliasMsg && (
+                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold ${editView.aliasMsg.type === 'success'
+                      ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                      : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                      }`}>
+                      {editView.aliasMsg.type === 'success'
+                        ? <CheckCircle size={12} />
+                        : <XCircle size={12} />}
+                      {editView.aliasMsg.text}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Footer */}

@@ -67,7 +67,13 @@ export const api = {
       body: JSON.stringify(data)
     }),
     delete: (id) => apiFetch(`/apps/${id}`, { method: 'DELETE' }),
-    logs: (id) => apiFetch(`/apps/${id}/logs`)
+    logs: (id) => apiFetch(`/apps/${id}/logs`),
+    setAlias: (id, slug) => apiFetch(`/apps/${id}/alias`, {
+      method: 'PUT',
+      body: JSON.stringify({ slug })
+    }),
+    removeAlias: (id) => apiFetch(`/apps/${id}/alias`, { method: 'DELETE' }),
+    checkAlias: (slug) => apiFetch(`/apps/alias/check?slug=${encodeURIComponent(slug)}`),
   },
   billing: {
     plans: () => apiFetch('/billing/plans'),
