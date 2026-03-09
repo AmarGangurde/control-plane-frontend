@@ -75,6 +75,13 @@ export const api = {
     removeAlias: (id) => apiFetch(`/apps/${id}/alias`, { method: 'DELETE' }),
     checkAlias: (slug) => apiFetch(`/apps/alias/check?slug=${encodeURIComponent(slug)}`),
   },
+  reservedAliases: {
+    list: () => apiFetch('/aliases'),
+    reserve: (slug) => apiFetch('/aliases', { method: 'POST', body: JSON.stringify({ slug }) }),
+    assign: (id, appId) => apiFetch(`/aliases/${id}/assign`, { method: 'PUT', body: JSON.stringify({ appId }) }),
+    unassign: (id) => apiFetch(`/aliases/${id}/assign`, { method: 'PUT', body: JSON.stringify({ appId: null }) }),
+    release: (id) => apiFetch(`/aliases/${id}`, { method: 'DELETE' }),
+  },
   billing: {
     plans: () => apiFetch('/billing/plans'),
     balance: () => apiFetch('/billing/balance'),

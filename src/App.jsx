@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Dashboard from './pages/Dashboard';
 import Databases from './pages/Databases';
 import Billing from './pages/Billing';
+import ReservedAliases from './pages/ReservedAliases';
 import Landing from './pages/Landing';
 import TInfo from './pages/TInfo';
 import PInfo from './pages/PInfo';
@@ -358,6 +359,12 @@ const Layout = ({ children }) => {
                 Billing
               </NavLink>
               <NavLink
+                to="/aliases"
+                className={({ isActive }) => `px-4 py-2 rounded-xl text-sm font-semibold transition-all ${isActive ? 'bg-violet-500/20 text-violet-300' : 'text-violet-400/70 hover:text-violet-300 hover:bg-violet-500/10'}`}
+              >
+                Aliases
+              </NavLink>
+              <NavLink
                 to="/dashboard/support"
                 className={({ isActive }) => `px-4 py-2 rounded-xl text-sm font-semibold transition-all ${isActive ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
               >
@@ -442,6 +449,12 @@ export default function App() {
           <Route path="/billing" element={
             <ProtectedRoute>
               <Billing />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/aliases" element={
+            <ProtectedRoute>
+              <ReservedAliases />
             </ProtectedRoute>
           } />
 
