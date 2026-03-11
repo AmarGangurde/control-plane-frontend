@@ -24,7 +24,13 @@ import {
     Infinity,
     Play,
     Instagram,
-    Network
+    Network,
+    Wallet,
+    RefreshCw,
+    ShieldAlert,
+    Activity,
+    Copy,
+    Link as LinkIcon
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -348,6 +354,106 @@ export default function Landing() {
                                 <span className="font-bold">Instant deploy</span>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Enterprise Features Section */}
+            <section className="py-24 relative bg-[#020617] overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-blue-900/5 to-transparent pointer-events-none" />
+                <div className="max-w-7xl mx-auto px-6 relative z-10">
+                    <div className="text-center mb-20">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-[0.2em] mb-6">
+                            Enterprise Grade
+                        </div>
+                        <h2 className="text-3xl md:text-5xl font-black mb-6 tracking-tight">Built for production. <br className="hidden md:block" />Priced for everyone.</h2>
+                        <p className="text-slate-400 max-w-2xl mx-auto text-lg font-medium">
+                            Don't let the simple UI fool you. Under the hood, Wrexer is a powerhouse of advanced cloud features designed to keep your apps running 24/7.
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {/* Micro-billing */}
+                        <div className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl hover:bg-white/[0.04] transition-all group">
+                            <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                <Wallet className="text-green-400" size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-3">Prepaid Micro-Billing</h3>
+                            <p className="text-slate-400 text-sm leading-relaxed">
+                                Pay per second with a prepaid UPI wallet. No credit cards required, and absolutely no surprise end-of-month bills. When your balance runs out, compute stops safely.
+                            </p>
+                        </div>
+
+                        {/* Zero-Downtime */}
+                        <div className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl hover:bg-white/[0.04] transition-all group">
+                            <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                <RefreshCw className="text-blue-400" size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-3">Zero-Downtime Updates</h3>
+                            <p className="text-slate-400 text-sm leading-relaxed">
+                                Push new code with confidence. Our rolling deployment engine spins up your new app and waits until it's 100% healthy before routing traffic to it.
+                            </p>
+                        </div>
+
+                        {/* DB Grace Period */}
+                        <div className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl hover:bg-white/[0.04] transition-all group">
+                            <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                <ShieldAlert className="text-amber-400" size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-3">Database Grace Period</h3>
+                            <p className="text-slate-400 text-sm leading-relaxed">
+                                Out of balance? Don't panic. We pause your compute but protect your PostgreSQL storage volumes (PVC) for 3 full days so you never lose data.
+                            </p>
+                        </div>
+
+                        {/* Telemetry */}
+                        <div className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl hover:bg-white/[0.04] transition-all group">
+                            <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                <Activity className="text-purple-400" size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-3">Real-Time Telemetry</h3>
+                            <p className="text-slate-400 text-sm leading-relaxed">
+                                Debug issues instantly. We stream live logs and real-time CPU/Memory usage metrics directly to your dashboard via high-speed WebSockets.
+                            </p>
+                        </div>
+
+                        {/* Auto-scaling */}
+                        <div className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl hover:bg-white/[0.04] transition-all group">
+                            <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                <Copy className="text-indigo-400" size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-3">Instant Scaling</h3>
+                            <p className="text-slate-400 text-sm leading-relaxed">
+                                Going viral? Increase your app replicas with a single click. Wrexer seamlessly load-balances incoming traffic across all your healthy instances.
+                            </p>
+                        </div>
+
+                        {/* Private Registries */}
+                        <div className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl hover:bg-white/[0.04] transition-all group">
+                            <div className="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                <Lock className="text-rose-400" size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-3">Private Registries</h3>
+                            <p className="text-slate-400 text-sm leading-relaxed">
+                                Keep your code secret. Securely connect your Docker Hub account and deploy closed-source applications with zero hassle.
+                            </p>
+                        </div>
+
+                        {/* Custom Slugs */}
+                        <div className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl hover:bg-white/[0.04] transition-all group lg:col-span-3 max-w-2xl mx-auto">
+                            <div className="flex flex-col sm:flex-row items-center gap-6">
+                                <div className="w-14 h-14 shrink-0 rounded-2xl bg-cyan-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <LinkIcon className="text-cyan-400" size={28} />
+                                </div>
+                                <div className="text-center sm:text-left">
+                                    <h3 className="text-xl font-bold text-white mb-2">Custom Subdomain Slugs</h3>
+                                    <p className="text-slate-400 text-sm leading-relaxed">
+                                        Reserve your own permanent slug (like <span className="text-blue-400 font-mono">product.wrexer.com</span>) for a small monthly fee. Attach it to any pod dynamically and our Traefik Ingress routes traffic instantly.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </section>
