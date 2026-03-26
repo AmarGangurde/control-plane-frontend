@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../api/client';
+import { useCurrency } from '../context/CurrencyContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     CreditCard,
@@ -29,6 +30,7 @@ const formatDuration = (seconds) => {
 };
 
 export default function Billing() {
+    const { currency, fmt } = useCurrency();
     const [balance, setBalance] = useState(0);
     const [reservedBalance, setReservedBalance] = useState(0);
     const [liveReserved, setLiveReserved] = useState(0);
@@ -213,8 +215,8 @@ export default function Billing() {
                     <div className="relative z-10">
                         <h2 className="text-blue-400 text-xs font-black uppercase tracking-[0.2em] mb-3">Available balance</h2>
                         <div className="flex items-baseline gap-3 mb-6">
-                            <span className="text-5xl font-black text-white">₹{balance.toLocaleString()}</span>
-                            <span className="text-slate-500 text-sm font-bold tracking-widest uppercase">INR</span>
+                            <span className="text-5xl font-black text-white">{fmt(balance)}</span>
+                            <span className="text-slate-500 text-sm font-bold tracking-widest uppercase">{currency}</span>
                         </div>
 
                         <div className="space-y-4">
@@ -229,11 +231,11 @@ export default function Billing() {
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="p-3 bg-indigo-500/5 rounded-xl border border-indigo-500/10">
                                     <div className="text-[8px] text-indigo-400 font-black uppercase mb-1 tracking-widest">Reserve Money</div>
-                                    <div className="text-sm font-black text-white tracking-tight">₹{liveReserved.toFixed(2)}</div>
+                                    <div className="text-sm font-black text-white tracking-tight">{fmt(liveReserved)}</div>
                                 </div>
                                 <div className="p-3 bg-indigo-500/5 rounded-xl border border-indigo-500/10">
                                     <div className="text-[8px] text-indigo-400 font-black uppercase mb-1 tracking-widest">Total / Minute</div>
-                                    <div className="text-sm font-black text-white tracking-tight">₹{(hourlyCost / 60).toFixed(4)}</div>
+                                    <div className="text-sm font-black text-white tracking-tight">{fmt(hourlyCost / 60, 4)}</div>
                                 </div>
                             </div>
 
@@ -241,7 +243,7 @@ export default function Billing() {
                                 <div>
                                     <div className="text-[9px] text-slate-500 font-black mb-1 tracking-widest uppercase">Project Burn</div>
                                     <div className="text-xs font-black text-indigo-400 font-mono">
-                                        RE-WALLET = ₹{reservedBalance.toFixed(2)}
+                                        RE-WALLET = {fmt(reservedBalance)}
                                     </div>
                                 </div>
                                 <div className="flex -space-x-1.5">
@@ -285,7 +287,7 @@ export default function Billing() {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-sm font-black text-white tracking-tight">₹{appMinuteRate.toFixed(4)}</div>
+                                    <div className="text-sm font-black text-white tracking-tight">{fmt(appMinuteRate, 4)}</div>
                                     <div className="text-[7px] text-slate-500 font-bold uppercase tracking-wider">Per Minute</div>
                                 </div>
                             </div>
@@ -301,7 +303,7 @@ export default function Billing() {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-sm font-black text-white tracking-tight">₹{dbMinuteRate.toFixed(4)}</div>
+                                    <div className="text-sm font-black text-white tracking-tight">{fmt(dbMinuteRate, 4)}</div>
                                     <div className="text-[7px] text-slate-500 font-bold uppercase tracking-wider">Per Minute</div>
                                 </div>
                             </div>
@@ -317,7 +319,7 @@ export default function Billing() {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-sm font-black text-white tracking-tight">₹{pvcMinuteRate.toFixed(4)}</div>
+                                    <div className="text-sm font-black text-white tracking-tight">{fmt(pvcMinuteRate, 4)}</div>
                                     <div className="text-[7px] text-slate-500 font-bold uppercase tracking-wider">Per Minute</div>
                                 </div>
                             </div>
@@ -352,6 +354,11 @@ export default function Billing() {
                             </button>
                         ))}
                     </div>
+                    {currency === 'USD' && (
+                        <p className="text-[10px] text-amber-400/70 text-center mb-4 font-bold uppercase tracking-wider">
+                            ⚠︎ Top-up is charged in INR via Cashfree
+                        </p>
+                    )}
 
                     <button
                         onClick={handleTopUp}
@@ -462,8 +469,8 @@ export default function Billing() {
                                                 tx.amount > 0 ? 'text-green-400' : 'text-white'
                                             }`}>
                                             {tx.type === 'pod_burn_receipt' || (tx.status !== 'success' && tx.type === 'topup')
-                                                ? `₹${Math.abs(tx.amount).toFixed(2)}`
-                                                : (tx.amount > 0 ? `+₹${tx.amount.toFixed(2)}` : `-₹${Math.abs(tx.amount).toFixed(2)}`)}
+                                                ? fmt(Math.abs(tx.amount))
+                                                : (tx.amount > 0 ? `+${fmt(tx.amount)}` : `-${fmt(Math.abs(tx.amount))}`)}
                                         </td>
                                         <td className="px-10 py-6 text-slate-400 text-xs font-medium">
                                             {new Date(tx.created_at).toLocaleString()}

@@ -1,8 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
 import { api } from '../api/client';
+import { useCurrency } from '../context/CurrencyContext';
 import { Terminal, X, RefreshCw, Cpu, Activity, Pencil, Plus, Trash2, RotateCw, ExternalLink, Box, AlertCircle, Link, CheckCircle, XCircle } from 'lucide-react';
 
 export default function AppList() {
+  const { fmt } = useCurrency();
   const [apps, setApps] = useState([]);
   const [plans, setPlans] = useState([]);
   const [error, setError] = useState('');
@@ -434,11 +436,11 @@ export default function AppList() {
                           </span>
                           {computeRate > 0 && (
                             <div className={`text-[9px] font-medium mb-1 ${app.type === 'database' ? 'text-emerald-400/80' : 'text-blue-400/80'}`}>
-                              ₹{(hourlyRate / 100).toFixed(2)}/hr · ~₹{((hourlyRate / 100) * 720).toFixed(0)}/mo
+                              {fmt(hourlyRate / 100, 2)}/hr · ~{fmt((hourlyRate / 100) * 720, 0)}/mo
                             </div>
                           )}
                           <span className="text-xs text-blue-500 font-bold uppercase tracking-wider">
-                            ₹{(totalCharged / 100).toFixed(2)} <span className="text-[9px] font-normal opacity-70">paid</span>
+                            {fmt(totalCharged / 100)} <span className="text-[9px] font-normal opacity-70">paid</span>
                           </span>
                         </div>
                       </td>

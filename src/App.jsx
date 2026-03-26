@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { CurrencyProvider, useCurrency } from './context/CurrencyContext';
 import Dashboard from './pages/Dashboard';
 import Databases from './pages/Databases';
 import Billing from './pages/Billing';
@@ -13,6 +14,27 @@ import Support from './pages/Support';
 import { useState, useRef, useEffect } from 'react';
 import { Settings, Key, LogOut, Copy, CheckCircle2, AlertCircle, Container, Trash2 } from 'lucide-react';
 import { api } from './api/client';
+
+const CurrencyToggle = () => {
+  const { currency, toggleCurrency } = useCurrency();
+  const isUSD = currency === 'USD';
+  return (
+    <button
+      onClick={toggleCurrency}
+      title={isUSD ? 'Switch to INR' : 'Switch to USD'}
+      className="flex items-center gap-1 px-3 py-1.5 rounded-xl border text-xs font-black uppercase tracking-wider transition-all select-none"
+      style={{
+        background: isUSD ? 'rgba(59,130,246,0.12)' : 'rgba(255,255,255,0.04)',
+        borderColor: isUSD ? 'rgba(59,130,246,0.35)' : 'rgba(255,255,255,0.10)',
+        color: isUSD ? '#60a5fa' : '#94a3b8'
+      }}
+    >
+      <span style={{ opacity: isUSD ? 0.45 : 1 }}>₹</span>
+      <span className="text-slate-600">/</span>
+      <span style={{ opacity: isUSD ? 1 : 0.45 }}>$</span>
+    </button>
+  );
+};
 
 const DockerRegistrySection = () => {
   const [status, setStatus] = useState(null); // { hasToken, username }
@@ -378,6 +400,7 @@ const Layout = ({ children }) => {
                 {user.email}
               </span>
             )}
+            <CurrencyToggle />
             <SettingsMenu />
           </div>
         </div>
@@ -425,8 +448,9 @@ const HomeRoute = () => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <CurrencyProvider>
+      <AuthProvider>
+        <Router>
         <Routes>
           <Route path="/" element={<HomeRoute />} />
           <Route path="/terms" element={<TInfo />} />
@@ -466,7 +490,8 @@ export default function App() {
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </Router>
-    </AuthProvider>
+        </Router>
+      </AuthProvider>
+    </CurrencyProvider>
   );
 }

@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api/client';
+import { useCurrency } from '../context/CurrencyContext';
 import { Plus, Trash2, Settings2, ChevronDown, ChevronUp, Link, CheckCircle, XCircle, Loader } from 'lucide-react';
 
 export default function CreateApp() {
+  const { fmt } = useCurrency();
   const [name, setName] = useState('');
   const [image, setImage] = useState('');
   const [port, setPort] = useState('');
@@ -385,11 +387,11 @@ export default function CreateApp() {
                   )}
                   <div className="flex flex-col mt-2">
                     <span className={`text-[10px] font-black uppercase tracking-wider ${isComingSoon ? 'text-purple-400/40' : 'text-blue-400'}`}>
-                      {p.price_per_hour > 0 ? `₹${p.price_per_hour / 100}/hr` : 'Free'}
+                      {p.price_per_hour > 0 ? `${fmt(p.price_per_hour / 100, 2)}/hr` : 'Free'}
                     </span>
                     {p.price_per_hour > 0 && (
                       <span className={`text-[9px] font-bold ${isComingSoon ? 'text-purple-400/30' : 'text-slate-500'}`}>
-                        approx. ₹{{
+                        approx. {fmt({
                           'p-small': 149,
                           'p-basic': 279,
                           'p-medium': 549,
@@ -398,7 +400,7 @@ export default function CreateApp() {
                           'p-kata-small': 249,
                           'p-kata-medium': 749,
                           'p-kata-large': 1499
-                        }[p.id] || (p.price_per_hour / 100 * 24 * 30).toFixed(0)}/mo
+                        }[p.id] || (p.price_per_hour / 100 * 24 * 30), 0)}/mo
                       </span>
                     )}
                   </div>

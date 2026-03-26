@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api/client';
+import { useCurrency } from '../context/CurrencyContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Link, Plus, Trash2, RefreshCw, CheckCircle,
@@ -85,6 +86,7 @@ function AppPicker({ apps, value, onChange }) {
 }
 
 export default function ReservedAliases() {
+    const { fmt } = useCurrency();
     const [aliases, setAliases] = useState([]);
     const [apps, setApps] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -199,7 +201,7 @@ export default function ReservedAliases() {
             <header className="mb-10">
                 <h1 className="text-4xl font-black text-white tracking-tight mb-2">Reserved Aliases</h1>
                 <p className="text-slate-400 text-base font-medium">
-                    Own a permanent <span className="text-violet-400 font-bold">slug.wrexer.com</span> URL — survives pod deletion. ₹{PRICE_INR}/month per alias.
+                    Own a permanent <span className="text-violet-400 font-bold">slug.wrexer.com</span> URL — survives pod deletion. {fmt(PRICE_INR)}/month per alias.
                 </p>
             </header>
 
@@ -239,7 +241,7 @@ export default function ReservedAliases() {
                             className="px-6 py-3 bg-violet-600 hover:bg-violet-500 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shrink-0"
                         >
                             {reserving ? <RefreshCw size={14} className="animate-spin" /> : <Plus size={14} />}
-                            Reserve — ₹{PRICE_INR}/mo
+                            Reserve — {fmt(PRICE_INR)}/mo
                         </button>
                     </div>
                     {slugStatus && !slugStatus.checking && (
@@ -303,7 +305,7 @@ export default function ReservedAliases() {
                                             {assignedApp
                                                 ? <span className="text-emerald-400">→ {assignedApp.name}</span>
                                                 : <span className="text-slate-700">Unassigned</span>}
-                                            <span className="text-slate-700">· ₹{(ra.price_per_month / 100).toFixed(0)}/mo · renews {new Date(ra.expires_at).toLocaleDateString()}</span>
+                                            <span className="text-slate-700">· {fmt(ra.price_per_month / 100)}/mo · renews {new Date(ra.expires_at).toLocaleDateString()}</span>
                                         </div>
                                     </div>
                                     <button

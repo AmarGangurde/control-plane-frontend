@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api, API_BASE } from '../api/client';
+import { useCurrency } from '../context/CurrencyContext';
 import {
     Database, Plus, Trash2, Copy, CheckCircle2, RefreshCw,
     AlertCircle, HardDrive, Server, Power, X, ExternalLink,
@@ -45,6 +46,7 @@ const parseMemToMiB = (mem) => {
 };
 
 export default function Databases() {
+    const { fmt } = useCurrency();
     const [databases, setDatabases] = useState([]);
     const [plans, setPlans] = useState([]);
     const [selectedPlan, setSelectedPlan] = useState('db-small');
@@ -261,10 +263,10 @@ export default function Databases() {
                                         </div>
                                         <div className="flex flex-col mt-2">
                                             <span className={`text-[10px] font-black uppercase tracking-wider ${selectedPlan === plan.id ? 'text-emerald-400' : 'text-slate-500'}`}>
-                                                ₹{((plan.price_per_hour + (parseInt(plan.storage?.replace('Gi', '')) || 0) * 3) / 100).toFixed(2)}/hr
+                                                {fmt((plan.price_per_hour + (parseInt(plan.storage?.replace('Gi', '')) || 0) * 3) / 100, 2)}/hr
                                             </span>
                                             <span className="text-[9px] font-bold text-slate-600">
-                                                {plan.storage} Storage included (₹{((parseInt(plan.storage?.replace('Gi', '')) || 0) * 0.03).toFixed(2)}/hr)
+                                                {plan.storage} Storage included (approx. {fmt((parseInt(plan.storage?.replace('Gi', '')) || 0) * 0.03, 2)}/hr)
                                             </span>
                                         </div>
                                     </div>
@@ -402,16 +404,16 @@ export default function Databases() {
                                                     {db.plan_id.replace('db-', '').toUpperCase()}
                                                 </span>
                                                 <div className="text-[10px] text-emerald-400 font-black mb-0.5">
-                                                    ₹{(((db.status === 'running' ? (plan?.price_per_hour || 0) : 0) + (db.storage_hourly_rate || 0)) / 100).toFixed(2)}/hr
+                                                    {fmt(((db.status === 'running' ? (plan?.price_per_hour || 0) : 0) + (db.storage_hourly_rate || 0)) / 100, 2)}/hr
                                                 </div>
                                                 <div className="text-[7px] text-emerald-500/40 uppercase font-bold tracking-tighter mb-1 leading-none">
                                                     {db.status === 'running'
-                                                        ? `Pod: ${((plan?.price_per_hour || 0) / 100).toFixed(2)} + Storage: ${(db.storage_hourly_rate / 100).toFixed(2)}`
-                                                        : `Storage Only: ${(db.storage_hourly_rate / 100).toFixed(2)}`
+                                                        ? `Pod: ${fmt((plan?.price_per_hour || 0) / 100, 2)} + Storage: ${fmt(db.storage_hourly_rate / 100, 2)}`
+                                                        : `Storage Only: ${fmt(db.storage_hourly_rate / 100, 2)}`
                                                     }
                                                 </div>
                                                 <span className="text-xs text-emerald-500 font-bold uppercase tracking-wider">
-                                                    ₹{((db.total_charged || 0) / 100).toFixed(2)} <span className="text-[9px] font-normal opacity-70">paid</span>
+                                                    {fmt((db.total_charged || 0) / 100)} <span className="text-[9px] font-normal opacity-70">paid</span>
                                                 </span>
                                             </div>
                                         </td>

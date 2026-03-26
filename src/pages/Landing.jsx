@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useCurrency } from '../context/CurrencyContext';
 import { motion } from 'framer-motion';
 import {
     Terminal,
@@ -36,6 +37,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 export default function Landing() {
     const { isAuthenticated, login } = useAuth();
+    const { currency, toggleCurrency, fmt } = useCurrency();
     const navigate = useNavigate();
     const [authLoading, setAuthLoading] = useState(false);
     const [authError, setAuthError] = useState('');
@@ -137,6 +139,21 @@ export default function Landing() {
                     </nav>
 
                     <div className="flex items-center gap-4">
+                        {/* Currency Toggle */}
+                        <button
+                            onClick={toggleCurrency}
+                            title={currency === 'USD' ? 'Switch to INR' : 'Switch to USD'}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-xl border text-xs font-black uppercase tracking-wider transition-all select-none"
+                            style={{
+                                background: currency === 'USD' ? 'rgba(59,130,246,0.12)' : 'rgba(255,255,255,0.04)',
+                                borderColor: currency === 'USD' ? 'rgba(59,130,246,0.35)' : 'rgba(255,255,255,0.10)',
+                                color: currency === 'USD' ? '#60a5fa' : '#94a3b8'
+                            }}
+                        >
+                            <span style={{ opacity: currency === 'USD' ? 0.45 : 1 }}>₹</span>
+                            <span className="text-slate-600">/</span>
+                            <span style={{ opacity: currency === 'USD' ? 1 : 0.45 }}>$</span>
+                        </button>
                         {isAuthenticated && (
                             <Link
                                 to="/dashboard"
@@ -499,7 +516,7 @@ export default function Landing() {
                     <div className="text-center mb-24">
                         <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tight">Simple Pricing.</h2>
                         <p className="text-blue-400 max-w-2xl mx-auto text-xl font-bold mb-4">
-                            Start for as low as ₹149/month — significantly cheaper than traditional cloud platforms.
+                            Start for as low as {fmt(149)}/month — significantly cheaper than traditional cloud platforms.
                         </p>
                         <p className="text-slate-400 max-w-2xl mx-auto text-lg font-medium">
                             Pay only for what you use. No hidden charges.
@@ -517,8 +534,8 @@ export default function Landing() {
                         />
                         <PlanCard
                             name="Small"
-                            price="₹0.20/hr"
-                            monthly="₹149/mo"
+                            priceHourly={0.20}
+                            priceMonthly={149}
                             cpu="250m"
                             ram="256Mi"
                             bestFor="Production APIs"
@@ -526,8 +543,8 @@ export default function Landing() {
                         />
                         <PlanCard
                             name="Basic"
-                            price="₹0.39/hr"
-                            monthly="₹279/mo"
+                            priceHourly={0.39}
+                            priceMonthly={279}
                             cpu="500m"
                             ram="512Mi"
                             bestFor="Static & Blogs"
@@ -535,8 +552,8 @@ export default function Landing() {
                         />
                         <PlanCard
                             name="Medium"
-                            price="₹0.76/hr"
-                            monthly="₹549/mo"
+                            priceHourly={0.76}
+                            priceMonthly={549}
                             cpu="1000m (1 vCPU)"
                             ram="1Gi"
                             bestFor="Dynamic Web Apps"
@@ -544,8 +561,8 @@ export default function Landing() {
                         />
                         <PlanCard
                             name="Large"
-                            price="₹1.45/hr"
-                            monthly="₹1049/mo"
+                            priceHourly={1.45}
+                            priceMonthly={1049}
                             cpu="2000m (2 vCPU)"
                             ram="2Gi"
                             bestFor="Heavy Compute"
@@ -553,8 +570,8 @@ export default function Landing() {
                         />
                         <PlanCard
                             name="XLarge"
-                            price="₹2.75/hr"
-                            monthly="₹1999/mo"
+                            priceHourly={2.75}
+                            priceMonthly={1999}
                             cpu="4000m (4 vCPU)"
                             ram="4Gi"
                             bestFor="Enterprise Loads"
@@ -580,8 +597,8 @@ export default function Landing() {
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                             <PlanCard
                                 name="DB Small"
-                                price="₹0.62/hr"
-                                monthly="₹449/mo"
+                                priceHourly={0.62}
+                                priceMonthly={449}
                                 cpu="500m"
                                 ram="1Gi"
                                 storage="5Gi SSD"
@@ -591,8 +608,8 @@ export default function Landing() {
                             />
                             <PlanCard
                                 name="DB Medium"
-                                price="₹1.10/hr"
-                                monthly="₹799/mo"
+                                priceHourly={1.10}
+                                priceMonthly={799}
                                 cpu="1000m"
                                 ram="2Gi"
                                 storage="10Gi SSD"
@@ -602,8 +619,8 @@ export default function Landing() {
                             />
                             <PlanCard
                                 name="DB Large"
-                                price="₹2.10/hr"
-                                monthly="₹1499/mo"
+                                priceHourly={2.10}
+                                priceMonthly={1499}
                                 cpu="2000m"
                                 ram="4Gi"
                                 storage="20Gi SSD"
@@ -631,8 +648,8 @@ export default function Landing() {
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                             <PlanCard
                                 name="Kata Small"
-                                price="₹0.34/hr"
-                                monthly="₹249/mo"
+                                priceHourly={0.34}
+                                priceMonthly={249}
                                 cpu="250m"
                                 ram="256Mi"
                                 bestFor="Secure Microservices"
@@ -641,8 +658,8 @@ export default function Landing() {
                             />
                             <PlanCard
                                 name="Kata Medium"
-                                price="₹1.04/hr"
-                                monthly="₹749/mo"
+                                priceHourly={1.04}
+                                priceMonthly={749}
                                 cpu="1000m"
                                 ram="1Gi"
                                 bestFor="Isolated Workloads"
@@ -651,8 +668,8 @@ export default function Landing() {
                             />
                             <PlanCard
                                 name="Kata Large"
-                                price="₹2.08/hr"
-                                monthly="₹1499/mo"
+                                priceHourly={2.08}
+                                priceMonthly={1499}
                                 cpu="2000m"
                                 ram="2Gi"
                                 bestFor="VM-level Security"
@@ -746,7 +763,10 @@ function FeatureCard({ icon, title, desc }) {
     );
 }
 
-function PlanCard({ name, price, monthly, cpu, ram, storage, bestFor, isMain, type = 'app', comingSoon = false }) {
+function PlanCard({ name, price, priceHourly, priceMonthly, cpu, ram, storage, bestFor, isMain, type = 'app', comingSoon = false }) {
+    const { fmt } = useCurrency();
+    const displayPrice = price || (priceHourly !== undefined ? `${fmt(priceHourly, 2)}/hr` : null);
+    const displayMonthly = priceMonthly !== undefined ? `${fmt(priceMonthly, 0)}/mo` : null;
     return (
         <div className={`p-8 rounded-3xl border relative flex flex-col ${comingSoon
             ? 'bg-white/[0.01] border-purple-500/20 opacity-70'
@@ -771,8 +791,8 @@ function PlanCard({ name, price, monthly, cpu, ram, storage, bestFor, isMain, ty
             )}
             <h3 className={`text-lg font-bold mb-1 ${comingSoon ? 'text-purple-300/70' : 'text-white'}`}>{name}</h3>
             <div className="flex flex-col mb-4">
-                <span className={`text-3xl font-black ${comingSoon ? 'text-slate-500' : 'text-white'}`}>{price}</span>
-                {monthly && <span className={`text-sm font-bold mt-1 ${comingSoon ? 'text-slate-600' : 'text-slate-400'}`}>or {monthly}</span>}
+                <span className={`text-3xl font-black ${comingSoon ? 'text-slate-500' : 'text-white'}`}>{displayPrice}</span>
+                {displayMonthly && <span className={`text-sm font-bold mt-1 ${comingSoon ? 'text-slate-600' : 'text-slate-400'}`}>or {displayMonthly}</span>}
             </div>
             <p className={`text-sm mb-6 font-medium ${comingSoon ? 'text-purple-400/50' : 'text-slate-400'}`}>{bestFor}</p>
 
