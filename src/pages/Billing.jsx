@@ -44,9 +44,11 @@ export default function Billing() {
     const [pvcMinuteRate, setPvcMinuteRate] = useState(0);
     const [hourlyCost, setHourlyCost] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [paypalLoading, setPaypalLoading] = useState(false);
     const [historyLoading, setHistoryLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [statusMessage, setStatusMessage] = useState(null);
 
     const fetchData = async () => {
@@ -128,16 +130,48 @@ export default function Billing() {
             }
         };
 
-        // Check for success status from URL
+        // Check for Cashfree success status from URL
         const params = new URLSearchParams(window.location.search);
         const orderIdFromUrl = params.get('order_id');
         const savedOrderId = localStorage.getItem('wrexer_pending_order_id');
 
-        if (orderIdFromUrl) {
-            checkPayment(orderIdFromUrl); // Show message when returning from redirect
+        // Check for PayPal return — PayPal auto-appends ?token=PAYPAL_ORDER_ID
+        const paypalOrderId = params.get('token'); // PayPal's order ID
+        const paypalInternalId = params.get('internal_id'); // our internal transaction ID
+        const paypalCancelled = params.get('paypal_cancelled');
+
+        if (paypalCancelled) {
+            setStatusMessage('PayPal payment was cancelled.');
+            setTimeout(() => setStatusMessage(null), 5000);
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (paypalOrderId && paypalInternalId) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+            setStatusMessage('Capturing PayPal payment...');
+            (async () => {
+                try {
+                    const res = await apiFetch('/billing/capture-paypal', {
+                        method: 'POST',
+                        body: JSON.stringify({ paypal_order_id: paypalOrderId, internal_id: paypalInternalId })
+                    });
+                    if (res.status === 'success') {
+                        setShowSuccess(true);
+                        setStatusMessage(null);
+                        localStorage.removeItem('wrexer_pending_paypal_order_id');
+                    } else {
+                        setStatusMessage(`PayPal payment status: ${res.status}`);
+                        setTimeout(() => setStatusMessage(null), 6000);
+                    }
+                    fetchData();
+                } catch {
+                    setStatusMessage('Could not capture PayPal payment.');
+                    setTimeout(() => setStatusMessage(null), 5000);
+                }
+            })();
+        } else if (orderIdFromUrl) {
+            checkPayment(orderIdFromUrl);
             window.history.replaceState({}, document.title, window.location.pathname);
         } else if (savedOrderId) {
-            checkPayment(savedOrderId, true); // Silent check when just visiting the page
+            checkPayment(savedOrderId, true);
         }
 
         return () => clearInterval(interval);
@@ -158,17 +192,12 @@ export default function Billing() {
     const handleTopUp = async () => {
         setLoading(true);
         setError(null);
+        setShowPaymentModal(false);
         try {
             const res = await apiFetch('/billing/initiate-payment', {
                 method: 'POST',
                 body: JSON.stringify({ amount: selectedAmount })
             });
-
-            // Extract order_id from paymentSessionId or similar if possible, 
-            // but initiate-payment usually returns the internal transaction ID if we modify it.
-            // For now, Cashfree usually has the order_id as a separate field in the response if we provide it.
-            // Looking back at billing.controller.js, initiatePayment DOES NOT return order_id.
-            // Let's modify initiatePayment to return orderId.
 
             if (res.orderId) {
                 localStorage.setItem('wrexer_pending_order_id', res.orderId);
@@ -186,6 +215,27 @@ export default function Billing() {
         } catch (err) {
             setError(err.message || 'Failed to initiate payment');
             setLoading(false);
+        }
+    };
+
+    const handlePaypalTopUp = async () => {
+        setPaypalLoading(true);
+        setError(null);
+        setShowPaymentModal(false);
+        try {
+            const res = await apiFetch('/billing/initiate-paypal', {
+                method: 'POST',
+                body: JSON.stringify({ amount: selectedAmount })
+            });
+            // Store for any fallback checks
+            if (res.internalId) {
+                localStorage.setItem('wrexer_pending_paypal_order_id', res.internalId);
+            }
+            // Redirect to PayPal-hosted approval page
+            window.location.href = res.approveUrl;
+        } catch (err) {
+            setError(err.message || 'Failed to initiate PayPal payment');
+            setPaypalLoading(false);
         }
     };
 
@@ -356,16 +406,16 @@ export default function Billing() {
                     </div>
                     {currency === 'USD' && (
                         <p className="text-[10px] text-amber-400/70 text-center mb-4 font-bold uppercase tracking-wider">
-                            ⚠︎ Top-up is charged in INR via Cashfree
+                            ⚠︎ INR amounts via Cashfree · USD amounts via PayPal
                         </p>
                     )}
 
                     <button
-                        onClick={handleTopUp}
-                        disabled={loading}
+                        onClick={() => setShowPaymentModal(true)}
+                        disabled={loading || paypalLoading}
                         className="w-full bg-white text-slate-950 hover:bg-slate-200 font-black py-4 rounded-2xl transition-all shadow-2xl shadow-white/5 flex items-center justify-center gap-3 text-sm disabled:opacity-50"
                     >
-                        {loading ? 'Processing...' : 'Complete Top-up'}
+                        {loading || paypalLoading ? 'Processing...' : 'Complete Top-up'}
                         <ArrowRight size={18} />
                     </button>
                 </motion.div>
@@ -482,6 +532,69 @@ export default function Billing() {
                     </table>
                 </div>
             </motion.div>
+
+            {/* Payment Method Modal */}
+            <AnimatePresence>
+                {showPaymentModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowPaymentModal(false)}
+                        className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl z-[100] flex items-center justify-center p-6"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.85, y: 40, opacity: 0 }}
+                            animate={{ scale: 1, y: 0, opacity: 1 }}
+                            exit={{ scale: 0.85, y: 40, opacity: 0 }}
+                            transition={{ type: 'spring', damping: 18 }}
+                            onClick={e => e.stopPropagation()}
+                            className="bg-slate-900 border border-white/10 rounded-[2.5rem] p-10 max-w-md w-full shadow-2xl"
+                        >
+                            <h2 className="text-2xl font-black text-white mb-2 tracking-tight text-center">Choose Payment Method</h2>
+                            <p className="text-slate-400 text-sm text-center mb-8 font-medium">Select how you'd like to top up ₹{selectedAmount}</p>
+
+                            {/* PayPal — International */}
+                            <button
+                                onClick={handlePaypalTopUp}
+                                className="w-full flex items-center gap-5 p-5 rounded-2xl bg-[#003087]/20 border-2 border-[#009cde]/30 hover:border-[#009cde]/70 hover:bg-[#003087]/30 transition-all mb-4 group"
+                            >
+                                <div className="w-12 h-12 rounded-xl bg-[#009cde]/20 flex items-center justify-center shrink-0">
+                                    <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none">
+                                        <path d="M7.076 21.337H3.215a.5.5 0 0 1-.495-.57l2.407-15.26A.5.5 0 0 1 5.62 5.1h6.322c2.773 0 4.813 1.19 5.457 3.484.187.674.234 1.387.143 2.078-.53 3.78-3.315 5.343-6.466 5.343H9.41l-.786 5.332Z" fill="#009cde"/>
+                                        <path d="M20.25 8.91c-.61 4.017-3.613 5.805-7.133 5.805H11.27l-.99 6.622H7.076l.786-5.332h1.667c3.151 0 5.937-1.563 6.466-5.343.09-.69.044-1.404-.143-2.078.595.312 1.054.773 1.398 1.326Z" fill="#003087"/>
+                                    </svg>
+                                </div>
+                                <div className="flex-1 text-left">
+                                    <div className="font-black text-white text-base tracking-tight group-hover:text-[#009cde] transition-colors">PayPal</div>
+                                    <div className="text-xs text-slate-400 font-medium mt-0.5">🌍 International users · Pay in USD</div>
+                                </div>
+                                <ArrowRight size={18} className="text-slate-500 group-hover:text-[#009cde] transition-colors" />
+                            </button>
+
+                            {/* Cashfree — India */}
+                            <button
+                                onClick={handleTopUp}
+                                className="w-full flex items-center gap-5 p-5 rounded-2xl bg-indigo-600/10 border-2 border-indigo-500/30 hover:border-indigo-400/70 hover:bg-indigo-600/20 transition-all group"
+                            >
+                                <div className="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center shrink-0">
+                                    <span className="text-2xl">🇮🇳</span>
+                                </div>
+                                <div className="flex-1 text-left">
+                                    <div className="font-black text-white text-base tracking-tight group-hover:text-indigo-400 transition-colors">Cashfree</div>
+                                    <div className="text-xs text-slate-400 font-medium mt-0.5">Indian users · Pay in INR (₹)</div>
+                                </div>
+                                <ArrowRight size={18} className="text-slate-500 group-hover:text-indigo-400 transition-colors" />
+                            </button>
+
+                            <button
+                                onClick={() => setShowPaymentModal(false)}
+                                className="w-full mt-6 text-slate-500 hover:text-slate-300 text-sm font-bold transition-colors"
+                            >Cancel</button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Status Toast */}
             <AnimatePresence>
