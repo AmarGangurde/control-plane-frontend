@@ -18,6 +18,9 @@ import {
 } from 'lucide-react';
 
 const AMOUNTS = [50, 100, 200, 500];
+// Approximate display rate for USD labels (cosmetic only; actual PayPal charge uses backend rate)
+const INR_PER_USD = 84;
+const toUsd = (inr) => `$${(inr / INR_PER_USD).toFixed(2)}`;
 
 const formatDuration = (seconds) => {
     if (!seconds) return '';
@@ -400,7 +403,7 @@ export default function Billing() {
                                     : 'bg-white/5 border-white/5 text-slate-400 hover:border-white/20'
                                     }`}
                             >
-                                ₹{amt}
+                                {currency === 'USD' ? toUsd(amt) : `₹${amt}`}
                             </button>
                         ))}
                     </div>
@@ -552,7 +555,10 @@ export default function Billing() {
                             className="bg-slate-900 border border-white/10 rounded-[2.5rem] p-10 max-w-md w-full shadow-2xl"
                         >
                             <h2 className="text-2xl font-black text-white mb-2 tracking-tight text-center">Choose Payment Method</h2>
-                            <p className="text-slate-400 text-sm text-center mb-8 font-medium">Select how you'd like to top up ₹{selectedAmount}</p>
+                            <p className="text-slate-400 text-sm text-center mb-8 font-medium">
+                                Select how you'd like to top up{' '}
+                                {currency === 'USD' ? toUsd(selectedAmount) : `₹${selectedAmount}`}
+                            </p>
 
                             {/* PayPal — International */}
                             <button
@@ -561,8 +567,8 @@ export default function Billing() {
                             >
                                 <div className="w-12 h-12 rounded-xl bg-[#009cde]/20 flex items-center justify-center shrink-0">
                                     <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none">
-                                        <path d="M7.076 21.337H3.215a.5.5 0 0 1-.495-.57l2.407-15.26A.5.5 0 0 1 5.62 5.1h6.322c2.773 0 4.813 1.19 5.457 3.484.187.674.234 1.387.143 2.078-.53 3.78-3.315 5.343-6.466 5.343H9.41l-.786 5.332Z" fill="#009cde"/>
-                                        <path d="M20.25 8.91c-.61 4.017-3.613 5.805-7.133 5.805H11.27l-.99 6.622H7.076l.786-5.332h1.667c3.151 0 5.937-1.563 6.466-5.343.09-.69.044-1.404-.143-2.078.595.312 1.054.773 1.398 1.326Z" fill="#003087"/>
+                                        <path d="M7.076 21.337H3.215a.5.5 0 0 1-.495-.57l2.407-15.26A.5.5 0 0 1 5.62 5.1h6.322c2.773 0 4.813 1.19 5.457 3.484.187.674.234 1.387.143 2.078-.53 3.78-3.315 5.343-6.466 5.343H9.41l-.786 5.332Z" fill="#009cde" />
+                                        <path d="M20.25 8.91c-.61 4.017-3.613 5.805-7.133 5.805H11.27l-.99 6.622H7.076l.786-5.332h1.667c3.151 0 5.937-1.563 6.466-5.343.09-.69.044-1.404-.143-2.078.595.312 1.054.773 1.398 1.326Z" fill="#003087" />
                                     </svg>
                                 </div>
                                 <div className="flex-1 text-left">
