@@ -394,6 +394,9 @@ export default function AppList() {
                                 {app.internalPort && (
                                   <div className="flex items-center text-[9px] text-slate-500 font-mono gap-1">
                                     <span className="text-blue-500/50 font-bold">INT PORT:</span> {app.internalPort}
+                                    {app.containerPort && app.containerPort !== app.internalPort && (
+                                      <span className="text-slate-400 opacity-60">→{app.containerPort}</span>
+                                    )}
                                   </div>
                                 )}
                               </div>
