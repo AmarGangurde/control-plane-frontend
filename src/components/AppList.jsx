@@ -387,8 +387,15 @@ export default function AppList() {
                               </a>
                             )}
                             {app.internalIp && (
-                              <div className="flex items-center text-[9px] text-slate-500 font-mono gap-1 mt-0.5">
-                                <span className="text-blue-500/50 font-bold">INT IP:</span> {app.internalIp}
+                              <div className="flex flex-col gap-0.5 mt-0.5">
+                                <div className="flex items-center text-[9px] text-slate-500 font-mono gap-1">
+                                  <span className="text-blue-500/50 font-bold">INT IP:</span> {app.internalIp}
+                                </div>
+                                {app.internalPort && (
+                                  <div className="flex items-center text-[9px] text-slate-500 font-mono gap-1">
+                                    <span className="text-blue-500/50 font-bold">INT PORT:</span> {app.internalPort}
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
