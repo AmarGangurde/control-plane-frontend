@@ -386,6 +386,11 @@ export default function AppList() {
                                 <Link size={8} />
                               </a>
                             )}
+                            {app.internalIp && (
+                              <div className="flex items-center text-[9px] text-slate-500 font-mono gap-1 mt-0.5">
+                                <span className="text-blue-500/50 font-bold">INT IP:</span> {app.internalIp}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>

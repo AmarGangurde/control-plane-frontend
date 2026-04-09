@@ -325,6 +325,9 @@ export default function Databases() {
                                                     <div className="flex flex-col gap-0.5 mt-0.5">
                                                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Plan: <span className="text-slate-300">{db.plan_id.replace('db-', '').toUpperCase()}</span></span>
                                                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Storage: <span className="text-emerald-500/60 font-mono">{db.storage || '1Gi'}</span></span>
+                                                        {db.internalIp && (
+                                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Internal IP: <span className="text-emerald-400/80 font-mono">{db.internalIp}</span></span>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
