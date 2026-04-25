@@ -53,23 +53,8 @@ export default function AppList() {
     try {
       if (!opts.background) setLoading(true);
       const data = await api.apps.list();
-
-      const withStatus = await Promise.all(
-        data.map(async (a) => {
-          try {
-            const full = await api.apps.get(a.id);
-            return {
-              ...a,
-              status: full.status,
-              metrics: full.metrics || { cpu: '0', memory: '0' }
-            };
-          } catch {
-            return { ...a, status: 'unknown', metrics: { cpu: '0', memory: '0' } };
-          }
-        })
-      );
-
-      setApps(withStatus);
+      // api.apps.list() now returns status + metrics in one call (no N+1 fan-out needed)
+      setApps(data);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -82,10 +67,25 @@ export default function AppList() {
     loadApps();
     const onReload = () => loadApps({ background: true });
     window.addEventListener('apps:reload', onReload);
-    const iv = setInterval(() => loadApps({ background: true }), 5000);
+
+    // Poll every 15 seconds (was 5s). Pause when tab is not visible to save API quota.
+    let iv = setInterval(() => {
+      if (document.visibilityState !== 'hidden') {
+        loadApps({ background: true });
+      }
+    }, 15000);
+
+    const onVisibility = () => {
+      // Resume immediately when tab becomes visible again
+      if (document.visibilityState === 'visible') {
+        loadApps({ background: true });
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
       window.removeEventListener('apps:reload', onReload);
+      document.removeEventListener('visibilitychange', onVisibility);
       clearInterval(iv);
     };
   }, []);
@@ -399,6 +399,11 @@ export default function AppList() {
                                     )}
                                   </div>
                                 )}
+                              </div>
+                            )}
+                            {app.loopback_bind && (
+                              <div className="mt-0.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 w-fit">
+                                <span className="text-[8px] font-black text-amber-400 uppercase tracking-wider">⇄ Proxy Sidecar</span>
                               </div>
                             )}
                           </div>
