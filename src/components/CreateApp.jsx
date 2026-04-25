@@ -19,6 +19,7 @@ export default function CreateApp() {
   const [command, setCommand] = useState('');
   const [args, setArgs] = useState(['']);
   const [replicas, setReplicas] = useState(1);
+  const [loopbackBind, setLoopbackBind] = useState(false);
 
   // Alias state
   const [aliasSlug, setAliasSlug] = useState('');
@@ -117,6 +118,7 @@ export default function CreateApp() {
         args: filteredArgs.length > 0 ? filteredArgs : undefined,
         replicas: parseInt(replicas, 10),
         alias: aliasSlug.trim() || undefined,
+        loopbackBind: loopbackBind || undefined,
       });
 
       const msg = res.aliasWarning
@@ -134,6 +136,7 @@ export default function CreateApp() {
       setArgs(['']);
       setAliasSlug('');
       setAliasStatus(null);
+      setLoopbackBind(false);
       setShowAdvanced(false);
     } catch (e) {
       setCreateMsg({ type: 'error', text: e.message });
@@ -355,6 +358,32 @@ export default function CreateApp() {
               {!aliasStatus && aliasSlug.length > 0 && aliasSlug.length < 3 && (
                 <p className="text-[10px] mt-1.5 text-slate-600 px-1">Keep typing…</p>
               )}
+            </div>
+            {/* Loopback Proxy Toggle */}
+            <div className="p-6 bg-black/20 rounded-2xl border border-amber-500/10">
+              <div className="flex items-start gap-4">
+                <button
+                  type="button"
+                  onClick={() => setLoopbackBind(!loopbackBind)}
+                  className={`mt-0.5 w-10 h-5 rounded-full transition-all duration-200 flex-shrink-0 relative border ${
+                    loopbackBind
+                      ? 'bg-amber-500 border-amber-400'
+                      : 'bg-white/10 border-white/20'
+                  }`}
+                >
+                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-200 ${
+                    loopbackBind ? 'left-[22px]' : 'left-0.5'
+                  }`} />
+                </button>
+                <div>
+                  <label className="text-[11px] font-bold text-amber-400 uppercase tracking-wider block cursor-pointer" onClick={() => setLoopbackBind(!loopbackBind)}>
+                    Enable Loopback Proxy Sidecar
+                  </label>
+                  <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+                    Enable if your app binds to <code className="text-amber-400/70 font-mono">127.0.0.1</code> instead of <code className="text-slate-400 font-mono">0.0.0.0</code>. Injects a lightweight nginx proxy so Kubernetes can route traffic to your container.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         )}
