@@ -362,6 +362,12 @@ function ServiceRow({ svc, onStop, onStart, onDelete, onKeys, onLogs, onShell, l
                   {svc.url.replace('https://', '')} <ExternalLink size={8} />
                 </a>
               )}
+              {svc.alias && (
+                <a href={`https://${svc.alias}.wrexer.com`} target="_blank" rel="noopener noreferrer"
+                  className="text-[10px] text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 mt-0.5">
+                  <Link size={8} />{svc.alias}.wrexer.com
+                </a>
+              )}
             </div>
           </div>
         </td>
