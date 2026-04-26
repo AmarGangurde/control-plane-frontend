@@ -91,14 +91,19 @@ export default function AppList() {
   }, []);
 
   // --- Logs & Edit Helpers (Keep existing logic) ---
-  const fetchLogs = async (appId, appName) => {
-    setLogView({ id: appId, name: appName, logs: '', loading: true });
+  const fetchLogs = async (appId, appName, container = 'app', hasSidecar = false) => {
+    setLogView({ id: appId, name: appName, logs: '', loading: true, selectedContainer: container, hasSidecar });
     try {
-      const res = await api.apps.logs(appId);
+      const res = await api.apps.logs(appId, container);
       setLogView(prev => ({ ...prev, logs: res.logs, loading: false }));
     } catch (e) {
       setLogView(prev => ({ ...prev, logs: `Error: ${e.message}`, loading: false }));
     }
+  };
+
+  const switchContainer = (container) => {
+    if (!logView) return;
+    fetchLogs(logView.id, logView.name, container, logView.hasSidecar);
   };
 
   const openEditModal = (app) => {
@@ -407,7 +412,11 @@ export default function AppList() {
                             )}
                             {app.loopback_bind && (
                               <div className="mt-0.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 w-fit">
+                                <span className={`h-1.5 w-1.5 rounded-full ${app.sidecarReady ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400 animate-pulse'}`} />
                                 <span className="text-[8px] font-black text-amber-400 uppercase tracking-wider">⇄ Proxy Sidecar</span>
+                                <span className={`text-[8px] font-black uppercase tracking-wider ${app.sidecarReady ? 'text-emerald-400' : 'text-amber-400'}`}>
+                                  {app.hasSidecar ? (app.sidecarReady ? '✓' : '…') : '!'}
+                                </span>
                               </div>
                             )}
                           </div>
@@ -485,7 +494,7 @@ export default function AppList() {
                             </button>
                           )}
                           <button
-                            onClick={() => fetchLogs(app.id, app.name)}
+                            onClick={() => fetchLogs(app.id, app.name, 'app', app.hasSidecar || false)}
                             className="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 border border-white/5 transition-all"
                             title="Logs"
                           >
@@ -526,10 +535,35 @@ export default function AppList() {
                   <h3 className="font-bold text-white text-sm">System Logs</h3>
                   <p className="text-[11px] text-slate-500 font-medium tracking-tight truncate max-w-[200px]">{logView.name}</p>
                 </div>
+                {/* Container toggle — only shown for sidecar pods */}
+                {logView.hasSidecar && (
+                  <div className="flex items-center gap-1 ml-2 bg-white/5 border border-white/10 rounded-xl p-1">
+                    <button
+                      onClick={() => switchContainer('app')}
+                      className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
+                        logView.selectedContainer === 'app'
+                          ? 'bg-blue-600 text-white shadow'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      App
+                    </button>
+                    <button
+                      onClick={() => switchContainer('proxy-sidecar')}
+                      className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
+                        logView.selectedContainer === 'proxy-sidecar'
+                          ? 'bg-amber-500 text-black shadow'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      ⇄ Proxy
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => fetchLogs(logView.id, logView.name)}
+                  onClick={() => fetchLogs(logView.id, logView.name, logView.selectedContainer || 'app', logView.hasSidecar)}
                   className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
                   disabled={logView.loading}
                 >

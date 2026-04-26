@@ -67,7 +67,7 @@ export const api = {
       body: JSON.stringify(data)
     }),
     delete: (id) => apiFetch(`/apps/${id}`, { method: 'DELETE' }),
-    logs: (id) => apiFetch(`/apps/${id}/logs`),
+    logs: (id, container) => apiFetch(`/apps/${id}/logs${container ? `?container=${encodeURIComponent(container)}` : ''}`),
     setAlias: (id, slug) => apiFetch(`/apps/${id}/alias`, {
       method: 'PUT',
       body: JSON.stringify({ slug })
