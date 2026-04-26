@@ -430,8 +430,8 @@ function ServiceRow({ svc, onStop, onStart, onDelete, onKeys, onLogs, onShell, l
             )}
             {/* Update (keys + alias) */}
             <button onClick={() => onKeys(svc)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 border border-violet-500/20 text-[11px] font-black uppercase tracking-wider transition-all" title="Update Keys & Alias">
-              <Key size={12} />Update
+              className="p-2 rounded-lg bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 border border-violet-500/20 transition-all" title="Update Keys & Alias">
+              <Key size={14} />
             </button>
             {/* Shell — app container only */}
             {svc.status === 'running' && (
