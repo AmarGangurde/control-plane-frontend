@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
 import { api } from '../api/client';
+import { socket } from '../api/socket';
 import { useCurrency } from '../context/CurrencyContext';
-import { Terminal, X, RefreshCw, Cpu, Activity, Pencil, Plus, Trash2, RotateCw, ExternalLink, Box, AlertCircle, Link, CheckCircle, XCircle } from 'lucide-react';
+import { Terminal, X, RefreshCw, Cpu, Activity, Pencil, Plus, Trash2, RotateCw, ExternalLink, Box, AlertCircle, Link, CheckCircle, XCircle, SquareTerminal } from 'lucide-react';
+import ShellModal from './ShellModal';
 
 export default function AppList() {
   const { fmt } = useCurrency();
@@ -10,8 +12,9 @@ export default function AppList() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState({});
-  const [logView, setLogView] = useState(null); // { id, name, logs, loading }
-  const [editView, setEditView] = useState(null); // { app, image, port, env, command, args, loading, msg }
+  const [logView, setLogView] = useState(null); // { id, name, logs, loading, selectedContainer, hasSidecar }
+  const [editView, setEditView] = useState(null);
+  const [shellView, setShellView] = useState(null); // { id, name, container }
   const [showConfirmDelete, setShowConfirmDelete] = useState(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const logEndRef = useRef(null);
@@ -493,6 +496,15 @@ export default function AppList() {
                               <Pencil size={14} />
                             </button>
                           )}
+                          {app.status === 'running' && (
+                            <button
+                              onClick={() => setShellView({ id: app.id, name: app.name, container: 'app' })}
+                              className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all"
+                              title="Shell"
+                            >
+                              <SquareTerminal size={14} />
+                            </button>
+                          )}
                           <button
                             onClick={() => fetchLogs(app.id, app.name, 'app', app.hasSidecar || false)}
                             className="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 border border-white/5 transition-all"
@@ -520,6 +532,17 @@ export default function AppList() {
             </table>
           </div>
         </div>
+      )}
+
+      {/* Shell Modal */}
+      {shellView && (
+        <ShellModal
+          socket={socket}
+          appId={shellView.id}
+          appName={shellView.name}
+          container={shellView.container}
+          onClose={() => setShellView(null)}
+        />
       )}
 
       {/* Logs Modal */}
