@@ -41,9 +41,11 @@ export default function Billing() {
     const [transactions, setTransactions] = useState([]);
     const [appsCount, setAppsCount] = useState(0);
     const [runningDbsCount, setRunningDbsCount] = useState(0);
+    const [runningServicesCount, setRunningServicesCount] = useState(0);
     const [pvcCount, setPvcCount] = useState(0);
     const [appMinuteRate, setAppMinuteRate] = useState(0);
     const [dbMinuteRate, setDbMinuteRate] = useState(0);
+    const [svcMinuteRate, setSvcMinuteRate] = useState(0);
     const [pvcMinuteRate, setPvcMinuteRate] = useState(0);
     const [hourlyCost, setHourlyCost] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -67,24 +69,33 @@ export default function Billing() {
             setLiveReserved(balRes.reserved_balance / 100);
             setTransactions(transRes.map(tx => ({ ...tx, amount: tx.amount / 100 })));
 
-            const activeApps = appsRes.filter(a => a.status === 'running');
-            const runningDbs = dbsRes.filter(d => d.status === 'running');
-            const existingDbs = dbsRes.filter(d => d.status !== 'deleted');
+            // Split by type
+            const activeApps   = appsRes.filter(a => a.type === 'app' && a.status === 'running');
+            const allServices  = appsRes.filter(a => a.type === 'service' && a.status !== 'deleted');
+            const runningSvcs  = allServices.filter(s => s.status === 'running');
+            const runningDbs   = dbsRes.filter(d => d.status === 'running');
+            const existingDbs  = dbsRes.filter(d => d.status !== 'deleted');
 
             const totalReplicas = activeApps.reduce((acc, app) => acc + (app.replicas || 1), 0);
             setAppsCount(totalReplicas);
             setRunningDbsCount(runningDbs.length);
-            setPvcCount(existingDbs.length);
+            setRunningServicesCount(runningSvcs.length);
+            // PVC count = databases (all non-deleted) + services (all non-deleted = always have PVC)
+            setPvcCount(existingDbs.length + allServices.length);
 
-            // Calculate combined hourly cost
-            const appHourly = activeApps.reduce((acc, app) => acc + ((app.hourly_rate || 0) * (app.replicas || 1)), 0);
-            const dbPodHourly = runningDbs.reduce((acc, db) => acc + (db.hourly_rate || 0), 0);
+            // Hourly rates
+            const appHourly     = activeApps.reduce((acc, app) => acc + ((app.hourly_rate || 0) * (app.replicas || 1)), 0);
+            const dbPodHourly   = runningDbs.reduce((acc, db) => acc + (db.hourly_rate || 0), 0);
             const dbStorageHourly = existingDbs.reduce((acc, db) => acc + (db.storage_hourly_rate || 0), 0);
+            // Services: pod rate (only when running) + storage rate (always when not deleted)
+            const svcPodHourly     = runningSvcs.reduce((acc, s) => acc + (s.hourly_rate || 0), 0);
+            const svcStorageHourly = allServices.reduce((acc, s) => acc + (s.storage_hourly_rate || 0), 0);
 
             setAppMinuteRate((appHourly / 60) / 100);
             setDbMinuteRate((dbPodHourly / 60) / 100);
-            setPvcMinuteRate((dbStorageHourly / 60) / 100);
-            setHourlyCost((appHourly + dbPodHourly + dbStorageHourly) / 100);
+            setSvcMinuteRate(((svcPodHourly + svcStorageHourly) / 60) / 100);
+            setPvcMinuteRate(((dbStorageHourly + svcStorageHourly) / 60) / 100);
+            setHourlyCost((appHourly + dbPodHourly + dbStorageHourly + svcPodHourly + svcStorageHourly) / 100);
         } catch (err) {
             console.error(err);
             setError('Failed to load billing data');
@@ -361,6 +372,23 @@ export default function Billing() {
                                 </div>
                             </div>
 
+                            {/* Services row */}
+                            <div className="flex items-center justify-between group">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+                                        <Zap size={20} className="text-violet-400" />
+                                    </div>
+                                    <div>
+                                        <div className="text-lg font-black text-white tracking-tight">{runningServicesCount}</div>
+                                        <div className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Active Services</div>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-sm font-black text-white tracking-tight">{fmt(svcMinuteRate, 4)}</div>
+                                    <div className="text-[7px] text-slate-500 font-bold uppercase tracking-wider">Per Minute</div>
+                                </div>
+                            </div>
+
                             <div className="flex items-center justify-between group">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
@@ -467,21 +495,29 @@ export default function Billing() {
                                         <td className="px-10 py-6">
                                             {(() => {
                                                 const meta = typeof tx.metadata === 'string' ? JSON.parse(tx.metadata || '{}') : (tx.metadata || {});
-                                                const isDb = meta.type === 'database';
+                                const isDb  = meta.type === 'database';
+                                const isSvc = meta.type === 'service';
+                                const typeLabel = isSvc ? 'Service' : isDb ? 'Database' : 'Pod';
+                                const badgeCls  = isSvc
+                                    ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20'
+                                    : isDb
+                                        ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                                        : 'bg-blue-500/10 text-blue-500 border border-blue-500/20';
+                                const hoverCls  = isSvc ? 'group-hover:text-violet-400' : isDb ? 'group-hover:text-emerald-400' : 'group-hover:text-blue-400';
 
-                                                return (
-                                                    <>
-                                                        <div className={`font-bold text-white mb-1 transition-colors ${isDb ? 'group-hover:text-emerald-400' : 'group-hover:text-blue-400'}`}>
-                                                            {tx.type === 'topup' ? 'Credit Injection' :
-                                                                tx.type === 'reservation' ? `${isDb ? 'Database' : 'Pod'} Start Reservation` :
-                                                                    tx.type === 'refund' ? `${isDb ? 'Database' : 'Pod'} Reservation Refund` :
-                                                                        tx.type === 'pod_burn_receipt' ? `Usage Receipt: ${tx.external_id || 'Resource'}` :
-                                                                            tx.type}
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${isDb ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-blue-500/10 text-blue-500 border border-blue-500/20'}`}>
-                                                                {isDb ? 'Database' : 'Pod'}
-                                                            </span>
+                                return (
+                                    <>
+                                        <div className={`font-bold text-white mb-1 transition-colors ${hoverCls}`}>
+                                            {tx.type === 'topup' ? 'Credit Injection' :
+                                                tx.type === 'reservation' ? `${typeLabel} Start Reservation` :
+                                                    tx.type === 'refund' ? `${typeLabel} Reservation Refund` :
+                                                        tx.type === 'pod_burn_receipt' ? `Usage Receipt: ${tx.external_id || 'Resource'}` :
+                                                            tx.type}
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${badgeCls}`}>
+                                                {typeLabel}
+                                            </span>
                                                             <span className="text-[10px] text-slate-600 font-mono tracking-tighter uppercase">{tx.id}</span>
                                                             {tx.type === 'pod_burn_receipt' && (
                                                                 <div className="flex items-center gap-2 ml-auto text-[9px] text-slate-500 font-bold uppercase tracking-tighter">

@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../api/client';
+import { socket } from '../api/socket';
 import { useCurrency } from '../context/CurrencyContext';
+import ShellModal from '../components/ShellModal';
 import {
   Zap, Power, Trash2, RefreshCw, ExternalLink, AlertCircle,
   CheckCircle2, HardDrive, Cpu, Activity, Terminal, FileText,
-  ChevronRight, Sparkles, Plus, X, Key, Settings
+  ChevronRight, Sparkles, Plus, X, Key, Settings, SquareTerminal
 } from 'lucide-react';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -25,48 +27,70 @@ const parseMemToMiB = (mem) => {
   return 0;
 };
 
-const STATUS_COLORS = {
-  running:    'bg-violet-500/20 text-violet-300 border-violet-500/30',
-  deploying:  'bg-amber-500/20  text-amber-400  border-amber-500/30 animate-pulse',
-  stopped:    'bg-slate-600/20  text-slate-400  border-slate-600/30',
-  failed:     'bg-red-500/20    text-red-400    border-red-500/30',
-  unknown:    'bg-slate-800    text-slate-500  border-white/5',
-};
-const statusColor = (s) => STATUS_COLORS[s] || STATUS_COLORS.unknown;
-
-function fmt2(paise) {
-  return `₹${(paise / 100).toFixed(2)}`;
+function getUptime(ds) {
+  if (!ds) return '—';
+  const d = Date.now() - new Date(ds);
+  if (d < 0) return 'Just started';
+  const m = Math.floor(d / 60000), h = Math.floor(m / 60), dy = Math.floor(h / 24);
+  if (dy > 0) return `${dy}d ${h % 24}h`;
+  if (h > 0) return `${h}h ${m % 60}m`;
+  return `${m}m`;
 }
+
+function fmt2(paise) { return `₹${(paise / 100).toFixed(2)}`; }
+
+const STATUS_MAP = {
+  running:     'bg-emerald-500/20 text-emerald-400 border-emerald-500/20',
+  deploying:   'bg-amber-500/20  text-amber-400  border-amber-500/20 animate-pulse',
+  provisioning:'bg-amber-500/20  text-amber-400  border-amber-500/20 animate-pulse',
+  stopped:     'bg-slate-500/20  text-slate-400  border-slate-500/20',
+  failed:      'bg-red-500/20    text-red-400    border-red-500/20',
+  error:       'bg-red-500/20    text-red-400    border-red-500/20',
+};
+const sc = (s) => STATUS_MAP[s] || 'bg-slate-800 text-slate-500 border-white/5';
 
 // ── Logs Modal ────────────────────────────────────────────────────────────────
 
 function LogsModal({ svc, onClose }) {
-  const [logs, setLogs]       = useState('Loading…');
+  const [logs, setLogs]       = useState('');
   const [loading, setLoading] = useState(true);
   const bottomRef             = useRef(null);
 
-  useEffect(() => {
+  const fetchLogs = () => {
+    setLoading(true);
     api.apps.logs(svc.id).then(d => {
       setLogs(d.logs || '(no logs yet)');
       setLoading(false);
     }).catch(e => { setLogs(`Error: ${e.message}`); setLoading(false); });
-  }, [svc.id]);
+  };
 
+  useEffect(() => { fetchLogs(); }, [svc.id]);
   useEffect(() => { bottomRef.current?.scrollIntoView(); }, [logs]);
 
   return (
-    <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-      <div className="bg-[#080c13] border border-white/10 rounded-3xl w-full max-w-3xl max-h-[75vh] flex flex-col overflow-hidden shadow-2xl">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-          <div className="flex items-center gap-2">
-            <FileText size={16} className="text-violet-400" />
-            <span className="text-white font-black text-sm">{svc.name} — Logs</span>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-[#020617]/80 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="w-full max-w-4xl bg-[#0f172a] border border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="flex items-center justify-between p-4 border-b border-white/5 bg-white/5">
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-600/20 p-2 rounded-lg text-blue-400"><Terminal size={18} /></div>
+            <div>
+              <h3 className="font-bold text-white text-sm">Workspace Logs</h3>
+              <p className="text-[11px] text-slate-500 font-medium">{svc.name}</p>
+            </div>
           </div>
-          <button onClick={onClose} className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-white/5 transition-all"><X size={16} /></button>
+          <div className="flex items-center gap-2">
+            <button onClick={fetchLogs} disabled={loading} className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors">
+              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+            </button>
+            <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors">
+              <X size={18} />
+            </button>
+          </div>
         </div>
-        <div className="flex-1 overflow-y-auto p-5 font-mono text-xs text-slate-300 leading-relaxed whitespace-pre-wrap bg-[#060a0f]">
-          {loading ? <span className="text-slate-600">Fetching logs…</span> : logs}
-          <div ref={bottomRef} />
+        <div className="flex-1 overflow-auto p-4 bg-black/40 font-mono text-[13px] leading-relaxed text-slate-300">
+          {loading
+            ? <div className="flex items-center justify-center h-full text-slate-500 animate-pulse italic">Retrieving logs…</div>
+            : <div className="whitespace-pre-wrap">{logs || 'No logs found.'}<div ref={bottomRef} /></div>}
         </div>
       </div>
     </div>
@@ -87,42 +111,35 @@ function UpdateKeysModal({ svc, onClose, onUpdated }) {
     { id: 'anthropic', label: 'Anthropic', envKey: 'ANTHROPIC_API_KEY' },
     { id: 'gemini',    label: 'Gemini',    envKey: 'GEMINI_API_KEY' },
   ];
-  const selectedProvider = PROVIDERS.find(p => p.id === provider);
+  const sel = PROVIDERS.find(p => p.id === provider);
 
   const handleSave = async () => {
-    setSaving(true);
-    setError('');
+    setSaving(true); setError('');
     try {
       const serviceEnv = {};
-      if (llmKey)      serviceEnv[selectedProvider.envKey] = llmKey;
-      if (githubToken) serviceEnv['GITHUB_TOKEN']          = githubToken;
+      if (llmKey)      serviceEnv[sel.envKey]    = llmKey;
+      if (githubToken) serviceEnv['GITHUB_TOKEN'] = githubToken;
       await api.apps.updateServiceKeys(svc.id, serviceEnv);
       onUpdated();
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setSaving(false);
-    }
+    } catch (e) { setError(e.message); }
+    finally { setSaving(false); }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-[#0b1121] border border-violet-500/20 rounded-[2.5rem] max-w-md w-full shadow-2xl shadow-violet-900/30 animate-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between px-8 pt-8 pb-5 border-b border-white/5">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-[#020617]/80 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="w-full max-w-md bg-[#0f172a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="flex items-center justify-between p-5 border-b border-white/5 bg-white/[0.03]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center">
-              <Key size={18} className="text-violet-400" />
-            </div>
+            <div className="bg-violet-600/20 p-2.5 rounded-xl text-violet-400"><Key size={18} /></div>
             <div>
-              <h2 className="text-white font-black text-base">Update API Keys</h2>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Rolling restart on save</p>
+              <h3 className="font-black text-white text-sm">Update API Keys</h3>
+              <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Rolling restart on save</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-500 hover:text-white rounded-xl hover:bg-white/5 transition-all"><X size={16} /></button>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"><X size={18} /></button>
         </div>
 
-        <div className="px-8 py-6 space-y-5">
-          {/* Provider */}
+        <div className="p-5 space-y-5">
           <div>
             <label className="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-wider">LLM Provider</label>
             <div className="grid grid-cols-3 gap-2">
@@ -136,31 +153,27 @@ function UpdateKeysModal({ svc, onClose, onUpdated }) {
               ))}
             </div>
           </div>
-
           <div>
-            <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase tracking-wider">{selectedProvider.label} API Key</label>
+            <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase tracking-wider">{sel.label} API Key</label>
             <input type="password" value={llmKey} onChange={e => setLlmKey(e.target.value)}
               placeholder="Leave blank to keep existing"
-              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-violet-500/50 transition-all font-mono" />
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-violet-500/50 transition-all font-mono" />
           </div>
-
           <div>
-            <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase tracking-wider">GitHub PAT <span className="text-slate-600">(optional)</span></label>
+            <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase tracking-wider">GitHub PAT <span className="text-slate-600 normal-case">(optional)</span></label>
             <input type="password" value={githubToken} onChange={e => setGhToken(e.target.value)}
               placeholder="Leave blank to keep existing"
-              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-violet-500/50 transition-all font-mono" />
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-violet-500/50 transition-all font-mono" />
           </div>
-
           {error && (
-            <div className="flex items-center gap-2 text-red-400 text-xs bg-red-400/10 px-4 py-3 rounded-2xl border border-red-400/15">
-              <AlertCircle size={14} />{error}
+            <div className="flex items-center gap-2 text-red-400 text-xs bg-red-500/10 px-4 py-2.5 rounded-xl border border-red-500/20">
+              <AlertCircle size={13} />{error}
             </div>
           )}
-
           <div className="flex gap-3 pt-1">
-            <button onClick={onClose} className="flex-1 px-4 py-3 rounded-2xl bg-white/5 text-slate-400 font-black text-sm hover:bg-white/10 transition-all">Cancel</button>
+            <button onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 text-slate-400 font-bold text-sm hover:bg-white/10 transition-all">Cancel</button>
             <button onClick={handleSave} disabled={saving || (!llmKey && !githubToken)}
-              className="flex-1 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-4 py-3 rounded-2xl font-black text-sm transition-all shadow-lg shadow-violet-600/30 disabled:opacity-40">
+              className="flex-1 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-4 py-2.5 rounded-xl font-black text-sm transition-all disabled:opacity-40 shadow-lg shadow-violet-600/20">
               {saving ? <><RefreshCw size={14} className="animate-spin" />Saving…</> : <><Key size={14} />Save & Restart</>}
             </button>
           </div>
@@ -170,181 +183,184 @@ function UpdateKeysModal({ svc, onClose, onUpdated }) {
   );
 }
 
-// ── ActiveServiceCard ─────────────────────────────────────────────────────────
+// ── Destroy confirm modal ─────────────────────────────────────────────────────
 
-function ActiveServiceCard({ svc, onStop, onStart, onDelete, onUpdateKeys, onShowLogs, loading, fmt }) {
-  const [confirm, setConfirm]     = useState(false);
-  const [deleteText, setDeleteText] = useState('');
+function DestroyModal({ svc, onConfirm, onClose }) {
+  const [text, setText] = useState('');
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#020617]/85 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-[#0f172a] border border-red-500/30 rounded-2xl max-w-md w-full p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="w-14 h-14 bg-red-500/15 text-red-400 rounded-full flex items-center justify-center mx-auto mb-5"><Trash2 size={28} /></div>
+        <h3 className="text-lg font-black text-white text-center mb-2 uppercase tracking-tight">Delete Workspace</h3>
+        <p className="text-slate-400 text-center text-xs font-medium mb-6 leading-relaxed">
+          Permanently deletes your workspace and the <span className="text-red-400 font-bold">5Gi storage volume</span>. All files will be lost.
+        </p>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest text-center">Type <span className="text-white">DELETE</span> to confirm</label>
+            <input className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-center text-white focus:outline-none focus:border-red-500 transition-all font-black uppercase"
+              value={text} onChange={e => setText(e.target.value.toUpperCase())} placeholder="Required" />
+          </div>
+          <div className="flex gap-3">
+            <button onClick={onClose} className="flex-1 px-5 py-3 rounded-xl bg-white/5 text-slate-400 font-bold text-sm hover:bg-white/10 transition-all">Cancel</button>
+            <button onClick={() => { onConfirm(svc.id); onClose(); }} disabled={text !== 'DELETE'}
+              className="flex-1 px-5 py-3 rounded-xl bg-red-600 text-white font-black text-sm hover:bg-red-500 disabled:opacity-20 transition-all">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  // db-small: 500m CPU, 1024Mi RAM
-  const cpuLimit   = 500;
+// ── ServiceRow (database-style table row) ─────────────────────────────────────
+
+function ServiceRow({ svc, onStop, onStart, onDelete, onKeys, onLogs, onShell, loading, fmt }) {
+  const cpuLimit   = 500;   // db-small
   const memLimit   = 1024;
   const currentCpu = parseCpuToMillis(svc.metrics?.cpu);
   const currentMem = parseMemToMiB(svc.metrics?.memory);
   const cpuPct     = Math.min((currentCpu / cpuLimit) * 100, 100);
   const memPct     = Math.min((currentMem / memLimit) * 100, 100);
 
-  const podRatePaise     = svc.hourly_rate || 0;
-  const storageRatePaise = svc.storage_hourly_rate || 0;
-  const totalRatePaise   = podRatePaise + storageRatePaise;
+  const podRate     = svc.hourly_rate || 0;
+  const storageRate = svc.storage_hourly_rate || 0;
+  const totalRate   = (svc.status === 'running' ? podRate : 0) + storageRate;
+  const totalSpent  = svc.total_charged || 0;
+
+  const [showDestroy, setShowDestroy] = useState(false);
 
   return (
-    <div className="bg-[#0b1121] border border-white/8 rounded-3xl overflow-hidden shadow-lg shadow-black/30 transition-all hover:border-violet-500/20 group">
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
-        <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-all
-            ${svc.status === 'running' ? 'bg-violet-500/15 border-violet-500/30 text-violet-400' : 'bg-slate-800 border-white/5 text-slate-500'}`}>
-            <Zap size={22} className={svc.status === 'running' ? 'animate-pulse' : ''} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-white font-black text-base tracking-tight">{svc.name}</span>
-              <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${statusColor(svc.status)}`}>
-                {svc.status}
-              </span>
-            </div>
-            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
-              OpenClaw Workspace · DB Small · 5Gi Storage
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {svc.url && svc.status === 'running' && (
-            <a href={svc.url} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600/15 border border-violet-500/25 text-violet-300 text-xs font-bold hover:bg-violet-600/25 transition-all">
-              Open Workspace <ExternalLink size={12} />
-            </a>
-          )}
-          {/* Settings button */}
-          <button onClick={() => onUpdateKeys(svc)}
-            className="p-2.5 rounded-xl bg-white/5 border border-white/8 text-slate-400 hover:text-violet-300 hover:border-violet-500/25 transition-all"
-            title="Update API Keys">
-            <Settings size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* Metrics */}
-      <div className="px-6 py-5 flex flex-col gap-5">
-        {svc.status === 'running' ? (
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase"><Cpu size={10} className="text-blue-400" />CPU</div>
-                <span className="text-[10px] font-mono font-bold text-slate-300">{currentCpu}m <span className="text-slate-600">/ {cpuLimit}m</span></span>
-              </div>
-              <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                <div className="bg-blue-500 h-full rounded-full transition-all duration-1000" style={{ width: `${cpuPct}%` }} />
-              </div>
+    <>
+      <tr className="hover:bg-white/[0.02] transition-colors group">
+        {/* Name & info */}
+        <td className="px-6 py-4 whitespace-nowrap">
+          <div className="flex items-center gap-4">
+            <div className={`h-12 w-12 rounded-2xl border flex items-center justify-center shrink-0 transition-transform group-hover:scale-105
+              ${svc.status === 'running'
+                ? 'bg-violet-900/20 border-violet-500/20 text-violet-400'
+                : 'bg-slate-800/40 border-white/5 text-slate-500'}`}>
+              <Sparkles size={22} />
             </div>
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase"><Activity size={10} className="text-purple-400" />MEM</div>
-                <span className="text-[10px] font-mono font-bold text-slate-300">{currentMem}Mi <span className="text-slate-600">/ {memLimit}Mi</span></span>
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="font-bold text-white text-sm">{svc.name}</span>
+                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${sc(svc.status)}`}>{svc.status}</span>
               </div>
-              <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                <div className="bg-purple-500 h-full rounded-full transition-all duration-1000" style={{ width: `${memPct}%` }} />
-              </div>
+              <div className="text-[10px] text-slate-500 font-mono">alpine/openclaw:latest · port 18789</div>
+              {svc.url && (
+                <a href={svc.url} target="_blank" rel="noopener noreferrer"
+                  className="text-[10px] text-violet-400 hover:text-violet-300 hover:underline flex items-center gap-1 mt-0.5">
+                  {svc.url.replace('https://', '')} <ExternalLink size={8} />
+                </a>
+              )}
             </div>
           </div>
-        ) : (
-          <div className="flex items-center gap-2 bg-white/3 rounded-xl px-4 py-3 border border-white/5">
-            <HardDrive size={14} className="text-slate-500" />
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">
-              {svc.status === 'stopped' ? 'Workspace paused — 5Gi storage retained, billing continues' : 'Initialising workspace…'}
-            </span>
-          </div>
-        )}
+        </td>
 
-        {/* Billing — mirrors databases */}
-        <div className="bg-white/3 rounded-2xl border border-white/8 divide-y divide-white/5 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-2.5">
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Compute</span>
-            <span className="text-[10px] font-mono text-slate-300 font-bold">
-              {svc.status === 'running' ? `${fmt2(podRatePaise)}/hr` : <span className="text-slate-600">Stopped</span>}
-            </span>
-          </div>
-          <div className="flex items-center justify-between px-4 py-2.5">
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider flex items-center gap-1.5"><HardDrive size={9} />5Gi Storage</span>
-            <span className="text-[10px] font-mono text-violet-300 font-bold">{fmt2(storageRatePaise)}/hr</span>
-          </div>
-          <div className="flex items-center justify-between px-4 py-2.5 bg-violet-500/5">
-            <span className="text-[10px] text-violet-400/70 font-black uppercase tracking-wider">Total Spent</span>
-            <span className="text-[10px] font-mono text-violet-300 font-bold">{fmt((svc.total_charged || 0) / 100)}</span>
-          </div>
-        </div>
-
-        {/* Actions row */}
-        <div className="flex items-center gap-2">
-          {/* Logs */}
-          <button onClick={() => onShowLogs(svc)}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/5 border border-white/8 text-slate-400 text-xs font-bold hover:text-white hover:bg-white/10 transition-all">
-            <FileText size={14} />Logs
-          </button>
-
-          {/* Terminal */}
-          {svc.status === 'running' && (
-            <a href={`/terminal?appId=${svc.id}&namespace=${svc.namespace}&pod=${svc.name}`}
-              target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/5 border border-white/8 text-slate-400 text-xs font-bold hover:text-white hover:bg-white/10 transition-all">
-              <Terminal size={14} />Terminal
-            </a>
-          )}
-
-          <div className="flex-1" />
-
-          {/* Stop / Start */}
-          {svc.status === 'stopped' ? (
-            <button onClick={() => onStart(svc.id)} disabled={loading}
-              className="p-2.5 bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 rounded-xl border border-violet-500/20 transition-all"
-              title="Start Workspace">
-              {loading ? <RefreshCw size={16} className="animate-spin" /> : <Power size={16} />}
-            </button>
-          ) : (
-            <button onClick={() => onStop(svc.id)} disabled={loading || svc.status === 'deploying'}
-              className="p-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/20 transition-all disabled:opacity-30"
-              title="Stop Workspace (storage billing continues)">
-              {loading ? <RefreshCw size={16} className="animate-spin" /> : <Power size={16} />}
-            </button>
-          )}
-
-          {/* Delete */}
-          <button onClick={() => setConfirm(true)} disabled={loading}
-            className="p-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl border border-red-500/20 transition-all"
-            title="Delete Workspace (permanent)">
-            <Trash2 size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* Destroy confirm */}
-      {confirm && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0b0f1a] border border-red-500/30 rounded-[2.5rem] max-w-md w-full p-10 shadow-3xl animate-in zoom-in-95 duration-200">
-            <div className="w-16 h-16 bg-red-500/20 text-red-400 rounded-full flex items-center justify-center mx-auto mb-6"><Trash2 size={32} /></div>
-            <h3 className="text-xl font-black text-white text-center mb-2 uppercase tracking-tight">Delete Workspace</h3>
-            <p className="text-slate-400 text-center text-xs font-medium mb-8 leading-relaxed">
-              This will permanently delete your workspace and the <span className="text-red-400 font-bold">5Gi storage volume</span>. All files will be lost and storage billing stops.
-            </p>
-            <div className="space-y-4">
+        {/* Resources */}
+        <td className="px-6 py-4 whitespace-nowrap">
+          {svc.status === 'running' ? (
+            <div className="flex flex-col gap-2 min-w-[160px]">
               <div>
-                <label className="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest text-center">Type <span className="text-white">DELETE</span> to confirm</label>
-                <input className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-center text-white focus:outline-none focus:border-red-500 transition-all font-black uppercase"
-                  value={deleteText} onChange={e => setDeleteText(e.target.value.toUpperCase())} placeholder="Required" />
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase"><Cpu size={9} className="text-blue-400" />CPU</div>
+                  <span className="text-[10px] font-mono font-bold text-slate-300">{currentCpu}m <span className="text-slate-600">/ {cpuLimit}m</span></span>
+                </div>
+                <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden border border-white/5">
+                  <div className="bg-blue-500 h-full rounded-full" style={{ width: `${cpuPct}%` }} />
+                </div>
               </div>
-              <div className="flex gap-4">
-                <button onClick={() => { setConfirm(false); setDeleteText(''); }}
-                  className="flex-1 px-6 py-4 rounded-2xl bg-white/5 text-slate-400 font-black text-xs uppercase hover:bg-white/10 transition-all">Cancel</button>
-                <button onClick={() => { onDelete(svc.id); setConfirm(false); }} disabled={deleteText !== 'DELETE'}
-                  className="flex-1 px-6 py-4 rounded-2xl bg-red-600 text-white font-black text-xs uppercase hover:bg-red-500 disabled:opacity-20 transition-all">Delete</button>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase"><Activity size={9} className="text-purple-400" />MEM</div>
+                  <span className="text-[10px] font-mono font-bold text-slate-300">{currentMem}Mi <span className="text-slate-600">/ {memLimit}Mi</span></span>
+                </div>
+                <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden border border-white/5">
+                  <div className="bg-purple-500 h-full rounded-full" style={{ width: `${memPct}%` }} />
+                </div>
               </div>
             </div>
+          ) : (
+            <div className="flex items-center gap-2 text-[10px] text-slate-500">
+              <HardDrive size={12} />
+              {svc.status === 'stopped' ? '5Gi retained · storage billing active' : 'Initialising…'}
+            </div>
+          )}
+        </td>
+
+        {/* Billing */}
+        <td className="px-6 py-4 whitespace-nowrap">
+          <div className="flex flex-col px-3 py-1.5 rounded-lg border bg-violet-500/10 border-violet-500/20 w-fit">
+            <span className="text-[10px] font-bold text-violet-500/70 uppercase tracking-wider mb-0.5">DB-Small + 5Gi</span>
+            <div className="text-[9px] text-violet-400/80 font-medium mb-1">
+              {fmt2(totalRate)}/hr · ~{fmt2(totalRate * 720)}/mo
+            </div>
+            <div className="text-[9px] text-slate-500">
+              <span className="font-mono">{fmt2(storageRate)}</span> storage always
+            </div>
+            <span className="text-xs text-violet-300 font-bold mt-1">
+              {fmt(totalSpent / 100)} <span className="text-[9px] font-normal opacity-70">paid</span>
+            </span>
           </div>
-        </div>
+        </td>
+
+        {/* Created */}
+        <td className="px-6 py-4 whitespace-nowrap">
+          <span className="text-xs text-slate-500 font-mono">{getUptime(svc.created_at)}</span>
+        </td>
+
+        {/* Actions */}
+        <td className="px-6 py-4 whitespace-nowrap">
+          <div className="flex items-center gap-1.5">
+            {/* Open */}
+            {svc.url && svc.status === 'running' && (
+              <a href={svc.url} target="_blank" rel="noopener noreferrer"
+                className="p-2 rounded-lg bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 border border-violet-500/20 transition-all" title="Open Workspace">
+                <ExternalLink size={14} />
+              </a>
+            )}
+            {/* Keys */}
+            <button onClick={() => onKeys(svc)}
+              className="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-violet-300 hover:bg-violet-500/10 border border-white/5 transition-all" title="Update API Keys">
+              <Key size={14} />
+            </button>
+            {/* Shell */}
+            {svc.status === 'running' && (
+              <button onClick={() => onShell(svc)}
+                className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all" title="Shell">
+                <SquareTerminal size={14} />
+              </button>
+            )}
+            {/* Logs */}
+            <button onClick={() => onLogs(svc)}
+              className="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 border border-white/5 transition-all" title="Logs">
+              <Terminal size={14} />
+            </button>
+            {/* Stop / Start */}
+            {svc.status === 'stopped' ? (
+              <button onClick={() => onStart(svc.id)} disabled={loading}
+                className="p-2 rounded-lg bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 border border-violet-500/20 transition-all" title="Start">
+                {loading ? <RefreshCw size={14} className="animate-spin" /> : <Power size={14} />}
+              </button>
+            ) : (
+              <button onClick={() => onStop(svc.id)} disabled={loading || svc.status === 'deploying'}
+                className="p-2 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/20 transition-all disabled:opacity-30" title="Stop (storage keeps billing)">
+                {loading ? <RefreshCw size={14} className="animate-spin" /> : <Power size={14} />}
+              </button>
+            )}
+            {/* Delete */}
+            <button onClick={() => setShowDestroy(true)} disabled={loading}
+              className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-all" title="Delete Workspace">
+              <Trash2 size={14} />
+            </button>
+          </div>
+        </td>
+      </tr>
+
+      {showDestroy && (
+        <DestroyModal svc={svc} onConfirm={onDelete} onClose={() => setShowDestroy(false)} />
       )}
-    </div>
+    </>
   );
 }
 
@@ -363,57 +379,51 @@ function OpenClawWizard({ onClose, onLaunched }) {
     { id: 'anthropic', label: 'Anthropic', envKey: 'ANTHROPIC_API_KEY', placeholder: 'sk-ant-...' },
     { id: 'gemini',    label: 'Gemini',    envKey: 'GEMINI_API_KEY',    placeholder: 'AIza...' },
   ];
-  const selectedProvider = PROVIDERS.find(p => p.id === provider);
+  const sel = PROVIDERS.find(p => p.id === provider);
 
   const handleLaunch = async () => {
-    setLaunching(true);
-    setError('');
+    setLaunching(true); setError('');
     try {
       const serviceEnv = {};
-      if (llmKey)      serviceEnv[selectedProvider.envKey] = llmKey;
-      if (githubToken) serviceEnv['GITHUB_TOKEN']          = githubToken;
+      if (llmKey)      serviceEnv[sel.envKey]    = llmKey;
+      if (githubToken) serviceEnv['GITHUB_TOKEN'] = githubToken;
       await api.apps.create({ name: 'OpenClaw-WorkSpace', type: 'service', serviceEnv });
       onLaunched();
-    } catch (e) {
-      setError(e.message || 'Launch failed');
-    } finally {
-      setLaunching(false);
-    }
+    } catch (e) { setError(e.message || 'Launch failed'); }
+    finally { setLaunching(false); }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-[#0b1121] border border-violet-500/20 rounded-[2.5rem] max-w-lg w-full shadow-2xl shadow-violet-900/30 animate-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between px-8 pt-8 pb-6 border-b border-white/5">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-[#020617]/80 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="w-full max-w-lg bg-[#0f172a] border border-violet-500/20 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="flex items-center justify-between p-5 border-b border-white/5 bg-white/[0.03]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center">
-              <Sparkles size={20} className="text-violet-400" />
-            </div>
+            <div className="bg-violet-600/20 p-2.5 rounded-xl text-violet-400"><Sparkles size={18} /></div>
             <div>
-              <h2 className="text-white font-black text-lg">Launch OpenClaw</h2>
+              <h2 className="text-white font-black text-base">Launch OpenClaw</h2>
               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Step {step} of 3</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-500 hover:text-white transition-colors rounded-xl hover:bg-white/5"><X size={18} /></button>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"><X size={18} /></button>
         </div>
 
-        <div className="flex items-center gap-2 px-8 py-4">
+        <div className="flex items-center gap-2 px-5 py-3 border-b border-white/5">
           {[1, 2, 3].map(s => (
             <div key={s} className={`h-1 flex-1 rounded-full transition-all duration-300 ${s <= step ? 'bg-violet-500' : 'bg-white/10'}`} />
           ))}
         </div>
 
-        <div className="px-8 pb-8">
+        <div className="p-5">
           {step === 1 && (
-            <div className="space-y-5">
+            <div className="space-y-4">
               <div>
-                <h3 className="text-white font-black text-base mb-1">LLM Provider</h3>
-                <p className="text-xs text-slate-500 font-medium">Select your AI provider and paste the API key.</p>
+                <h3 className="text-white font-black text-sm mb-1">LLM Provider</h3>
+                <p className="text-[11px] text-slate-500">Select your AI provider and paste the API key.</p>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 {PROVIDERS.map(p => (
                   <button key={p.id} onClick={() => setProvider(p.id)}
-                    className={`p-3 rounded-2xl border text-xs font-black transition-all ${provider === p.id
+                    className={`p-3 rounded-xl border text-xs font-black transition-all ${provider === p.id
                       ? 'bg-violet-500/15 border-violet-500 text-violet-300'
                       : 'bg-white/3 border-white/10 text-slate-400 hover:border-white/25'}`}>
                     {p.label}
@@ -421,32 +431,32 @@ function OpenClawWizard({ onClose, onLaunched }) {
                 ))}
               </div>
               <div>
-                <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase tracking-wider">{selectedProvider.label} API Key</label>
-                <input type="password" value={llmKey} onChange={e => setLlmKey(e.target.value)} placeholder={selectedProvider.placeholder}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-violet-500/50 transition-all font-mono" />
+                <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase tracking-wider">{sel.label} API Key</label>
+                <input type="password" value={llmKey} onChange={e => setLlmKey(e.target.value)} placeholder={sel.placeholder}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-violet-500/50 transition-all font-mono" />
               </div>
               <button onClick={() => setStep(2)} disabled={!llmKey.trim()}
-                className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-6 py-3.5 rounded-2xl font-black text-sm transition-all disabled:opacity-30 shadow-lg shadow-violet-600/30">
+                className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-6 py-3 rounded-xl font-black text-sm transition-all disabled:opacity-30">
                 Continue <ChevronRight size={16} />
               </button>
             </div>
           )}
 
           {step === 2 && (
-            <div className="space-y-5">
+            <div className="space-y-4">
               <div>
-                <h3 className="text-white font-black text-base mb-1">GitHub Token <span className="text-slate-500 font-medium text-sm">(optional)</span></h3>
-                <p className="text-xs text-slate-500 font-medium">Allows OpenClaw to clone private repos and push code on your behalf.</p>
+                <h3 className="text-white font-black text-sm mb-1">GitHub Token <span className="text-slate-500 font-medium">(optional)</span></h3>
+                <p className="text-[11px] text-slate-500">Allows OpenClaw to clone private repos and push code on your behalf.</p>
               </div>
               <div>
                 <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase tracking-wider">GitHub PAT</label>
                 <input type="password" value={githubToken} onChange={e => setGhToken(e.target.value)} placeholder="ghp_..."
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-violet-500/50 transition-all font-mono" />
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-violet-500/50 transition-all font-mono" />
               </div>
               <div className="flex gap-3">
-                <button onClick={() => setStep(1)} className="flex-1 px-6 py-3.5 rounded-2xl bg-white/5 text-slate-400 font-black text-sm hover:bg-white/10 transition-all">Back</button>
+                <button onClick={() => setStep(1)} className="flex-1 px-6 py-3 rounded-xl bg-white/5 text-slate-400 font-bold text-sm hover:bg-white/10 transition-all">Back</button>
                 <button onClick={() => setStep(3)}
-                  className="flex-1 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-6 py-3.5 rounded-2xl font-black text-sm transition-all shadow-lg shadow-violet-600/30">
+                  className="flex-1 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-6 py-3 rounded-xl font-black text-sm transition-all">
                   {githubToken ? 'Continue' : 'Skip'} <ChevronRight size={16} />
                 </button>
               </div>
@@ -454,48 +464,34 @@ function OpenClawWizard({ onClose, onLaunched }) {
           )}
 
           {step === 3 && (
-            <div className="space-y-5">
+            <div className="space-y-4">
               <div>
-                <h3 className="text-white font-black text-base mb-1">Review & Launch</h3>
-                <p className="text-xs text-slate-500 font-medium">Wrexer will provision your workspace in seconds.</p>
+                <h3 className="text-white font-black text-sm mb-1">Review & Launch</h3>
+                <p className="text-[11px] text-slate-500">Wrexer will provision your workspace in seconds.</p>
               </div>
-              <div className="bg-white/3 rounded-2xl border border-white/8 divide-y divide-white/5 overflow-hidden">
-                <div className="flex items-center justify-between px-5 py-3">
-                  <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Image</span>
-                  <span className="text-xs text-slate-300 font-mono">alpine/openclaw:latest</span>
-                </div>
-                <div className="flex items-center justify-between px-5 py-3">
-                  <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Plan</span>
-                  <span className="text-xs text-violet-300 font-bold">DB Small (auto-selected)</span>
-                </div>
-                <div className="flex items-center justify-between px-5 py-3">
-                  <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Storage</span>
-                  <span className="text-xs text-slate-300 font-bold">5Gi persistent (billed always)</span>
-                </div>
-                <div className="flex items-center justify-between px-5 py-3">
-                  <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">LLM Provider</span>
-                  <span className="text-xs text-slate-300 font-bold flex items-center gap-1">
-                    <CheckCircle2 size={12} className="text-emerald-400" />{selectedProvider.label} key set
-                  </span>
-                </div>
-                <div className="flex items-center justify-between px-5 py-3">
-                  <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">GitHub</span>
-                  <span className={`text-xs font-bold flex items-center gap-1 ${githubToken ? 'text-slate-300' : 'text-slate-600'}`}>
-                    {githubToken ? <><CheckCircle2 size={12} className="text-emerald-400" />Token set</> : 'Skipped'}
-                  </span>
-                </div>
+              <div className="bg-white/3 rounded-xl border border-white/8 divide-y divide-white/5 overflow-hidden">
+                {[
+                  ['Image',    'alpine/openclaw:latest'],
+                  ['Plan',     'DB Small (auto-selected)'],
+                  ['Storage',  '5Gi persistent (billed always)'],
+                  ['LLM',      <><CheckCircle2 size={11} className="text-emerald-400 inline mr-1" />{sel.label} key set</>],
+                  ['GitHub',   githubToken ? <><CheckCircle2 size={11} className="text-emerald-400 inline mr-1" />Token set</> : <span className="text-slate-600">Skipped</span>],
+                ].map(([k, v]) => (
+                  <div key={k} className="flex items-center justify-between px-4 py-2.5">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{k}</span>
+                    <span className="text-[11px] text-slate-300 font-medium font-mono flex items-center">{v}</span>
+                  </div>
+                ))}
               </div>
-
               {error && (
-                <div className="flex items-center gap-2 text-red-400 text-xs bg-red-400/10 px-4 py-3 rounded-2xl border border-red-400/15">
-                  <AlertCircle size={14} />{error}
+                <div className="flex items-center gap-2 text-red-400 text-xs bg-red-500/10 px-4 py-2.5 rounded-xl border border-red-500/20">
+                  <AlertCircle size={13} />{error}
                 </div>
               )}
-
               <div className="flex gap-3">
-                <button onClick={() => setStep(2)} className="flex-1 px-6 py-3.5 rounded-2xl bg-white/5 text-slate-400 font-black text-sm hover:bg-white/10 transition-all">Back</button>
+                <button onClick={() => setStep(2)} className="flex-1 px-6 py-3 rounded-xl bg-white/5 text-slate-400 font-bold text-sm hover:bg-white/10 transition-all">Back</button>
                 <button onClick={handleLaunch} disabled={launching}
-                  className="flex-1 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-6 py-3.5 rounded-2xl font-black text-sm transition-all shadow-lg shadow-violet-600/30 disabled:opacity-50">
+                  className="flex-1 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-6 py-3 rounded-xl font-black text-sm transition-all disabled:opacity-50">
                   {launching ? <><RefreshCw size={14} className="animate-spin" />Launching…</> : <><Zap size={14} />Launch Workspace</>}
                 </button>
               </div>
@@ -515,8 +511,9 @@ export default function Services() {
   const [loading, setLoading]       = useState(true);
   const [actionId, setActionId]     = useState(null);
   const [showWizard, setShowWizard] = useState(false);
-  const [keySvc, setKeySvc]         = useState(null);  // service for Update Keys modal
-  const [logsSvc, setLogsSvc]       = useState(null);  // service for Logs modal
+  const [keySvc, setKeySvc]         = useState(null);
+  const [logsSvc, setLogsSvc]       = useState(null);
+  const [shellSvc, setShellSvc]     = useState(null);
   const [error, setError]           = useState('');
   const [launchMsg, setLaunchMsg]   = useState(null);
 
@@ -525,11 +522,8 @@ export default function Services() {
       if (!opts.bg) setLoading(true);
       const all = await api.apps.list();
       setServices(all.filter(a => a.type === 'service'));
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      if (!opts.bg) setLoading(false);
-    }
+    } catch (e) { setError(e.message); }
+    finally { if (!opts.bg) setLoading(false); }
   };
 
   useEffect(() => {
@@ -538,12 +532,11 @@ export default function Services() {
     return () => clearInterval(iv);
   }, []);
 
-  const withAction = (id, fn) => async () => {
-    setActionId(id);
-    setError('');
-    try { await fn(); await loadServices({ bg: true }); }
-    catch (e) { setError(e.message); }
-    finally { setActionId(null); }
+  const withAction = (id, fn) => {
+    setActionId(id); setError('');
+    fn().then(() => loadServices({ bg: true }))
+      .catch(e => setError(e.message))
+      .finally(() => setActionId(null));
   };
 
   const handleLaunched = () => {
@@ -553,16 +546,11 @@ export default function Services() {
     setTimeout(() => setLaunchMsg(null), 6000);
   };
 
-  const handleKeysUpdated = () => {
-    setKeySvc(null);
-    loadServices({ bg: true });
-  };
-
   const hasWorkspace = services.some(s => s.name === 'OpenClaw-WorkSpace');
 
   return (
     <div className="space-y-10">
-      {/* Page header */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-black text-white tracking-tight">Services</h2>
@@ -576,13 +564,12 @@ export default function Services() {
       </div>
 
       {error && (
-        <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl px-5 py-4 text-sm font-bold animate-in fade-in">
+        <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl px-5 py-3.5 text-sm font-bold animate-in fade-in">
           <AlertCircle size={16} />{error}
         </div>
       )}
-
       {launchMsg && (
-        <div className="flex items-center gap-3 bg-violet-500/10 border border-violet-500/20 text-violet-300 rounded-2xl px-5 py-4 text-sm font-bold animate-in fade-in slide-in-from-top-2">
+        <div className="flex items-center gap-3 bg-violet-500/10 border border-violet-500/20 text-violet-300 rounded-xl px-5 py-3.5 text-sm font-bold animate-in fade-in">
           <CheckCircle2 size={16} />{launchMsg}
         </div>
       )}
@@ -591,15 +578,13 @@ export default function Services() {
       <div>
         <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Available Services</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {/* OpenClaw card */}
-          <div className="bg-gradient-to-br from-violet-900/20 to-indigo-900/10 border border-violet-500/20 rounded-3xl p-6 flex flex-col gap-4 hover:border-violet-500/40 transition-all">
+          {/* OpenClaw */}
+          <div className="bg-gradient-to-br from-violet-900/20 to-indigo-900/10 border border-violet-500/20 rounded-2xl p-6 flex flex-col gap-4 hover:border-violet-500/40 transition-all">
             <div className="flex items-center justify-between">
               <div className="w-12 h-12 rounded-2xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center">
                 <Sparkles size={22} className="text-violet-400" />
               </div>
-              <span className="text-[9px] font-black uppercase tracking-widest text-violet-400 bg-violet-500/10 px-2.5 py-1 rounded-full border border-violet-500/20">
-                Available
-              </span>
+              <span className="text-[9px] font-black uppercase tracking-widest text-violet-400 bg-violet-500/10 px-2.5 py-1 rounded-full border border-violet-500/20">Available</span>
             </div>
             <div>
               <h4 className="text-white font-black text-base">OpenClaw Workspace</h4>
@@ -612,18 +597,16 @@ export default function Services() {
               <div className="flex items-center gap-2"><Cpu size={10} className="text-violet-400" /> DB Small plan · auto-selected</div>
               <div className="flex items-center gap-2"><Zap size={10} className="text-violet-400" /> Port 18789 · nginx sidecar</div>
             </div>
-            <button
-              onClick={() => hasWorkspace ? null : setShowWizard(true)}
-              disabled={hasWorkspace}
-              className={`mt-auto flex items-center justify-center gap-2 px-5 py-3 rounded-2xl font-black text-sm transition-all ${hasWorkspace
+            <button onClick={() => hasWorkspace ? null : setShowWizard(true)} disabled={hasWorkspace}
+              className={`mt-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-black text-sm transition-all ${hasWorkspace
                 ? 'bg-white/5 text-slate-500 cursor-not-allowed border border-white/5'
                 : 'bg-violet-600 hover:bg-violet-500 text-white shadow-lg shadow-violet-600/30'}`}>
               {hasWorkspace ? <><CheckCircle2 size={14} />Already Running</> : <><Plus size={14} />Launch</>}
             </button>
           </div>
 
-          {/* Coming-soon */}
-          <div className="bg-white/2 border border-white/5 border-dashed rounded-3xl p-6 flex flex-col items-center justify-center gap-3 text-center min-h-[220px]">
+          {/* Coming soon */}
+          <div className="bg-white/2 border border-white/5 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center gap-3 text-center min-h-[220px]">
             <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center">
               <Plus size={18} className="text-slate-600" />
             </div>
@@ -635,7 +618,7 @@ export default function Services() {
         </div>
       </div>
 
-      {/* ── Active Services ── */}
+      {/* ── Active Services table ── */}
       <div>
         <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Your Active Services</h3>
 
@@ -646,7 +629,7 @@ export default function Services() {
         )}
 
         {!loading && services.length === 0 && (
-          <div className="bg-white/2 border border-white/5 rounded-3xl py-20 flex flex-col items-center gap-4">
+          <div className="bg-white/2 border border-white/5 rounded-2xl py-20 flex flex-col items-center gap-4">
             <div className="w-16 h-16 bg-violet-500/5 rounded-full flex items-center justify-center border border-violet-500/10">
               <Sparkles size={28} className="text-violet-500/40" />
             </div>
@@ -657,31 +640,54 @@ export default function Services() {
           </div>
         )}
 
-        <div className="space-y-4">
-          {services.map(svc => (
-            <ActiveServiceCard
-              key={svc.id}
-              svc={svc}
-              fmt={fmt}
-              loading={actionId === svc.id}
-              onStop={id => withAction(id, () => api.apps.stop(id))()}
-              onStart={id => withAction(id, () => api.apps.start(id))()}
-              onDelete={id => withAction(id, () => api.apps.delete(id))()}
-              onUpdateKeys={setKeySvc}
-              onShowLogs={setLogsSvc}
-            />
-          ))}
-        </div>
+        {services.length > 0 && (
+          <div className="bg-[#0f172a] shadow-sm rounded-2xl overflow-hidden border border-white/5">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-white/5">
+                <thead className="bg-white/[0.02]">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Service</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Resources</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Billing</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Created</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 bg-[#0f172a]">
+                  {services.map(svc => (
+                    <ServiceRow
+                      key={svc.id}
+                      svc={svc}
+                      fmt={fmt}
+                      loading={actionId === svc.id}
+                      onStop={id => withAction(id, () => api.apps.stop(id))}
+                      onStart={id => withAction(id, () => api.apps.start(id))}
+                      onDelete={id => withAction(id, () => api.apps.delete(id))}
+                      onKeys={setKeySvc}
+                      onLogs={setLogsSvc}
+                      onShell={svc => setShellSvc({ id: svc.id, name: svc.name })}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Wizard */}
-      {showWizard && <OpenClawWizard onClose={() => setShowWizard(false)} onLaunched={handleLaunched} />}
-
-      {/* Update Keys modal */}
-      {keySvc && <UpdateKeysModal svc={keySvc} onClose={() => setKeySvc(null)} onUpdated={handleKeysUpdated} />}
-
-      {/* Logs modal */}
-      {logsSvc && <LogsModal svc={logsSvc} onClose={() => setLogsSvc(null)} />}
+      {/* Modals */}
+      {showWizard  && <OpenClawWizard onClose={() => setShowWizard(false)} onLaunched={handleLaunched} />}
+      {keySvc      && <UpdateKeysModal svc={keySvc} onClose={() => setKeySvc(null)} onUpdated={() => { setKeySvc(null); loadServices({ bg: true }); }} />}
+      {logsSvc     && <LogsModal svc={logsSvc} onClose={() => setLogsSvc(null)} />}
+      {shellSvc    && (
+        <ShellModal
+          socket={socket}
+          appId={shellSvc.id}
+          appName={shellSvc.name}
+          container="app"
+          onClose={() => setShellSvc(null)}
+        />
+      )}
     </div>
   );
 }
