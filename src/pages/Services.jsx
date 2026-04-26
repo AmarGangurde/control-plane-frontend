@@ -5,9 +5,23 @@ import { useCurrency } from '../context/CurrencyContext';
 import ShellModal from '../components/ShellModal';
 import {
   Zap, Power, Trash2, RefreshCw, ExternalLink, AlertCircle,
-  CheckCircle2, HardDrive, Cpu, Activity, Terminal, FileText,
-  ChevronRight, Sparkles, Plus, X, Key, Settings, SquareTerminal
+  CheckCircle2, HardDrive, Cpu, Activity, Terminal,
+  ChevronRight, Sparkles, Plus, X, Key, SquareTerminal, Link,
+  CheckCircle, XCircle
 } from 'lucide-react';
+
+const ALIAS_BLOCKLIST = new Set([
+  'www', 'api', 'admin', 'mail', 'dashboard', 'billing', 'app',
+  'wrexer', 'support', 'dev', 'staging', 'ns', 'ftp', 'smtp',
+  'cdn', 'static', 'assets', 'auth', 'login', 'signup', 'register',
+]);
+const ALIAS_REGEX = /^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$/;
+const validateAliasSlug = (s) => {
+  if (!s) return null;
+  if (!ALIAS_REGEX.test(s)) return 'Use 3–30 lowercase letters, numbers, hyphens.';
+  if (ALIAS_BLOCKLIST.has(s)) return `"${s}" is reserved.`;
+  return null;
+};
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -52,19 +66,22 @@ const sc = (s) => STATUS_MAP[s] || 'bg-slate-800 text-slate-500 border-white/5';
 // ── Logs Modal ────────────────────────────────────────────────────────────────
 
 function LogsModal({ svc, onClose }) {
-  const [logs, setLogs]       = useState('');
-  const [loading, setLoading] = useState(true);
-  const bottomRef             = useRef(null);
+  const [container, setContainer] = useState('app');
+  const [logs, setLogs]           = useState('');
+  const [loading, setLoading]     = useState(true);
+  const bottomRef                 = useRef(null);
 
-  const fetchLogs = () => {
+  const fetchLogs = (c = container) => {
     setLoading(true);
-    api.apps.logs(svc.id).then(d => {
+    api.apps.logs(svc.id, c).then(d => {
       setLogs(d.logs || '(no logs yet)');
       setLoading(false);
     }).catch(e => { setLogs(`Error: ${e.message}`); setLoading(false); });
   };
 
-  useEffect(() => { fetchLogs(); }, [svc.id]);
+  const switchContainer = (c) => { setContainer(c); fetchLogs(c); };
+
+  useEffect(() => { fetchLogs('app'); }, [svc.id]);
   useEffect(() => { bottomRef.current?.scrollIntoView(); }, [logs]);
 
   return (
@@ -77,9 +94,20 @@ function LogsModal({ svc, onClose }) {
               <h3 className="font-bold text-white text-sm">Workspace Logs</h3>
               <p className="text-[11px] text-slate-500 font-medium">{svc.name}</p>
             </div>
+            {/* Container toggle */}
+            <div className="flex items-center gap-1 ml-2 bg-white/5 border border-white/10 rounded-xl p-1">
+              <button onClick={() => switchContainer('app')}
+                className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
+                  container === 'app' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+                }`}>App</button>
+              <button onClick={() => switchContainer('proxy-sidecar')}
+                className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
+                  container === 'proxy-sidecar' ? 'bg-amber-500 text-black shadow' : 'text-slate-400 hover:text-white'
+                }`}>⇄ Proxy</button>
+            </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={fetchLogs} disabled={loading} className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors">
+            <button onClick={() => fetchLogs(container)} disabled={loading} className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors">
               <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
             </button>
             <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors">
@@ -105,6 +133,11 @@ function UpdateKeysModal({ svc, onClose, onUpdated }) {
   const [githubToken, setGhToken] = useState('');
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
+  // Alias state
+  const [aliasSlug, setAliasSlug]   = useState('');
+  const [aliasSaving, setAliasSaving] = useState(false);
+  const [aliasMsg, setAliasMsg]     = useState(null);
+  const currentAlias                = svc.alias || null;
 
   const PROVIDERS = [
     { id: 'openai',    label: 'OpenAI',    envKey: 'OPENAI_API_KEY' },
@@ -125,21 +158,45 @@ function UpdateKeysModal({ svc, onClose, onUpdated }) {
     finally { setSaving(false); }
   };
 
+  const handleSetAlias = async () => {
+    const s = aliasSlug.trim();
+    if (!s || validateAliasSlug(s)) return;
+    setAliasSaving(true); setAliasMsg(null);
+    try {
+      await api.apps.setAlias(svc.id, s);
+      setAliasSlug('');
+      setAliasMsg({ type: 'success', text: `✓ ${s}.wrexer.com is live!` });
+      onUpdated();
+    } catch (e) { setAliasMsg({ type: 'error', text: e.message }); }
+    finally { setAliasSaving(false); }
+  };
+
+  const handleRemoveAlias = async () => {
+    setAliasSaving(true); setAliasMsg(null);
+    try {
+      await api.apps.removeAlias(svc.id);
+      setAliasMsg({ type: 'success', text: 'Alias removed.' });
+      onUpdated();
+    } catch (e) { setAliasMsg({ type: 'error', text: e.message }); }
+    finally { setAliasSaving(false); }
+  };
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-[#020617]/80 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="w-full max-w-md bg-[#0f172a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="w-full max-w-lg bg-[#0f172a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
         <div className="flex items-center justify-between p-5 border-b border-white/5 bg-white/[0.03]">
           <div className="flex items-center gap-3">
             <div className="bg-violet-600/20 p-2.5 rounded-xl text-violet-400"><Key size={18} /></div>
             <div>
-              <h3 className="font-black text-white text-sm">Update API Keys</h3>
-              <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Rolling restart on save</p>
+              <h3 className="font-black text-white text-sm">Update Workspace</h3>
+              <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Keys trigger rolling restart · Alias changes are instant</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"><X size={18} /></button>
         </div>
 
         <div className="p-5 space-y-5">
+          {/* LLM Provider */}
           <div>
             <label className="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-wider">LLM Provider</label>
             <div className="grid grid-cols-3 gap-2">
@@ -165,6 +222,58 @@ function UpdateKeysModal({ svc, onClose, onUpdated }) {
               placeholder="Leave blank to keep existing"
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-violet-500/50 transition-all font-mono" />
           </div>
+
+          {/* Alias section */}
+          <div className="p-4 bg-black/20 rounded-2xl border border-white/5 space-y-3">
+            <div className="flex items-center gap-2">
+              <Link size={14} className="text-violet-400" />
+              <label className="text-[11px] font-bold text-violet-400 uppercase tracking-wider">Custom Alias</label>
+            </div>
+            {currentAlias ? (
+              <div className="flex items-center justify-between bg-violet-500/10 border border-violet-500/20 rounded-xl px-4 py-2.5">
+                <div className="flex items-center gap-2">
+                  <CheckCircle size={13} className="text-violet-400 shrink-0" />
+                  <span className="text-sm font-mono font-bold text-violet-300">{currentAlias}.wrexer.com</span>
+                </div>
+                <button onClick={handleRemoveAlias} disabled={aliasSaving}
+                  className="ml-3 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-50">
+                  {aliasSaving ? <RefreshCw size={10} className="animate-spin" /> : 'Remove'}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-stretch gap-2">
+                  <div className="flex items-center flex-1 bg-white/5 border border-white/10 rounded-xl overflow-hidden focus-within:border-violet-500/50 transition-all">
+                    <input
+                      className="flex-1 bg-transparent p-3 text-white text-sm font-mono focus:outline-none placeholder:text-slate-600"
+                      placeholder="my-workspace"
+                      value={aliasSlug}
+                      onChange={e => setAliasSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                      onKeyDown={e => e.key === 'Enter' && handleSetAlias()}
+                    />
+                    <span className="px-3 text-slate-500 text-sm font-mono shrink-0">.wrexer.com</span>
+                  </div>
+                  <button onClick={handleSetAlias} disabled={aliasSaving || !aliasSlug || !!validateAliasSlug(aliasSlug)}
+                    className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-[11px] font-black uppercase tracking-widest transition-all disabled:opacity-40 shrink-0">
+                    {aliasSaving ? <RefreshCw size={12} className="animate-spin" /> : 'Set'}
+                  </button>
+                </div>
+                {aliasSlug && validateAliasSlug(aliasSlug) && (
+                  <p className="text-[10px] text-amber-400 font-semibold px-1">{validateAliasSlug(aliasSlug)}</p>
+                )}
+                <p className="text-[10px] text-slate-600 font-medium px-1">Free · 1 per service · 3–30 chars · lowercase + hyphens</p>
+              </div>
+            )}
+            {aliasMsg && (
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold ${
+                aliasMsg.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+              }`}>
+                {aliasMsg.type === 'success' ? <CheckCircle size={12} /> : <XCircle size={12} />}
+                {aliasMsg.text}
+              </div>
+            )}
+          </div>
+
           {error && (
             <div className="flex items-center gap-2 text-red-400 text-xs bg-red-500/10 px-4 py-2.5 rounded-xl border border-red-500/20">
               <AlertCircle size={13} />{error}
@@ -291,7 +400,7 @@ function ServiceRow({ svc, onStop, onStart, onDelete, onKeys, onLogs, onShell, l
         {/* Billing */}
         <td className="px-6 py-4 whitespace-nowrap">
           <div className="flex flex-col px-3 py-1.5 rounded-lg border bg-violet-500/10 border-violet-500/20 w-fit">
-            <span className="text-[10px] font-bold text-violet-500/70 uppercase tracking-wider mb-0.5">DB-Small + 5Gi</span>
+            <span className="text-[10px] font-bold text-violet-500/70 uppercase tracking-wider mb-0.5">OpenClaw Workspace</span>
             <div className="text-[9px] text-violet-400/80 font-medium mb-1">
               {fmt2(totalRate)}/hr · ~{fmt2(totalRate * 720)}/mo
             </div>
@@ -319,15 +428,15 @@ function ServiceRow({ svc, onStop, onStart, onDelete, onKeys, onLogs, onShell, l
                 <ExternalLink size={14} />
               </a>
             )}
-            {/* Keys */}
+            {/* Update (keys + alias) */}
             <button onClick={() => onKeys(svc)}
-              className="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-violet-300 hover:bg-violet-500/10 border border-white/5 transition-all" title="Update API Keys">
-              <Key size={14} />
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 border border-violet-500/20 text-[11px] font-black uppercase tracking-wider transition-all" title="Update Keys & Alias">
+              <Key size={12} />Update
             </button>
-            {/* Shell */}
+            {/* Shell — app container only */}
             {svc.status === 'running' && (
-              <button onClick={() => onShell(svc)}
-                className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all" title="Shell">
+              <button onClick={() => onShell(svc, 'app')}
+                className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all" title="App Shell">
                 <SquareTerminal size={14} />
               </button>
             )}
@@ -665,7 +774,7 @@ export default function Services() {
                       onDelete={id => withAction(id, () => api.apps.delete(id))}
                       onKeys={setKeySvc}
                       onLogs={setLogsSvc}
-                      onShell={svc => setShellSvc({ id: svc.id, name: svc.name })}
+                      onShell={(svc, container) => setShellSvc({ id: svc.id, name: svc.name, container })}
                     />
                   ))}
                 </tbody>
@@ -684,7 +793,7 @@ export default function Services() {
           socket={socket}
           appId={shellSvc.id}
           appName={shellSvc.name}
-          container="app"
+          container={shellSvc.container || 'app'}
           onClose={() => setShellSvc(null)}
         />
       )}

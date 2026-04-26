@@ -108,7 +108,7 @@ export default function ReservedAliases() {
                 api.apps.list(),
             ]);
             setAliases(aliasRes);
-            setApps(appRes.filter(a => a.type === 'app' && a.status !== 'deleted'));
+            setApps(appRes.filter(a => (a.type === 'app' || a.type === 'service') && a.status !== 'deleted'));
         } catch (e) {
             setError(e.message);
         } finally {

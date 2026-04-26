@@ -57,7 +57,7 @@ export default function AppList() {
       if (!opts.background) setLoading(true);
       const data = await api.apps.list();
       // api.apps.list() now returns status + metrics in one call (no N+1 fan-out needed)
-      setApps(data);
+      setApps(data.filter(a => a.type !== 'service'));
     } catch (e) {
       setError(e.message);
     } finally {
@@ -828,8 +828,8 @@ export default function AppList() {
                 </p>
               </div>
 
-              {/* Alias Section — only for apps */}
-              {editView.app.type === 'app' && (
+              {/* Alias Section */}
+              {(editView.app.type === 'app' || editView.app.type === 'service') && (
                 <div className="p-4 bg-black/20 rounded-2xl border border-white/5 space-y-3">
                   <div className="flex items-center gap-2">
                     <Link size={14} className="text-violet-400" />
