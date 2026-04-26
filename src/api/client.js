@@ -67,6 +67,12 @@ export const api = {
       body: JSON.stringify(data)
     }),
     delete: (id) => apiFetch(`/apps/${id}`, { method: 'DELETE' }),
+    stop: (id) => apiFetch(`/apps/${id}/stop`, { method: 'POST' }),
+    start: (id) => apiFetch(`/apps/${id}/start`, { method: 'POST' }),
+    updateServiceKeys: (id, serviceEnv) => apiFetch(`/apps/${id}/service-keys`, {
+      method: 'PATCH',
+      body: JSON.stringify({ serviceEnv })
+    }),
     logs: (id, container) => apiFetch(`/apps/${id}/logs${container ? `?container=${encodeURIComponent(container)}` : ''}`),
     setAlias: (id, slug) => apiFetch(`/apps/${id}/alias`, {
       method: 'PUT',

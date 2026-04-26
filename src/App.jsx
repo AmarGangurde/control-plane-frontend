@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { CurrencyProvider, useCurrency } from './context/CurrencyContext';
 import Dashboard from './pages/Dashboard';
 import Databases from './pages/Databases';
+import Services from './pages/Services';
 import Billing from './pages/Billing';
 import ReservedAliases from './pages/ReservedAliases';
 import Landing from './pages/Landing';
@@ -375,6 +376,12 @@ const Layout = ({ children }) => {
                 Databases
               </NavLink>
               <NavLink
+                to="/services"
+                className={({ isActive }) => `px-4 py-2 rounded-xl text-sm font-semibold transition-all ${isActive ? 'bg-violet-500/20 text-violet-300' : 'text-violet-400/70 hover:text-violet-300 hover:bg-violet-500/10'}`}
+              >
+                Services
+              </NavLink>
+              <NavLink
                 to="/billing"
                 className={({ isActive }) => `px-4 py-2 rounded-xl text-sm font-semibold transition-all ${isActive ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
               >
@@ -467,6 +474,12 @@ export default function App() {
           <Route path="/databases" element={
             <ProtectedRoute>
               <Databases />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/services" element={
+            <ProtectedRoute>
+              <Services />
             </ProtectedRoute>
           } />
 
