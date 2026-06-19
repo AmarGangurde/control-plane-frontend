@@ -130,6 +130,7 @@ function LogsModal({ svc, onClose }) {
 function UpdateKeysModal({ svc, onClose, onUpdated }) {
   const [provider, setProvider]   = useState('openai');
   const [llmKey, setLlmKey]       = useState('');
+  const [modelName, setModelName] = useState('');
   const [githubToken, setGhToken] = useState('');
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
@@ -140,9 +141,9 @@ function UpdateKeysModal({ svc, onClose, onUpdated }) {
   const currentAlias                = svc.alias || null;
 
   const PROVIDERS = [
-    { id: 'openai',    label: 'OpenAI',    envKey: 'OPENAI_API_KEY' },
-    { id: 'anthropic', label: 'Anthropic', envKey: 'ANTHROPIC_API_KEY' },
-    { id: 'gemini',    label: 'Gemini',    envKey: 'GEMINI_API_KEY' },
+    { id: 'openai',    label: 'OpenAI',    envKey: 'OPENAI_API_KEY',    defaultModel: 'gpt-4o-mini' },
+    { id: 'anthropic', label: 'Anthropic', envKey: 'ANTHROPIC_API_KEY', defaultModel: 'claude-3-5-haiku-20241022' },
+    { id: 'gemini',    label: 'Gemini',    envKey: 'GEMINI_API_KEY',    defaultModel: 'gemini-3.1-flash-lite' },
   ];
   const sel = PROVIDERS.find(p => p.id === provider);
 
@@ -151,6 +152,7 @@ function UpdateKeysModal({ svc, onClose, onUpdated }) {
     try {
       const serviceEnv = {};
       if (llmKey)      serviceEnv[sel.envKey]    = llmKey;
+      if (modelName)   serviceEnv['LLM_MODEL']   = modelName;
       if (githubToken) serviceEnv['GITHUB_TOKEN'] = githubToken;
       await api.apps.updateServiceKeys(svc.id, serviceEnv);
       onUpdated();
@@ -214,6 +216,12 @@ function UpdateKeysModal({ svc, onClose, onUpdated }) {
             <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase tracking-wider">{sel.label} API Key</label>
             <input type="password" value={llmKey} onChange={e => setLlmKey(e.target.value)}
               placeholder="Leave blank to keep existing"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-violet-500/50 transition-all font-mono" />
+          </div>
+          <div>
+            <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase tracking-wider">Model Name <span className="lowercase font-medium">(optional)</span></label>
+            <input type="text" value={modelName} onChange={e => setModelName(e.target.value)}
+              placeholder={`Leave blank to keep existing (default: ${sel.defaultModel})`}
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-violet-500/50 transition-all font-mono" />
           </div>
           <div>
@@ -485,14 +493,15 @@ function OpenClawWizard({ onClose, onLaunched }) {
   const [step, setStep]           = useState(1);
   const [provider, setProvider]   = useState('openai');
   const [llmKey, setLlmKey]       = useState('');
+  const [modelName, setModelName] = useState('');
   const [githubToken, setGhToken] = useState('');
   const [launching, setLaunching] = useState(false);
   const [error, setError]         = useState('');
 
   const PROVIDERS = [
-    { id: 'openai',    label: 'OpenAI',    envKey: 'OPENAI_API_KEY',    placeholder: 'sk-...' },
-    { id: 'anthropic', label: 'Anthropic', envKey: 'ANTHROPIC_API_KEY', placeholder: 'sk-ant-...' },
-    { id: 'gemini',    label: 'Gemini',    envKey: 'GEMINI_API_KEY',    placeholder: 'AIza...' },
+    { id: 'openai',    label: 'OpenAI',    envKey: 'OPENAI_API_KEY',    placeholder: 'sk-...', defaultModel: 'gpt-4o-mini' },
+    { id: 'anthropic', label: 'Anthropic', envKey: 'ANTHROPIC_API_KEY', placeholder: 'sk-ant-...', defaultModel: 'claude-3-5-haiku-20241022' },
+    { id: 'gemini',    label: 'Gemini',    envKey: 'GEMINI_API_KEY',    placeholder: 'AIza...', defaultModel: 'gemini-3.1-flash-lite' },
   ];
   const sel = PROVIDERS.find(p => p.id === provider);
 
@@ -501,6 +510,7 @@ function OpenClawWizard({ onClose, onLaunched }) {
     try {
       const serviceEnv = {};
       if (llmKey)      serviceEnv[sel.envKey]    = llmKey;
+      if (modelName)   serviceEnv['LLM_MODEL']   = modelName;
       if (githubToken) serviceEnv['GITHUB_TOKEN'] = githubToken;
       await api.apps.create({ name: 'OpenClaw-WorkSpace', type: 'service', serviceEnv });
       onLaunched();
@@ -548,6 +558,11 @@ function OpenClawWizard({ onClose, onLaunched }) {
               <div>
                 <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase tracking-wider">{sel.label} API Key</label>
                 <input type="password" value={llmKey} onChange={e => setLlmKey(e.target.value)} placeholder={sel.placeholder}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-violet-500/50 transition-all font-mono" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase tracking-wider">Model Name <span className="lowercase font-medium">(optional)</span></label>
+                <input type="text" value={modelName} onChange={e => setModelName(e.target.value)} placeholder={sel.defaultModel}
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-violet-500/50 transition-all font-mono" />
               </div>
               <button onClick={() => setStep(2)} disabled={!llmKey.trim()}
