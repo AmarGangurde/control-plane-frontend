@@ -661,7 +661,8 @@ export default function Services() {
     setTimeout(() => setLaunchMsg(null), 6000);
   };
 
-  const hasWorkspace = services.some(s => s.name === 'OpenClaw-WorkSpace');
+  const workspace = services.find(s => s.name === 'OpenClaw-WorkSpace');
+  const hasWorkspace = !!workspace;
 
   return (
     <div className="space-y-10">
@@ -677,6 +678,58 @@ export default function Services() {
           <span className="text-slate-500">active</span>
         </div>
       </div>
+
+      {/* Workspace URL Card */}
+      {workspace && (
+        <div className="relative overflow-hidden bg-gradient-to-br from-violet-900/30 to-indigo-900/20 border border-violet-500/30 rounded-2xl p-6">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(124,58,237,0.15),transparent_60%)]" />
+          <div className="relative flex flex-col sm:flex-row sm:items-center gap-5">
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+              <div className="w-12 h-12 bg-violet-600/20 border border-violet-500/30 rounded-2xl flex items-center justify-center shrink-0 text-2xl">🤖</div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-black text-white text-sm">OpenClaw Workspace</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                    workspace.status === 'running' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20'
+                    : workspace.status === 'deploying' || workspace.status === 'provisioning' ? 'bg-amber-500/20 text-amber-400 border-amber-500/20 animate-pulse'
+                    : 'bg-slate-500/20 text-slate-400 border-slate-500/20'
+                  }`}>{workspace.status}</span>
+                </div>
+                {workspace.url && (
+                  <div className="flex items-center gap-2">
+                    <code className="text-[11px] text-violet-300 font-mono truncate">
+                      {workspace.url.replace('https://', '')}
+                    </code>
+                    <button
+                      onClick={() => { navigator.clipboard.writeText(workspace.url); }}
+                      className="shrink-0 p-1 rounded-md hover:bg-white/10 text-slate-500 hover:text-violet-300 transition-colors"
+                      title="Copy URL"
+                    >
+                      <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+            {workspace.status === 'running' && workspace.url ? (
+              <a
+                href={workspace.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-6 py-3 rounded-xl font-black text-sm transition-all shadow-lg shadow-violet-600/30"
+              >
+                <span>Open Chat</span>
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+              </a>
+            ) : (
+              <div className="shrink-0 flex items-center gap-2 bg-white/5 text-slate-500 px-6 py-3 rounded-xl font-black text-sm border border-white/5">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24" className="animate-spin"><path d="M12 4V2A10 10 0 002 12h2a8 8 0 018-8z"/></svg>
+                <span>Provisioning…</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl px-5 py-3.5 text-sm font-bold animate-in fade-in">
