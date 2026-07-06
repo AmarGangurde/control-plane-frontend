@@ -363,7 +363,7 @@ function ServiceRow({ svc, onStop, onStart, onDelete, onKeys, onLogs, onShell, l
                 <span className="font-bold text-white text-sm">{svc.name}</span>
                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${sc(svc.status)}`}>{svc.status}</span>
               </div>
-              <div className="text-[10px] text-slate-500 font-mono">alpine/openclaw:latest · port 18789</div>
+              <div className="text-[10px] text-slate-500 font-mono">alpine/wrexforge:latest · port 18789</div>
               {svc.url && (
                 <a href={svc.url} target="_blank" rel="noopener noreferrer"
                   className="text-[10px] text-violet-400 hover:text-violet-300 hover:underline flex items-center gap-1 mt-0.5">
@@ -414,7 +414,7 @@ function ServiceRow({ svc, onStop, onStart, onDelete, onKeys, onLogs, onShell, l
         {/* Billing */}
         <td className="px-6 py-4 whitespace-nowrap">
           <div className="flex flex-col px-3 py-1.5 rounded-lg border bg-violet-500/10 border-violet-500/20 w-fit">
-            <span className="text-[10px] font-bold text-violet-500/70 uppercase tracking-wider mb-0.5">OpenClaw Workspace</span>
+            <span className="text-[10px] font-bold text-violet-500/70 uppercase tracking-wider mb-0.5">WrexForge Workspace</span>
             <div className="text-[9px] text-violet-400/80 font-medium mb-1">
               {fmt2(totalRate)}/hr · ~{fmt2(totalRate * 720)}/mo
             </div>
@@ -487,9 +487,9 @@ function ServiceRow({ svc, onStop, onStart, onDelete, onKeys, onLogs, onShell, l
   );
 }
 
-// ── OpenClawWizard ────────────────────────────────────────────────────────────
+// ── WrexForgeWizard ────────────────────────────────────────────────────────────
 
-function OpenClawWizard({ onClose, onLaunched }) {
+function WrexForgeWizard({ onClose, onLaunched }) {
   const [step, setStep]           = useState(1);
   const [provider, setProvider]   = useState('openai');
   const [llmKey, setLlmKey]       = useState('');
@@ -512,7 +512,7 @@ function OpenClawWizard({ onClose, onLaunched }) {
       if (llmKey)      serviceEnv[sel.envKey]    = llmKey;
       if (modelName)   serviceEnv['LLM_MODEL']   = modelName;
       if (githubToken) serviceEnv['GITHUB_TOKEN'] = githubToken;
-      await api.apps.create({ name: 'OpenClaw-WorkSpace', type: 'service', serviceEnv });
+      await api.apps.create({ name: 'WrexForge-WorkSpace', type: 'service', serviceEnv });
       onLaunched();
     } catch (e) { setError(e.message || 'Launch failed'); }
     finally { setLaunching(false); }
@@ -525,7 +525,7 @@ function OpenClawWizard({ onClose, onLaunched }) {
           <div className="flex items-center gap-3">
             <div className="bg-violet-600/20 p-2.5 rounded-xl text-violet-400"><Sparkles size={18} /></div>
             <div>
-              <h2 className="text-white font-black text-base">Launch OpenClaw</h2>
+              <h2 className="text-white font-black text-base">Launch WrexForge</h2>
               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Step {step} of 3</p>
             </div>
           </div>
@@ -576,7 +576,7 @@ function OpenClawWizard({ onClose, onLaunched }) {
             <div className="space-y-4">
               <div>
                 <h3 className="text-white font-black text-sm mb-1">GitHub Token <span className="text-slate-500 font-medium">(optional)</span></h3>
-                <p className="text-[11px] text-slate-500">Allows OpenClaw to clone private repos and push code on your behalf.</p>
+                <p className="text-[11px] text-slate-500">Allows WrexForge to clone private repos and push code on your behalf.</p>
               </div>
               <div>
                 <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase tracking-wider">GitHub PAT</label>
@@ -601,7 +601,7 @@ function OpenClawWizard({ onClose, onLaunched }) {
               </div>
               <div className="bg-white/3 rounded-xl border border-white/8 divide-y divide-white/5 overflow-hidden">
                 {[
-                  ['Image',    'alpine/openclaw:latest'],
+                  ['Image',    'alpine/wrexforge:latest'],
                   ['Plan',     'DB Small (auto-selected)'],
                   ['Storage',  '5Gi persistent (billed always)'],
                   ['LLM',      <><CheckCircle2 size={11} className="text-emerald-400 inline mr-1" />{sel.label} key set</>],
@@ -671,12 +671,12 @@ export default function Services() {
 
   const handleLaunched = () => {
     setShowWizard(false);
-    setLaunchMsg('Your OpenClaw Workspace is being provisioned!');
+    setLaunchMsg('Your WrexForge Workspace is being provisioned!');
     loadServices({ bg: true });
     setTimeout(() => setLaunchMsg(null), 6000);
   };
 
-  const workspace = services.find(s => s.name === 'OpenClaw-WorkSpace');
+  const workspace = services.find(s => s.name === 'WrexForge-WorkSpace');
   const hasWorkspace = !!workspace;
 
   return (
@@ -703,7 +703,7 @@ export default function Services() {
               <div className="w-12 h-12 bg-violet-600/20 border border-violet-500/30 rounded-2xl flex items-center justify-center shrink-0 text-2xl">🤖</div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-black text-white text-sm">OpenClaw Workspace</span>
+                  <span className="font-black text-white text-sm">WrexForge Workspace</span>
                   <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
                     workspace.status === 'running' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20'
                     : workspace.status === 'deploying' || workspace.status === 'provisioning' ? 'bg-amber-500/20 text-amber-400 border-amber-500/20 animate-pulse'
@@ -761,7 +761,7 @@ export default function Services() {
       <div>
         <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Available Services</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {/* OpenClaw */}
+          {/* WrexForge */}
           <div className="bg-gradient-to-br from-violet-900/20 to-indigo-900/10 border border-violet-500/20 rounded-2xl p-6 flex flex-col gap-4 hover:border-violet-500/40 transition-all">
             <div className="flex items-center justify-between">
               <div className="w-12 h-12 rounded-2xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center">
@@ -770,7 +770,7 @@ export default function Services() {
               <span className="text-[9px] font-black uppercase tracking-widest text-violet-400 bg-violet-500/10 px-2.5 py-1 rounded-full border border-violet-500/20">Available</span>
             </div>
             <div>
-              <h4 className="text-white font-black text-base">OpenClaw Workspace</h4>
+              <h4 className="text-white font-black text-base">WrexForge Workspace</h4>
               <p className="text-xs text-slate-400 font-medium mt-1 leading-relaxed">
                 AI-powered developer workspace. Scaffold, modify and deploy apps with natural language — directly inside your namespace.
               </p>
@@ -818,7 +818,7 @@ export default function Services() {
             </div>
             <div className="text-center">
               <h4 className="text-white font-black uppercase tracking-widest text-sm">No Services Running</h4>
-              <p className="text-slate-500 text-xs font-medium italic mt-1">Launch OpenClaw above to get started.</p>
+              <p className="text-slate-500 text-xs font-medium italic mt-1">Launch WrexForge above to get started.</p>
             </div>
           </div>
         )}
@@ -859,7 +859,7 @@ export default function Services() {
       </div>
 
       {/* Modals */}
-      {showWizard  && <OpenClawWizard onClose={() => setShowWizard(false)} onLaunched={handleLaunched} />}
+      {showWizard  && <WrexForgeWizard onClose={() => setShowWizard(false)} onLaunched={handleLaunched} />}
       {keySvc      && <UpdateKeysModal svc={keySvc} onClose={() => setKeySvc(null)} onUpdated={() => { setKeySvc(null); loadServices({ bg: true }); }} />}
       {logsSvc     && <LogsModal svc={logsSvc} onClose={() => setLogsSvc(null)} />}
       {shellSvc    && (
